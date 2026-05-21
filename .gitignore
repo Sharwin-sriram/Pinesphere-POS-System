@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+
+# Ignore log files and temp files
+logs
+
+# Ignore pdf and other generated files
+*.pdf
+*.docx
+*.xlsx
+*.tmp
