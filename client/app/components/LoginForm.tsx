@@ -240,6 +240,19 @@ const LoginForm = () => {
                 </button>
               </div>
 
+              {/* OTP Login Option */}
+              <div className="text-center mb-6">
+                <motion.button
+                  type="button"
+                  onClick={() => window.location.href = '/otp-login'}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="text-blue-500 hover:text-blue-600 text-sm font-medium transition-colors"
+                >
+                  Login with OTP instead →
+                </motion.button>
+              </div>
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Email/Mobile Input */}
                 {loginType === 'email' ? (
