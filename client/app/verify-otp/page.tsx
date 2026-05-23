@@ -1,7 +1,12 @@
-'use client';
+"use client";
 
-import VerifyOTP from '../components/VerifyOTP';
+import React, { Suspense } from "react";
+import VerifyOTP from "../components/VerifyOTP";
 
 export default function VerifyOTPPage() {
-  return <VerifyOTP />;
+  return (
+    <Suspense fallback={<div />}>
+      <VerifyOTP />
+    </Suspense>
+  );
 }

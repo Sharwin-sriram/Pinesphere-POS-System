@@ -2,7 +2,13 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { FiMail, FiArrowRight, FiSmartphone, FiShield, FiClock } from "react-icons/fi";
+import {
+  FiMail,
+  FiArrowRight,
+  FiSmartphone,
+  FiShield,
+  FiClock,
+} from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import AuthCard from "./AuthCard";
@@ -42,7 +48,7 @@ const OTPLogin = () => {
 
       if (result.success) {
         setOtpSent(true);
-        
+
         // Store demo OTP if in demo mode
         if (result.data?.data?.demoOtp) {
           setDemoOtp(result.data.data.demoOtp);
@@ -52,14 +58,16 @@ const OTPLogin = () => {
           duration: 4000,
           position: "top-center",
           style: {
-            background: "linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(16, 185, 129, 0.95))",
+            background:
+              "linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(16, 185, 129, 0.95))",
             color: "white",
             borderRadius: "16px",
             backdropFilter: "blur(20px)",
             fontSize: "16px",
             fontWeight: "600",
             border: "1px solid rgba(255, 255, 255, 0.2)",
-            boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+            boxShadow:
+              "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
           },
         });
 
@@ -72,12 +80,14 @@ const OTPLogin = () => {
           duration: 4000,
           position: "top-center",
           style: {
-            background: "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
+            background:
+              "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
             color: "white",
             borderRadius: "16px",
             backdropFilter: "blur(20px)",
             border: "1px solid rgba(255, 255, 255, 0.2)",
-            boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+            boxShadow:
+              "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
           },
         });
       }
@@ -86,7 +96,8 @@ const OTPLogin = () => {
         duration: 4000,
         position: "top-center",
         style: {
-          background: "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
+          background:
+            "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
           color: "white",
           borderRadius: "16px",
           backdropFilter: "blur(20px)",
@@ -106,7 +117,7 @@ const OTPLogin = () => {
     <>
       <Toaster />
       <AuthCard
-        title="Secure OTP Login"
+        title="OTP Login"
         subtitle="Enter your mobile number to receive a verification code"
       >
         <div className="space-y-6">
@@ -115,20 +126,9 @@ const OTPLogin = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="grid grid-cols-3 gap-3 mb-6"
+            className="grid grid-cols-2 gap-3 mb-6"
           >
-            <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
-              <FiShield className="w-5 h-5 text-blue-500 mx-auto mb-1" />
-              <p className="text-xs font-medium text-blue-700">Secure</p>
-            </div>
-            <div className="text-center p-3 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
-              <FiSmartphone className="w-5 h-5 text-green-500 mx-auto mb-1" />
-              <p className="text-xs font-medium text-green-700">Fast</p>
-            </div>
-            <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100">
-              <FiClock className="w-5 h-5 text-purple-500 mx-auto mb-1" />
-              <p className="text-xs font-medium text-purple-700">1 Min</p>
-            </div>
+            {/* Feature badges removed per design request */}
           </motion.div>
 
           {/* Phone Input */}
@@ -156,7 +156,7 @@ const OTPLogin = () => {
               {/* Background decoration */}
               <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-amber-200/30 to-yellow-200/30 rounded-full -translate-y-10 translate-x-10" />
               <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-amber-200/20 to-yellow-200/20 rounded-full translate-y-8 -translate-x-8" />
-              
+
               <div className="relative">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center">
@@ -166,13 +166,13 @@ const OTPLogin = () => {
                     Demo Mode - Test OTP
                   </p>
                 </div>
-                
+
                 <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-amber-200/50">
                   <p className="text-3xl font-bold text-amber-700 tracking-[0.3em] text-center font-mono">
                     {demoOtp}
                   </p>
                 </div>
-                
+
                 <p className="text-xs text-amber-600 text-center mt-3 flex items-center justify-center gap-1">
                   <FiClock className="w-3 h-3" />
                   Valid for 1 minute
@@ -203,7 +203,7 @@ const OTPLogin = () => {
           >
             {/* Button background animation */}
             <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-            
+
             <div className="relative flex items-center justify-center">
               {isLoading ? (
                 <Loader />
@@ -259,37 +259,14 @@ const OTPLogin = () => {
           >
             {/* Button background animation */}
             <div className="absolute inset-0 bg-gradient-to-r from-slate-50/0 via-slate-100/50 to-slate-50/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-            
+
             <div className="relative flex items-center">
               <FiMail className="mr-2" />
               Login with Email
             </div>
           </motion.button>
 
-          {/* Enhanced Info Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="text-center space-y-3 pt-2"
-          >
-            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-100">
-              <p className="text-slate-600 text-sm font-medium mb-2">
-                📱 We'll send a 6-digit verification code to your mobile number
-              </p>
-              <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
-                <span className="flex items-center gap-1">
-                  <FiShield className="w-3 h-3" />
-                  Secure
-                </span>
-                <span className="flex items-center gap-1">
-                  <FiClock className="w-3 h-3" />
-                  1 minute expiry
-                </span>
-                <span>SMS charges may apply</span>
-              </div>
-            </div>
-          </motion.div>
+          {/* Enhanced info block removed per request */}
         </div>
       </AuthCard>
     </>

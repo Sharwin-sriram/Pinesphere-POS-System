@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
 
 interface OTPInputProps {
   length?: number;
@@ -16,9 +16,9 @@ const OTPInput: React.FC<OTPInputProps> = ({
   onChange,
   error,
   disabled = false,
-  autoSubmit = true
+  autoSubmit = true,
 }) => {
-  const [otp, setOtp] = useState<string[]>(new Array(length).fill(''));
+  const [otp, setOtp] = useState<string[]>(new Array(length).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -44,7 +44,7 @@ const OTPInput: React.FC<OTPInputProps> = ({
     setOtp(newOtp);
 
     // Call onChange callback
-    const otpString = newOtp.join('');
+    const otpString = newOtp.join("");
     onChange?.(otpString);
 
     // Auto-focus next input
@@ -53,39 +53,42 @@ const OTPInput: React.FC<OTPInputProps> = ({
     }
 
     // Auto-submit when complete
-    if (autoSubmit && otpString.length === length && !otpString.includes('')) {
+    if (autoSubmit && otpString.length === length && !otpString.includes("")) {
       onComplete(otpString);
     }
   };
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
     if (disabled) return;
 
     // Handle backspace
-    if (e.key === 'Backspace') {
+    if (e.key === "Backspace") {
       if (!otp[index] && index > 0) {
         // If current input is empty, focus previous input
         inputRefs.current[index - 1]?.focus();
       } else {
         // Clear current input
         const newOtp = [...otp];
-        newOtp[index] = '';
+        newOtp[index] = "";
         setOtp(newOtp);
-        onChange?.(newOtp.join(''));
+        onChange?.(newOtp.join(""));
       }
     }
 
     // Handle arrow keys
-    if (e.key === 'ArrowLeft' && index > 0) {
+    if (e.key === "ArrowLeft" && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
-    if (e.key === 'ArrowRight' && index < length - 1) {
+    if (e.key === "ArrowRight" && index < length - 1) {
       inputRefs.current[index + 1]?.focus();
     }
 
     // Handle Enter key
-    if (e.key === 'Enter') {
-      const otpString = otp.join('');
+    if (e.key === "Enter") {
+      const otpString = otp.join("");
       if (otpString.length === length) {
         onComplete(otpString);
       }
@@ -96,19 +99,19 @@ const OTPInput: React.FC<OTPInputProps> = ({
     if (disabled) return;
 
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text/plain');
-    const pastedOtp = pastedData.replace(/\D/g, '').slice(0, length);
+    const pastedData = e.clipboardData.getData("text/plain");
+    const pastedOtp = pastedData.replace(/\D/g, "").slice(0, length);
 
     if (pastedOtp.length > 0) {
-      const newOtp = new Array(length).fill('');
+      const newOtp = new Array(length).fill("");
       for (let i = 0; i < pastedOtp.length; i++) {
         newOtp[i] = pastedOtp[i];
       }
       setOtp(newOtp);
-      onChange?.(newOtp.join(''));
+      onChange?.(newOtp.join(""));
 
       // Focus the next empty input or last input
-      const nextEmptyIndex = newOtp.findIndex(val => val === '');
+      const nextEmptyIndex = newOtp.findIndex((val) => val === "");
       const focusIndex = nextEmptyIndex === -1 ? length - 1 : nextEmptyIndex;
       inputRefs.current[focusIndex]?.focus();
 
@@ -130,7 +133,9 @@ const OTPInput: React.FC<OTPInputProps> = ({
         {otp.map((digit, index) => (
           <motion.input
             key={index}
-            ref={(el) => (inputRefs.current[index] = el)}
+            ref={(el) => {
+              inputRefs.current[index] = el;
+            }}
             type="text"
             inputMode="numeric"
             maxLength={1}
@@ -145,12 +150,12 @@ const OTPInput: React.FC<OTPInputProps> = ({
             transition={{ duration: 0.2 }}
             className={`w-12 h-12 sm:w-14 sm:h-14 text-center text-lg sm:text-xl font-bold bg-white/60 backdrop-blur-sm border rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-300 ${
               error
-                ? 'border-red-400 focus:ring-red-400 bg-red-50/60 text-red-600'
+                ? "border-red-400 focus:ring-red-400 bg-red-50/60 text-red-600"
                 : digit
-                ? 'border-blue-400 bg-blue-50/60 text-blue-600'
-                : 'border-white/40 hover:border-blue-300 text-slate-700'
+                  ? "border-blue-400 bg-blue-50/60 text-blue-600"
+                  : "border-white/40 hover:border-blue-300 text-slate-700"
             } ${
-              disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/70'
+              disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-white/70"
             }`}
           />
         ))}
@@ -164,7 +169,11 @@ const OTPInput: React.FC<OTPInputProps> = ({
           className="text-red-500 text-sm text-center flex items-center justify-center"
         >
           <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+              clipRule="evenodd"
+            />
           </svg>
           {error}
         </motion.div>

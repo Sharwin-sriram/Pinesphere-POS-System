@@ -2,13 +2,20 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FiArrowLeft, FiRefreshCw, FiCheck, FiClock, FiShield, FiSmartphone } from "react-icons/fi";
+import {
+  FiArrowLeft,
+  FiRefreshCw,
+  FiCheck,
+  FiClock,
+  FiShield,
+  FiSmartphone,
+} from "react-icons/fi";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import AuthCard from "./AuthCard";
 import OTPInput from "./OTPInput";
 import Loader from "./Loader";
-import { authService } from "../lib/authService";
+import authService from "../lib/authService";
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState("");
@@ -43,7 +50,7 @@ const VerifyOTP = () => {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const handleOTPComplete = async (otpValue: string) => {
@@ -56,29 +63,35 @@ const VerifyOTP = () => {
     setError("");
 
     try {
-      const result = await authService.verifyOTP(phoneNumber, otpValue, rememberDevice);
+      const result = await authService.verifyOTP(
+        phoneNumber,
+        otpValue,
+        rememberDevice,
+      );
 
       if (result.success) {
         setIsVerified(true);
-        
+
         toast.success("🎉 OTP verified successfully!", {
           duration: 3000,
           position: "top-center",
           style: {
-            background: "linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(16, 185, 129, 0.95))",
+            background:
+              "linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(16, 185, 129, 0.95))",
             color: "white",
             borderRadius: "16px",
             backdropFilter: "blur(20px)",
             fontSize: "16px",
             fontWeight: "600",
             border: "1px solid rgba(255, 255, 255, 0.2)",
-            boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+            boxShadow:
+              "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
           },
         });
 
         // Redirect to dashboard after success
         setTimeout(() => {
-          window.location.href = "/dashboard";
+          router.push("/dashboard");
         }, 2000);
       } else {
         setError(result.error || "Invalid OTP. Please try again.");
@@ -86,7 +99,8 @@ const VerifyOTP = () => {
           duration: 4000,
           position: "top-center",
           style: {
-            background: "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
+            background:
+              "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
             color: "white",
             borderRadius: "16px",
             backdropFilter: "blur(20px)",
@@ -101,7 +115,8 @@ const VerifyOTP = () => {
         duration: 4000,
         position: "top-center",
         style: {
-          background: "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
+          background:
+            "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
           color: "white",
           borderRadius: "16px",
           backdropFilter: "blur(20px)",
@@ -123,12 +138,13 @@ const VerifyOTP = () => {
       if (result.success) {
         setCountdown(60);
         setCanResend(false);
-        
+
         toast.success("📱 New OTP sent successfully!", {
           duration: 3000,
           position: "top-center",
           style: {
-            background: "linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(16, 185, 129, 0.95))",
+            background:
+              "linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(16, 185, 129, 0.95))",
             color: "white",
             borderRadius: "16px",
             backdropFilter: "blur(20px)",
@@ -142,7 +158,8 @@ const VerifyOTP = () => {
           duration: 4000,
           position: "top-center",
           style: {
-            background: "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
+            background:
+              "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
             color: "white",
             borderRadius: "16px",
             backdropFilter: "blur(20px)",
@@ -155,7 +172,8 @@ const VerifyOTP = () => {
         duration: 4000,
         position: "top-center",
         style: {
-          background: "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
+          background:
+            "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
           color: "white",
           borderRadius: "16px",
           backdropFilter: "blur(20px)",
@@ -168,7 +186,7 @@ const VerifyOTP = () => {
   };
 
   const handleBack = () => {
-    window.location.href = "/otp-login";
+    router.push("/otp-login");
   };
 
   return (
@@ -185,11 +203,13 @@ const VerifyOTP = () => {
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center justify-center gap-4 mb-6"
           >
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-              isVerified 
-                ? "bg-green-500 text-white" 
-                : "bg-blue-100 text-blue-600"
-            }`}>
+            <div
+              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                isVerified
+                  ? "bg-green-500 text-white"
+                  : "bg-blue-100 text-blue-600"
+              }`}
+            >
               {isVerified ? (
                 <motion.div
                   initial={{ scale: 0 }}
@@ -204,10 +224,12 @@ const VerifyOTP = () => {
             </div>
             <div className="text-center">
               <p className="font-semibold text-slate-700">
-                {isVerified ? "Verification Complete!" : "Secure Verification"}
+                {isVerified ? "Verification Complete!" : "OTP Verification"}
               </p>
               <p className="text-sm text-slate-500">
-                {isVerified ? "Redirecting to dashboard..." : "Enter your OTP below"}
+                {isVerified
+                  ? "Redirecting to dashboard..."
+                  : "Enter your OTP below"}
               </p>
             </div>
           </motion.div>
@@ -234,7 +256,6 @@ const VerifyOTP = () => {
             transition={{ delay: 0.2 }}
           >
             <OTPInput
-              value={otp}
               onChange={setOtp}
               onComplete={handleOTPComplete}
               error={error}
@@ -253,7 +274,10 @@ const VerifyOTP = () => {
               <div className="flex items-center justify-center gap-2 text-slate-600">
                 <FiClock className="w-4 h-4" />
                 <span className="text-sm">
-                  Resend OTP in <span className="font-mono font-semibold text-blue-600">{formatTime(countdown)}</span>
+                  Resend OTP in{" "}
+                  <span className="font-mono font-semibold text-blue-600">
+                    {formatTime(countdown)}
+                  </span>
                 </span>
               </div>
             ) : (
@@ -293,7 +317,9 @@ const VerifyOTP = () => {
                 disabled={isVerified}
                 className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
               />
-              <span className="text-sm text-slate-600">Remember this device</span>
+              <span className="text-sm text-slate-600">
+                Remember this device
+              </span>
             </label>
           </motion.div>
 
@@ -310,37 +336,12 @@ const VerifyOTP = () => {
           >
             {/* Button background animation */}
             <div className="absolute inset-0 bg-gradient-to-r from-slate-50/0 via-slate-100/50 to-slate-50/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-            
+
             <div className="relative flex items-center">
               <FiArrowLeft className="mr-2" />
               Back to Phone Number
             </div>
           </motion.button>
-
-          {/* Security Info */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="text-center space-y-2 pt-2"
-          >
-            <div className="bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl p-4 border border-slate-100">
-              <p className="text-slate-600 text-sm font-medium mb-2">
-                🔒 Your verification code expires in 1 minute
-              </p>
-              <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
-                <span className="flex items-center gap-1">
-                  <FiShield className="w-3 h-3" />
-                  Encrypted
-                </span>
-                <span className="flex items-center gap-1">
-                  <FiClock className="w-3 h-3" />
-                  One-time use
-                </span>
-                <span>Secure login</span>
-              </div>
-            </div>
-          </motion.div>
         </div>
       </AuthCard>
     </>
