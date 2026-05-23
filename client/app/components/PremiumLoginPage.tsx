@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import {
   FiMail,
   FiLock,
-  FiUser,
   FiEye,
   FiEyeOff,
   FiCheck,
@@ -21,7 +20,6 @@ const PremiumLoginPage = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    role: "cashier",
     rememberMe: false,
   });
 
@@ -244,26 +242,7 @@ const PremiumLoginPage = () => {
                     </div>
                   </div>
 
-                  {/* Role Dropdown */}
-                  <div className="relative">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Role
-                    </label>
-                    <div className="relative">
-                      <FiUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
-                      <select
-                        name="role"
-                        value={formData.role}
-                        onChange={handleInputChange}
-                        className="w-full pl-12 pr-4 py-3 bg-white/50 backdrop-blur-sm border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-slate-800 appearance-none cursor-pointer"
-                      >
-                        <option value="super-admin">Super Admin</option>
-                        <option value="manager">Manager</option>
-                        <option value="cashier">Cashier</option>
-                        <option value="waiter">Waiter</option>
-                      </select>
-                    </div>
-                  </div>
+                  {/* Role field removed by request */}
 
                   {/* Remember Me & Forgot Password */}
                   <div className="flex items-center justify-between">

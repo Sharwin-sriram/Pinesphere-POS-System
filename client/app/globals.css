@@ -344,3 +344,20 @@ body {
 .text-shadow-lg-light {
   text-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 }
+
+/* Pointer helpers: ensure clickable elements show a pointer cursor */
+button,
+a,
+input[type="button"],
+input[type="submit"],
+.btn-light,
+.btn-secondary-light,
+[role="button"],
+.pointer {
+  cursor: pointer;
+}
+
+/* Utility to explicitly disable pointer cursor */
+.no-pointer {
+  cursor: default;
+}

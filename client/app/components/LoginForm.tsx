@@ -8,8 +8,6 @@ import {
   FiEye,
   FiEyeOff,
   FiLock,
-  FiUser,
-  FiChevronDown,
 } from "react-icons/fi";
 import { MdRestaurant } from "react-icons/md";
 import InputField from "./InputField";
@@ -23,7 +21,6 @@ const LoginForm = () => {
     email: "",
     mobile: "",
     password: "",
-    role: "cashier",
     rememberMe: false,
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -32,12 +29,6 @@ const LoginForm = () => {
 
   const { success, error, ToastContainer } = useToast();
 
-  const roles = [
-    { value: "admin", label: "Admin" },
-    { value: "manager", label: "Manager" },
-    { value: "cashier", label: "Cashier" },
-    { value: "waiter", label: "Waiter" },
-  ];
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -93,13 +84,11 @@ const LoginForm = () => {
         result = await authService.loginWithEmail(
           formData.email,
           formData.password,
-          formData.role,
         );
       } else {
         result = await authService.loginWithMobile(
           formData.mobile,
           formData.password,
-          formData.role,
         );
       }
 
@@ -320,27 +309,7 @@ const LoginForm = () => {
                   </button>
                 </div>
 
-                {/* Role Selector */}
-                <div className="relative">
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleInputChange}
-                    className="w-full bg-white/60 backdrop-blur-sm border border-white/40 rounded-2xl px-4 py-4 pl-12 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-300 appearance-none"
-                  >
-                    {roles.map((role) => (
-                      <option
-                        key={role.value}
-                        value={role.value}
-                        className="bg-white"
-                      >
-                        {role.label}
-                      </option>
-                    ))}
-                  </select>
-                  <FiUser className="absolute left-4 top-5 text-slate-500" />
-                  <FiChevronDown className="absolute right-4 top-5 text-slate-500" />
-                </div>
+                {/* Role field removed by request */}
 
                 {/* Remember Me & Forgot Password */}
                 <div className="flex items-center justify-between">
