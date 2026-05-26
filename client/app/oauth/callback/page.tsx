@@ -9,29 +9,25 @@ function CallbackContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
+    let cancelled = false;
 
-    if (!accessToken || !refreshToken) {
-      router.replace('/login');
-      return;
-    }
+    authService.completeOAuthFromQuery(searchParams).then((result) => {
+      if (cancelled) {
+        return;
+      }
 
-    localStorage.setItem('pos_token', accessToken);
-    localStorage.setItem('pos_refresh_token', refreshToken);
+      if (result.success) {
+        router.replace('/dashboard');
+        return;
+      }
 
-    authService
-      .verifyToken()
-      .then((result) => {
-        if (result.success) {
-          router.replace('/dashboard');
-        } else {
-          router.replace('/login');
-        }
-      })
-      .catch(() => {
-        router.replace('/login');
-      });
+      const message = encodeURIComponent(result.error || 'OAuth sign in failed');
+      router.replace(`/?oauth_error=${message}`);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [router, searchParams]);
 
   return (
@@ -46,14 +42,16 @@ function CallbackContent() {
 export default function OAuthCallbackPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
-      <Suspense fallback={
-        <div className="rounded-3xl border border-white/10 bg-white/5 px-8 py-10 text-center shadow-2xl backdrop-blur-xl">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
-          <h1 className="text-xl font-semibold">Loading...</h1>
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div className="rounded-3xl border border-white/10 bg-white/5 px-8 py-10 text-center shadow-2xl backdrop-blur-xl">
+            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
+            <h1 className="text-xl font-semibold">Loading...</h1>
+          </div>
+        }
+      >
         <CallbackContent />
       </Suspense>
     </main>
   );
-}
+}

@@ -39,6 +39,12 @@ const AuthPage: React.FC<AuthPageProps> = ({ defaultMode }) => {
 
   const { success, error, ToastContainer } = useToast();
 
+  const errorRef = React.useRef(error);
+  // keep ref in sync without triggering effect re-runs
+  useEffect(() => {
+    errorRef.current = error;
+  }, [error]);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -51,7 +57,18 @@ const AuthPage: React.FC<AuthPageProps> = ({ defaultMode }) => {
 
     updateFromPath();
     window.addEventListener("popstate", updateFromPath);
+
+    const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get("oauth_error");
+    if (oauthError) {
+      errorRef.current?.(decodeURIComponent(oauthError));
+      params.delete("oauth_error");
+      const nextUrl = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
+      window.history.replaceState({}, "", nextUrl);
+    }
+
     return () => window.removeEventListener("popstate", updateFromPath);
+  // run once on mount; errorRef provides stable access to the latest error fn
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

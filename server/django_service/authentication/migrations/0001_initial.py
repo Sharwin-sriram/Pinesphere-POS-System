@@ -2,7 +2,19 @@
 
 import django.db.models.deletion
 from django.conf import settings
-from django.db import migrations, models
+from django.db import connection, migrations, models
+
+
+def create_postgres_schemas(apps, schema_editor):
+    if connection.vendor == "postgresql":
+        schema_editor.execute("CREATE SCHEMA IF NOT EXISTS shared_schema")
+        schema_editor.execute("CREATE SCHEMA IF NOT EXISTS django_schema")
+
+
+def drop_postgres_schemas(apps, schema_editor):
+    if connection.vendor == "postgresql":
+        schema_editor.execute("DROP SCHEMA IF EXISTS django_schema CASCADE")
+        schema_editor.execute("DROP SCHEMA IF EXISTS shared_schema CASCADE")
 
 
 class Migration(migrations.Migration):
@@ -13,16 +25,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            sql='''
-            CREATE SCHEMA IF NOT EXISTS shared_schema;
-            CREATE SCHEMA IF NOT EXISTS django_schema;
-            ''',
-            reverse_sql='''
-            DROP SCHEMA IF EXISTS django_schema CASCADE;
-            DROP SCHEMA IF EXISTS shared_schema CASCADE;
-            ''',
-        ),
+        migrations.RunPython(create_postgres_schemas, drop_postgres_schemas),
         migrations.CreateModel(
             name='User',
             fields=[
@@ -42,7 +45,7 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True)),
             ],
             options={
-                'db_table': '"shared_schema"."users"',
+                'db_table': 'users',
                 'indexes': [models.Index(fields=['email'], name='users_email_4b85f2_idx'), models.Index(fields=['mobile'], name='users_mobile_6f2369_idx'), models.Index(fields=['role'], name='users_role_0ace22_idx'), models.Index(fields=['branch_id'], name='users_branch__41d423_idx')],
             },
         ),
@@ -59,7 +62,7 @@ class Migration(migrations.Migration):
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sessions', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'db_table': '"shared_schema"."user_sessions"',
+                'db_table': 'user_sessions',
                 'indexes': [models.Index(fields=['device_id'], name='user_sessio_device__4ac8e0_idx'), models.Index(fields=['is_active'], name='user_sessio_is_acti_1b3cb1_idx')],
             },
         ),

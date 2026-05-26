@@ -350,6 +350,37 @@ export const authService = {
     const userRole = localStorage.getItem(USER_ROLE_KEY);
     return roles.includes(userRole);
   },
+
+  completeOAuthFromQuery: async (searchParams) => {
+    const error = searchParams.get("error");
+    if (error) {
+      return {
+        success: false,
+        error: decodeURIComponent(error.replace(/\+/g, " ")),
+      };
+    }
+
+    const accessToken = searchParams.get("access_token");
+    const refreshToken = searchParams.get("refresh_token");
+
+    if (!accessToken || !refreshToken) {
+      return { success: false, error: "Missing OAuth tokens" };
+    }
+
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+
+    const verifyResult = await authService.verifyToken();
+    if (!verifyResult.success) {
+      clearSession();
+      return {
+        success: false,
+        error: verifyResult.error || "Failed to complete sign in",
+      };
+    }
+
+    return { success: true, data: verifyResult.data };
+  },
 };
 
 // Role hierarchy for permission checking
