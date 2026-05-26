@@ -63,14 +63,21 @@ ASGI_APPLICATION = "auth_service.asgi.application"
 
 # Database configuration: require PostgreSQL settings via environment variables.
 # The app will raise an error at startup if required DB vars are missing.
+# Prefer `DB_NAME`/`DB_*` variables, but accept legacy `DATABASE_NAME`/`DATABASE_*` keys
+DB_NAME = config("DB_NAME", default=None)
+if not DB_NAME:
+    DB_NAME = config("DATABASE_NAME", default=None)
+if not DB_NAME:
+    raise RuntimeError("Database not configured: set DB_NAME or DATABASE_NAME in environment")
+
 DATABASES = {
     "default": {
         "ENGINE": config("DB_ENGINE", default="django.db.backends.postgresql"),
-        "NAME": config("DB_NAME"),
-        "USER": config("DB_USER", default="postgres"),
-        "PASSWORD": config("DB_PASSWORD", default=""),
-        "HOST": config("DB_HOST", default="localhost"),
-        "PORT": config("DB_PORT", default="5432"),
+        "NAME": DB_NAME,
+        "USER": config("DB_USER", default=config("DATABASE_USER", default="postgres")),
+        "PASSWORD": config("DB_PASSWORD", default=config("DATABASE_PASSWORD", default="")),
+        "HOST": config("DB_HOST", default=config("DATABASE_HOST", default="localhost")),
+        "PORT": config("DB_PORT", default=config("DATABASE_PORT", default="5432")),
     }
 }
 

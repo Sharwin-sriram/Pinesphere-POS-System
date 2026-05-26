@@ -1,23 +1,23 @@
 type Props = {
-  title: string;
-  subtitle: string;
+ title: string;
+ subtitle: string;
 };
 
 export default function EmptyState({
-  title,
-  subtitle,
+ title,
+ subtitle,
 }: Props) {
-  return (
-    <div className="flex flex-col items-center justify-center py-20">
-      <div className="text-6xl mb-4">📦</div>
+ return (
+ <div className="flex flex-col items-center justify-center py-20">
+ <div className="text-6xl mb-4">📦</div>
 
-      <h2 className="text-2xl font-bold text-gray-800">
-        {title}
-      </h2>
+ <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">
+ {title}
+ </h2>
 
-      <p className="text-gray-500 mt-2">
-        {subtitle}
-      </p>
-    </div>
-  );
+ <p className="text-gray-500 mt-2">
+ {subtitle}
+ </p>
+ </div>
+ );
 }

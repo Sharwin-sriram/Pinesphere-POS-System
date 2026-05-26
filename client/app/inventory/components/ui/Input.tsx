@@ -1,25 +1,23 @@
-type Props = {
-  label: string;
-  placeholder?: string;
-  type?: string;
+"use client";
+
+import type { InputHTMLAttributes } from "react";
+
+type Props = InputHTMLAttributes<HTMLInputElement> & {
+  label?: string;
 };
 
-export default function Input({
-  label,
-  placeholder,
-  type = "text",
-}: Props) {
+export default function Input({ label, className = "", ...props }: Props) {
   return (
-    <div>
-      <label className="text-sm font-medium">
-        {label}
-      </label>
-
+    <label className="block">
+      {label ? (
+        <span className="mb-2 block text-[length:var(--text-sm)] font-medium text-[var(--color-text-secondary)]">
+          {label}
+        </span>
+      ) : null}
       <input
-        type={type}
-        placeholder={placeholder}
-        className="w-full border rounded-xl px-4 py-3 mt-2 outline-none focus:ring-2 focus:ring-blue-500"
+        className={`h-10 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] px-4 text-[length:var(--text-base)] text-[var(--color-text-primary)] transition duration-150 placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-border-focus)] focus:outline-none ${className}`}
+        {...props}
       />
-    </div>
+    </label>
   );
 }

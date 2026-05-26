@@ -3,15 +3,13 @@ import Navbar from "../components/Navbar";
 
 function MainLayout({ children }) {
   return (
-    <div className="flex bg-slate-100 min-h-screen">
+    <div className="flex min-h-screen bg-[var(--color-bg-primary)]">
       <Sidebar />
 
-      <div className="ml-72 flex-1">
+      <div className="ml-60 flex-1">
         <Navbar />
 
-        <div className="p-8">
-          {children}
-        </div>
+        <div className="mx-auto max-w-[1280px] p-8">{children}</div>
       </div>
     </div>
   );

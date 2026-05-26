@@ -1,135 +1,90 @@
 import {
-  FaChartLine,
-  FaFileInvoiceDollar,
-  FaUsers,
-  FaBoxes,
-  FaUserTie,
-  FaFileExport,
-  FaMoneyBillWave,
-  FaClipboardList,
-  FaReceipt,
-  FaPercent,
-} from "react-icons/fa";
-
+  LineChart,
+  LayoutDashboard,
+  FileText,
+  Users,
+  Package,
+  UserCircle,
+  FileOutput,
+  TrendingUp,
+  ClipboardList,
+  Receipt,
+  Percent,
+} from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 function Sidebar() {
   const location = useLocation();
 
   const menuClass = (path) =>
-    `w-full flex items-center gap-3 px-4 py-3 rounded-lg transition duration-300 ${
+    `flex w-full items-center gap-3 rounded-md px-4 py-2 text-[length:var(--text-base)] font-medium transition duration-150 ${
       location.pathname === path
-        ? "bg-cyan-600 text-white"
-        : "hover:bg-cyan-600 text-gray-200"
+        ? "bg-[var(--color-bg-tertiary)] font-semibold text-[var(--color-text-primary)]"
+        : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-text-primary)]"
     }`;
 
-  return (
-    <div className="w-72 h-screen bg-slate-900 text-white fixed left-0 top-0 shadow-2xl overflow-y-auto">
+  const iconProps = { size: 16, strokeWidth: 1.5 };
 
-      {/* Logo */}
-      <div className="p-6 border-b border-slate-700">
-        <h1 className="text-3xl font-bold text-cyan-400">
+  return (
+    <div
+      className="fixed left-0 top-0 h-screen w-60 overflow-y-auto border-r border-[var(--color-border)] bg-[var(--color-bg-secondary)]"
+      style={{ zIndex: "var(--z-sticky)" }}
+    >
+      <div className="border-b border-[var(--color-border)] p-6">
+        <h1 className="text-[length:var(--text-2xl)] font-semibold tracking-tight text-[var(--color-text-primary)]">
           Analytics Pro
         </h1>
-
-        <p className="text-sm text-slate-400 mt-2">
-          Reporting Dashboard
+        <p className="mt-2 text-[length:var(--text-sm)] text-[var(--color-text-secondary)]">
+          Reporting dashboard
         </p>
       </div>
 
-      {/* Navigation */}
-      <nav className="mt-6 px-4 space-y-2">
-
-        <Link
-          to="/analytics"
-          className={menuClass("/analytics")}
-        >
-          <FaChartLine size={18} />
+      <nav className="mt-6 space-y-1 px-3">
+        <Link to="/analytics" className={menuClass("/analytics")}>
+          <LineChart {...iconProps} />
           <span>Analytics</span>
         </Link>
-
-        <Link
-          to="/"
-          className={menuClass("/")}
-        >
-          <FaChartLine size={18} />
+        <Link to="/" className={menuClass("/")}>
+          <LayoutDashboard {...iconProps} />
           <span>Dashboard</span>
         </Link>
-
-        <Link
-          to="/sales-report"
-          className={menuClass("/sales-report")}
-        >
-          <FaFileInvoiceDollar size={18} />
-          <span>Sales Reports</span>
+        <Link to="/sales-report" className={menuClass("/sales-report")}>
+          <FileText {...iconProps} />
+          <span>Sales reports</span>
         </Link>
-
-        <Link
-          to="/customer-report"
-          className={menuClass("/customer-report")}
-        >
-          <FaUsers size={18} />
-          <span>Customer Reports</span>
+        <Link to="/customer-report" className={menuClass("/customer-report")}>
+          <Users {...iconProps} />
+          <span>Customer reports</span>
         </Link>
-
-        <Link
-          to="/inventory-report"
-          className={menuClass("/inventory-report")}
-        >
-          <FaBoxes size={18} />
-          <span>Inventory Reports</span>
+        <Link to="/inventory-report" className={menuClass("/inventory-report")}>
+          <Package {...iconProps} />
+          <span>Inventory reports</span>
         </Link>
-
-        <Link
-          to="/employee-report"
-          className={menuClass("/employee-report")}
-        >
-          <FaUserTie size={18} />
-          <span>Employee Reports</span>
+        <Link to="/employee-report" className={menuClass("/employee-report")}>
+          <UserCircle {...iconProps} />
+          <span>Employee reports</span>
         </Link>
-
-        <Link
-          to="/profit-analytics"
-          className={menuClass("/profit-analytics")}
-        >
-          <FaMoneyBillWave size={18} />
-          <span>Profit Analytics</span>
+        <Link to="/profit-analytics" className={menuClass("/profit-analytics")}>
+          <TrendingUp {...iconProps} />
+          <span>Profit analytics</span>
         </Link>
-
-        <Link
-          to="/order-report"
-          className={menuClass("/order-report")}
-        >
-          <FaClipboardList size={18} />
-          <span>Order Report</span>
+        <Link to="/order-report" className={menuClass("/order-report")}>
+          <ClipboardList {...iconProps} />
+          <span>Order report</span>
         </Link>
-
-        <Link
-          to="/tax-report"
-          className={menuClass("/tax-report")}
-        >
-          <FaReceipt size={18} />
-          <span>Tax Report</span>
+        <Link to="/tax-report" className={menuClass("/tax-report")}>
+          <Receipt {...iconProps} />
+          <span>Tax report</span>
         </Link>
-
-        <Link
-          to="/discount-report"
-          className={menuClass("/discount-report")}
-        >
-          <FaPercent size={18} />
-          <span>Discount Report</span>
+        <Link to="/discount-report" className={menuClass("/discount-report")}>
+          <Percent {...iconProps} />
+          <span>Discount report</span>
         </Link>
-
-        <Link
-          to="/export-report"
-          className={menuClass("/export-report")}
-        >
-          <FaFileExport size={18} />
-          <span>Export Reports</span>
+        <Link to="/export-report" className={menuClass("/export-report")}>
+          <FileOutput {...iconProps} />
+          <span>Export reports</span>
         </Link>
-
       </nav>
-
     </div>
   );
 }

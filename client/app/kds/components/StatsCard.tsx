@@ -1,25 +1,25 @@
 "use client";
 
 type Props = {
-  title: string;
-  value: string;
+ title: string;
+ value: string;
 };
 
 export default function StatsCard({
-  title,
-  value,
+ title,
+ value,
 }: Props) {
-  return (
-    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+ return (
+ <div className="bg-white p-5 rounded-2xl border border-gray-100">
 
-      <p className="text-gray-500">
-        {title}
-      </p>
+ <p className="text-gray-500">
+ {title}
+ </p>
 
-      <h1 className="text-3xl font-bold mt-2">
-        {value}
-      </h1>
+ <h1 className="text-3xl font-semibold mt-2">
+ {value}
+ </h1>
 
-    </div>
-  );
+ </div>
+ );
 }

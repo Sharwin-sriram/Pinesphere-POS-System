@@ -1,24 +1,24 @@
 import KDSSidebar from "./components/KDSSidebar";
 
 export default function KDSLayout({
-  children,
+ children,
 }: {
-  children: React.ReactNode;
+ children: React.ReactNode;
 }) {
 
-  return (
-    <div className="flex bg-[#F5F7FB]">
+ return (
+ <div className="flex bg-[#F5F7FB]">
 
-      {/* SIDEBAR */}
-      <KDSSidebar />
+ {/* SIDEBAR */}
+ <KDSSidebar />
 
-      {/* PAGE CONTENT */}
-      <div className="flex-1 p-8">
+ {/* PAGE CONTENT */}
+ <div className="flex-1 p-8">
 
-        {children}
+ {children}
 
-      </div>
+ </div>
 
-    </div>
-  );
+ </div>
+ );
 }

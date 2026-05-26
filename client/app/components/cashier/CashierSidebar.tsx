@@ -1,80 +1,79 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiGrid, FiUser, FiLogOut, FiX } from "react-icons/fi";
+import { LayoutGrid, LogOut, User, X } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface CashierSidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const menuItems: { name: string; icon: LucideIcon; path: string }[] = [
+  { name: "Bills", icon: LayoutGrid, path: "/cashier" },
+  { name: "Account", icon: User, path: "/cashier/account" },
+];
+
 export default function CashierSidebar({ isOpen, onClose }: CashierSidebarProps) {
   const pathname = usePathname();
 
-  const menuItems = [
-    { name: "Bills", icon: FiGrid, path: "/cashier" },
-    { name: "Account", icon: FiUser, path: "/cashier/account" },
-  ];
-
   return (
     <>
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-40 md:hidden transition-opacity"
-          onClick={onClose}
-        />
-      )}
+      {isOpen ? (
+        <div className="fixed inset-0 z-40 bg-[var(--color-bg-overlay)] md:hidden" onClick={onClose} />
+      ) : null}
 
-      {/* Sidebar */}
-      <aside className={`fixed top-0 left-0 h-screen w-28 flex flex-col items-center py-6 glass-light border-r border-white/50 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        
-        {/* Mobile Close Button */}
-        <button className="md:hidden absolute top-4 right-4 text-gray-500 hover:text-gray-800" onClick={onClose}>
-          <FiX size={24} />
+      <aside
+        className={`fixed left-0 top-0 z-50 flex h-screen w-16 flex-col items-center border-r border-[var(--color-border)] bg-[var(--color-bg-secondary)] py-6 transition-transform duration-150 md:translate-x-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <button
+          type="button"
+          className="absolute right-2 top-4 text-[var(--color-text-muted)] md:hidden"
+          onClick={onClose}
+          aria-label="Close menu"
+        >
+          <X className="h-5 w-5" strokeWidth={1.5} />
         </button>
 
-        {/* Logo */}
-        <div className="mb-8 font-bold gradient-text-light tracking-wider uppercase text-xs text-center px-2">
-          CASHIER
+        <div className="mb-8 px-2 text-center text-[length:var(--text-2xs)] font-medium uppercase tracking-widest text-[var(--color-text-muted)]">
+          Cashier
         </div>
 
-        {/* Menu Items */}
-        <nav className="flex-1 w-full flex flex-col gap-4 items-center overflow-y-auto custom-scrollbar-light">
+        <nav className="flex w-full flex-1 flex-col items-center gap-2 overflow-y-auto">
           {menuItems.map((item) => {
-            const isActive = pathname === item.path || (pathname.startsWith('/cashier/bill/') && item.path === '/cashier');
-            
+            const isActive =
+              pathname === item.path || (pathname.startsWith("/cashier/bill/") && item.path === "/cashier");
+            const Icon = item.icon;
             return (
-              <Link 
-                key={item.name} 
+              <Link
+                key={item.name}
                 href={item.path}
-                onClick={() => { if(window.innerWidth < 768) onClose(); }}
-                className={`relative flex flex-col items-center justify-center w-20 py-3 rounded-2xl transition-all duration-200 group ${
-                  isActive 
-                    ? "bg-gradient-to-tr from-green-500 to-emerald-400 text-white shadow-lg" 
-                    : "text-gray-500 hover:text-green-600 hover:bg-green-50/50"
+                onClick={() => {
+                  if (window.innerWidth < 768) onClose();
+                }}
+                className={`relative flex w-14 flex-col items-center justify-center rounded-md py-3 transition duration-150 ${
+                  isActive
+                    ? "bg-[var(--color-bg-tertiary)] text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-text-primary)]"
                 }`}
               >
-                <item.icon size={22} className="mb-2" />
-                <span className="text-[10px] font-semibold tracking-wider text-center">{item.name}</span>
-                
-                {isActive && (
-                  <div className="absolute left-[-16px] top-1/2 -translate-y-1/2 w-1 h-8 bg-green-500 rounded-r-full" />
-                )}
+                <Icon className="mb-1 h-5 w-5" strokeWidth={1.5} />
+                <span className="text-[10px] font-medium">{item.name}</span>
               </Link>
             );
           })}
         </nav>
 
-        {/* Logout */}
-        <div className="mt-auto pt-6 w-full flex justify-center">
-          <Link href="/dashboard" className="flex flex-col items-center justify-center w-20 py-3 text-gray-500 hover:text-red-500 hover:bg-red-50/50 rounded-2xl transition-colors">
-            <FiLogOut size={22} className="mb-2" />
-            <span className="text-[10px] font-semibold tracking-wider">Logout</span>
-          </Link>
-        </div>
+        <Link
+          href="/dashboard"
+          className="flex w-14 flex-col items-center rounded-md py-3 text-[var(--color-text-secondary)] transition duration-150 hover:bg-[var(--color-danger-subtle)] hover:text-[var(--color-danger)]"
+        >
+          <LogOut className="mb-1 h-5 w-5" strokeWidth={1.5} />
+          <span className="text-[10px] font-medium">Logout</span>
+        </Link>
       </aside>
     </>
   );

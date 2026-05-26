@@ -6,13 +6,13 @@ import AuthPage from '../components/AuthPage';
 import { authService } from '../lib/authService';
 
 export default function SignupPage() {
-  const router = useRouter();
+ const router = useRouter();
 
-  useEffect(() => {
-    if (authService.isAuthenticated()) {
-      router.push('/dashboard');
-    }
-  }, [router]);
+ useEffect(() => {
+ if (authService.isAuthenticated()) {
+ router.push('/dashboard');
+ }
+ }, [router]);
 
-  return <AuthPage defaultMode="signup" />;
+ return <AuthPage defaultMode="signup" />;
 }

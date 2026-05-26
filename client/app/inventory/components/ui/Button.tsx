@@ -13,22 +13,21 @@ export default function Button({
   variant = "primary",
   type = "button",
 }: Props) {
+  // DS: color — align inventory button with shared primary/secondary/danger tokens
   const styles = {
     primary:
-      "bg-blue-600 hover:bg-blue-700 text-white",
-
+      "bg-[var(--color-accent)] text-[var(--color-text-inverse)] hover:bg-[var(--color-accent-hover)] active:bg-[var(--color-accent-active)] border-0",
     secondary:
-      "bg-gray-200 hover:bg-gray-300 text-gray-800",
-
+      "bg-transparent text-[var(--color-text-primary)] border border-[var(--color-border)] hover:border-[var(--color-border-hover)]",
     danger:
-      "bg-red-500 hover:bg-red-600 text-white",
+      "bg-transparent text-[var(--color-danger)] border border-[var(--color-danger)] hover:bg-[var(--color-danger-subtle)]",
   };
 
   return (
     <button
       type={type}
       onClick={onClick}
-      className={`px-5 py-3 rounded-xl font-semibold transition ${styles[variant]}`}
+      className={`inline-flex h-10 items-center justify-center whitespace-nowrap rounded-md px-5 text-[length:var(--text-base)] font-semibold transition duration-150 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 ${styles[variant]}`}
     >
       {text}
     </button>

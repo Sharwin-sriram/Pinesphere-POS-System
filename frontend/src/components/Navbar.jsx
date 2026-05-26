@@ -1,66 +1,42 @@
-import { FaBell, FaSearch, FaUserCircle } from "react-icons/fa";
+import { Bell, Search, UserCircle } from "lucide-react";
 
 function Navbar() {
   return (
-    <div className="bg-white border-b border-gray-200 shadow-sm px-8 py-4 flex justify-between items-center">
-
-      {/* Left Side */}
+    <div
+      className="flex items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-bg-primary)] px-8 py-4"
+      style={{ zIndex: "var(--z-sticky)" }}
+    >
       <div>
-        <h1 className="text-3xl font-bold text-slate-800">
-          Analytics Dashboard
+        <h1 className="text-[length:var(--text-2xl)] font-semibold tracking-tight text-[var(--color-text-primary)]">
+          Analytics dashboard
         </h1>
-
-        <p className="text-gray-500">
-          Business Intelligence & Reporting System
+        <p className="text-[var(--color-text-secondary)]">
+          Business intelligence and reporting
         </p>
       </div>
 
-      {/* Right Side */}
       <div className="flex items-center gap-6">
-
-        {/* Search Box */}
         <div className="relative">
-          <FaSearch className="absolute left-3 top-3 text-gray-400" />
-
+          <Search
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-muted)]"
+            strokeWidth={1.5}
+          />
           <input
             type="text"
-            placeholder="Search reports..."
-            className="pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            placeholder="e.g. March sales summary"
+            className="h-10 w-64 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] pl-10 pr-4 text-[var(--color-text-primary)] focus:border-[var(--color-border-focus)] focus:outline-none"
           />
         </div>
 
-        {/* Notification */}
-        <button className="relative">
-          <FaBell
-            size={22}
-            className="text-slate-600 hover:text-cyan-600"
-          />
-
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full">
+        <button type="button" className="relative text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
+          <Bell size={20} strokeWidth={1.5} />
+          <span className="absolute -right-2 -top-2 rounded-sm bg-[var(--color-danger)] px-1 text-[10px] text-[var(--color-text-primary)]">
             3
           </span>
         </button>
 
-        {/* User Profile */}
-        <div className="flex items-center gap-3">
-          <FaUserCircle
-            size={38}
-            className="text-cyan-600"
-          />
-
-          <div>
-            <p className="text-sm text-gray-500">
-              Welcome
-            </p>
-
-            <h3 className="font-semibold text-slate-700">
-              Analytics Team
-            </h3>
-          </div>
-        </div>
-
+        <UserCircle size={24} strokeWidth={1.5} className="text-[var(--color-text-secondary)]" />
       </div>
-
     </div>
   );
 }

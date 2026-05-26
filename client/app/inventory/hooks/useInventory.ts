@@ -5,41 +5,41 @@ import { useEffect, useState } from "react";
 import { InventoryItem } from "../types/inventory";
 
 import {
-  getInventoryItems,
+ getInventoryItems,
 } from "../services/inventoryApi";
 
 export default function useInventory() {
-  const [items, setItems] =
-    useState<InventoryItem[]>([]);
+ const [items, setItems] =
+ useState<InventoryItem[]>([]);
 
-  const [loading, setLoading] =
-    useState(true);
+ const [loading, setLoading] =
+ useState(true);
 
-  const [error, setError] =
-    useState("");
+ const [error, setError] =
+ useState("");
 
-  useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const data =
-          await getInventoryItems();
+ useEffect(() => {
+ const fetchItems = async () => {
+ try {
+ const data =
+ await getInventoryItems();
 
-        setItems(data);
-      } catch (err) {
-        setError(
-          "Failed to fetch inventory items"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
+ setItems(data);
+ } catch (err) {
+ setError(
+ "Failed to fetch inventory items"
+ );
+ } finally {
+ setLoading(false);
+ }
+ };
 
-    fetchItems();
-  }, []);
+ fetchItems();
+ }, []);
 
-  return {
-    items,
-    loading,
-    error,
-  };
+ return {
+ items,
+ loading,
+ error,
+ };
 }

@@ -1,21 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import {
-  FiArrowLeft,
-  FiRefreshCw,
-  FiCheck,
-  FiClock,
-  FiShield,
-  FiSmartphone,
-} from "react-icons/fi";
+import { useEffect, useState } from "react";
+import { ArrowLeft, Check, Clock, RefreshCw, Shield, Smartphone } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import AuthCard from "./AuthCard";
 import OTPInput from "./OTPInput";
 import Loader from "./Loader";
 import authService from "../lib/authService";
+import { authToastError, authToastSuccess } from "./auth/authToast";
+
+const iconProps = { className: "h-4 w-4", strokeWidth: 1.5 as const };
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState("");
@@ -31,14 +26,12 @@ const VerifyOTP = () => {
   const searchParams = useSearchParams();
   const phoneNumber = searchParams.get("phone") || "";
 
-  // Countdown timer for resend OTP
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
-    } else {
-      setCanResend(true);
     }
+    setCanResend(true);
   }, [countdown]);
 
   const formatPhoneNumber = (phone: string) => {
@@ -53,295 +46,133 @@ const VerifyOTP = () => {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleOTPComplete = async (otpValue: string) => {
-    setOtp(otpValue);
-    await verifyOTP(otpValue);
-  };
-
   const verifyOTP = async (otpValue: string) => {
     setIsLoading(true);
     setError("");
-
     try {
-      const result = await authService.verifyOTP(
-        phoneNumber,
-        otpValue,
-        rememberDevice,
-      );
-
+      const result = await authService.verifyOTP(phoneNumber, otpValue, rememberDevice);
       if (result.success) {
         setIsVerified(true);
-
-        toast.success("🎉 OTP verified successfully!", {
-          duration: 3000,
-          position: "top-center",
-          style: {
-            background:
-              "linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(16, 185, 129, 0.95))",
-            color: "white",
-            borderRadius: "16px",
-            backdropFilter: "blur(20px)",
-            fontSize: "16px",
-            fontWeight: "600",
-            border: "1px solid rgba(255, 255, 255, 0.2)",
-            boxShadow:
-              "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-          },
-        });
-
-        // Redirect to dashboard after success
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 2000);
+        toast.success("OTP verified", authToastSuccess);
+        setTimeout(() => router.push("/dashboard"), 1500);
       } else {
-        setError(result.error || "Invalid OTP. Please try again.");
-        toast.error(result.error || "Invalid OTP. Please try again.", {
-          duration: 4000,
-          position: "top-center",
-          style: {
-            background:
-              "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
-            color: "white",
-            borderRadius: "16px",
-            backdropFilter: "blur(20px)",
-            border: "1px solid rgba(255, 255, 255, 0.2)",
-          },
-        });
+        setError(result.error || "Invalid code. Check the message and try again");
+        toast.error(result.error || "Invalid code", authToastError);
       }
-    } catch (err) {
-      const errorMessage = "Verification failed. Please try again.";
-      setError(errorMessage);
-      toast.error(errorMessage, {
-        duration: 4000,
-        position: "top-center",
-        style: {
-          background:
-            "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
-          color: "white",
-          borderRadius: "16px",
-          backdropFilter: "blur(20px)",
-          border: "1px solid rgba(255, 255, 255, 0.2)",
-        },
-      });
+    } catch {
+      const message = "Verification failed. Try again in a moment";
+      setError(message);
+      toast.error(message, authToastError);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleOTPComplete = async (otpValue: string) => {
+    setOtp(otpValue);
+    await verifyOTP(otpValue);
+  };
+
   const handleResendOTP = async () => {
     setIsResending(true);
     setError("");
-
     try {
       const result = await authService.sendOTP(phoneNumber);
-
       if (result.success) {
         setCountdown(60);
         setCanResend(false);
-
-        toast.success("📱 New OTP sent successfully!", {
-          duration: 3000,
-          position: "top-center",
-          style: {
-            background:
-              "linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(16, 185, 129, 0.95))",
-            color: "white",
-            borderRadius: "16px",
-            backdropFilter: "blur(20px)",
-            fontSize: "16px",
-            fontWeight: "600",
-            border: "1px solid rgba(255, 255, 255, 0.2)",
-          },
-        });
+        toast.success("New code sent", authToastSuccess);
       } else {
-        toast.error(result.error || "Failed to resend OTP", {
-          duration: 4000,
-          position: "top-center",
-          style: {
-            background:
-              "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
-            color: "white",
-            borderRadius: "16px",
-            backdropFilter: "blur(20px)",
-            border: "1px solid rgba(255, 255, 255, 0.2)",
-          },
-        });
+        toast.error(result.error || "Could not resend code", authToastError);
       }
-    } catch (err) {
-      toast.error("Failed to resend OTP. Please try again.", {
-        duration: 4000,
-        position: "top-center",
-        style: {
-          background:
-            "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))",
-          color: "white",
-          borderRadius: "16px",
-          backdropFilter: "blur(20px)",
-          border: "1px solid rgba(255, 255, 255, 0.2)",
-        },
-      });
+    } catch {
+      toast.error("Could not resend code", authToastError);
     } finally {
       setIsResending(false);
     }
-  };
-
-  const handleBack = () => {
-    router.push("/otp-login");
   };
 
   return (
     <>
       <Toaster />
       <AuthCard
-        title="Verify OTP"
+        title="Verify code"
         subtitle={`Enter the 6-digit code sent to +91 ${formatPhoneNumber(phoneNumber)}`}
       >
-        <div className="space-y-6">
-          {/* Status Indicator */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-center gap-4 mb-6"
-          >
+        <div className="space-y-5">
+          <div className="flex items-center justify-center gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] p-4">
             <div
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+              className={`flex h-10 w-10 items-center justify-center rounded-md ${
                 isVerified
-                  ? "bg-green-500 text-white"
-                  : "bg-blue-100 text-blue-600"
+                  ? "bg-[var(--color-success-subtle)] text-[var(--color-success)]"
+                  : "bg-[var(--color-bg-secondary)] text-[var(--color-blue)]"
               }`}
             >
-              {isVerified ? (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <FiCheck className="w-6 h-6" />
-                </motion.div>
-              ) : (
-                <FiShield className="w-6 h-6" />
-              )}
+              {isVerified ? <Check className="h-5 w-5" strokeWidth={1.5} /> : <Shield className="h-5 w-5" strokeWidth={1.5} />}
             </div>
-            <div className="text-center">
-              <p className="font-semibold text-slate-700">
-                {isVerified ? "Verification Complete!" : "OTP Verification"}
+            <div>
+              <p className="text-[length:var(--text-base)] font-semibold text-[var(--color-text-primary)]">
+                {isVerified ? "Verification complete" : "Enter your code"}
               </p>
-              <p className="text-sm text-slate-500">
-                {isVerified
-                  ? "Redirecting to dashboard..."
-                  : "Enter your OTP below"}
+              <p className="text-[length:var(--text-sm)] text-[var(--color-text-secondary)]">
+                {isVerified ? "Redirecting to dashboard" : "Code expires in a few minutes"}
               </p>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Phone Number Display */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-100"
-          >
-            <div className="flex items-center justify-center gap-3">
-              <FiSmartphone className="w-5 h-5 text-blue-600" />
-              <span className="font-mono text-lg font-semibold text-blue-700">
-                +91 {formatPhoneNumber(phoneNumber)}
-              </span>
-            </div>
-          </motion.div>
+          <div className="flex items-center justify-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] px-4 py-3">
+            <Smartphone className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
+            <span className="font-mono text-[length:var(--text-base)] font-medium text-[var(--color-text-primary)]">
+              +91 {formatPhoneNumber(phoneNumber)}
+            </span>
+          </div>
 
-          {/* OTP Input */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <OTPInput
-              onChange={setOtp}
-              onComplete={handleOTPComplete}
-              error={error}
-              disabled={isLoading || isVerified}
-            />
-          </motion.div>
+          <OTPInput onChange={setOtp} onComplete={handleOTPComplete} error={error} disabled={isLoading || isVerified} />
 
-          {/* Timer and Resend */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-center space-y-3"
-          >
+          <div className="text-center">
             {!canResend ? (
-              <div className="flex items-center justify-center gap-2 text-slate-600">
-                <FiClock className="w-4 h-4" />
-                <span className="text-sm">
-                  Resend OTP in{" "}
-                  <span className="font-mono font-semibold text-blue-600">
-                    {formatTime(countdown)}
-                  </span>
-                </span>
-              </div>
+              <p className="flex items-center justify-center gap-2 text-[length:var(--text-sm)] text-[var(--color-text-secondary)]">
+                <Clock {...iconProps} />
+                Resend code in{" "}
+                <span className="font-mono font-semibold text-[var(--color-text-primary)]">{formatTime(countdown)}</span>
+              </p>
             ) : (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
+              <button
+                type="button"
                 onClick={handleResendOTP}
                 disabled={isResending || isVerified}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold hover:from-orange-600 hover:to-red-600 focus:outline-none focus:ring-4 focus:ring-orange-400/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[var(--color-border)] px-5 text-[length:var(--text-sm)] font-medium text-[var(--color-text-primary)] transition duration-150 hover:border-[var(--color-border-hover)] disabled:opacity-40"
               >
-                {isResending ? (
-                  <Loader />
-                ) : (
+                {isResending ? <Loader /> : (
                   <>
-                    <FiRefreshCw className="w-4 h-4" />
-                    Resend OTP
+                    <RefreshCw {...iconProps} />
+                    Resend code
                   </>
                 )}
-              </motion.button>
+              </button>
             )}
-          </motion.div>
+          </div>
 
-          {/* Remember Device */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="flex items-center justify-center gap-3"
-          >
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={rememberDevice}
-                onChange={(e) => setRememberDevice(e.target.checked)}
-                disabled={isVerified}
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-              />
-              <span className="text-sm text-slate-600">
-                Remember this device
-              </span>
-            </label>
-          </motion.div>
+          <label className="flex cursor-pointer items-center justify-center gap-2 text-[length:var(--text-sm)] text-[var(--color-text-secondary)]">
+            <input
+              type="checkbox"
+              checked={rememberDevice}
+              onChange={(e) => setRememberDevice(e.target.checked)}
+              disabled={isVerified}
+              className="h-4 w-4 rounded-sm border border-[var(--color-border)] accent-[var(--color-accent)]"
+            />
+            Remember this device
+          </label>
 
-          {/* Back Button */}
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            onClick={handleBack}
+          <button
+            type="button"
+            onClick={() => router.push("/otp-login")}
             disabled={isLoading || isVerified}
-            whileHover={{ scale: 1.02, x: -2 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full bg-white/90 backdrop-blur-sm text-slate-700 py-4 px-6 rounded-2xl font-semibold hover:bg-white focus:outline-none focus:ring-4 focus:ring-slate-400/30 transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg border border-slate-200/50 group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[var(--color-border)] text-[var(--color-text-primary)] transition duration-150 hover:border-[var(--color-border-hover)] disabled:opacity-40"
           >
-            {/* Button background animation */}
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-50/0 via-slate-100/50 to-slate-50/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-
-            <div className="relative flex items-center">
-              <FiArrowLeft className="mr-2" />
-              Back to Phone Number
-            </div>
-          </motion.button>
+            <ArrowLeft {...iconProps} />
+            Back to phone number
+          </button>
         </div>
       </AuthCard>
     </>

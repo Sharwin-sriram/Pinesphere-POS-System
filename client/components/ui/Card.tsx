@@ -3,11 +3,23 @@ import React from 'react'
 type Props = {
   children: React.ReactNode
   className?: string
+  interactive?: boolean
 }
 
-export default function Card({children, className = ''}: Props) {
+export default function Card({ children, className = '', interactive = false }: Props) {
+  // DS: shadow — border only; DS: radius — lg (12px)
   return (
-    <div className={`bg-slate-950/95 ring-1 ring-white/10 border border-white/10 backdrop-blur-3xl rounded-[32px] p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.8)] ${className}`}>
+    <div
+      className={[
+        'rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-6',
+        interactive
+          ? 'cursor-pointer transition duration-150 hover:border-[var(--color-border-hover)] active:border-[var(--color-border-focus)]'
+          : '',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       {children}
     </div>
   )

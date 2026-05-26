@@ -1,55 +1,55 @@
 import axios from "axios";
 
 const BASE_URL =
-  "http://localhost:5000/api/orders";
+ "http://localhost:5000/api/orders";
 
 // GET ALL ORDERS
 export const getOrders = async () => {
 
-  try {
+ try {
 
-    const response =
-      await axios.get(BASE_URL);
+ const response =
+ await axios.get(BASE_URL);
 
-    return response.data;
+ return response.data;
 
-  } catch (error) {
+ } catch (error) {
 
-    console.log(
-      "Backend not connected yet"
-    );
+ console.log(
+ "Backend not connected yet"
+ );
 
-    return [];
+ return [];
 
-  }
+ }
 
 };
 
 // UPDATE ORDER STATUS
 export const updateOrderStatusAPI =
-  async (
-    orderId: string,
-    status: string
-  ) => {
+ async (
+ orderId: string,
+ status: string
+ ) => {
 
-    try {
+ try {
 
-      const response =
-        await axios.put(
-          `${BASE_URL}/${orderId}`,
-          {
-            status,
-          }
-        );
+ const response =
+ await axios.put(
+ `${BASE_URL}/${orderId}`,
+ {
+ status,
+ }
+ );
 
-      return response.data;
+ return response.data;
 
-    } catch (error) {
+ } catch (error) {
 
-      console.log(
-        "Backend update unavailable"
-      );
+ console.log(
+ "Backend update unavailable"
+ );
 
-    }
+ }
 
-  };
+ };
