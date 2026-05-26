@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="item2-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7c2d12;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3f1f0d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1f0908;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#item2-grad)"/>
+  <g opacity="0.3">
+    <rect x="200" y="250" width="180" height="280" fill="#d97706" opacity="0.15" stroke="#d97706" stroke-width="2" rx="12"/>
+    <path d="M 250 280 L 320 350 L 280 380" fill="#d97706" opacity="0.3"/>
+    <circle cx="290" cy="250" r="18" fill="#f59e0b" opacity="0.4"/>
+  </g>
+  <g opacity="0.25">
+    <rect x="900" y="220" width="160" height="320" fill="#d97706" opacity="0.12" stroke="#f59e0b" stroke-width="2" rx="10"/>
+    <path d="M 950 260 L 1000 330 L 960 370" fill="#d97706" opacity="0.2"/>
+  </g>
+  <g opacity="0.15" stroke="#d97706" stroke-width="2" stroke-linecap="round">
+    <path d="M 500 400 Q 550 420 600 400"/>
+    <path d="M 700 500 Q 750 480 800 500"/>
+  </g>
+  <text x="600" y="700" font-family="Inter, Arial" font-size="44" font-weight="bold" fill="#fed7aa" text-anchor="middle">Popular Items</text>
+</svg>

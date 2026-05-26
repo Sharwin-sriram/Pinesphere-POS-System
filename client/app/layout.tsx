@@ -1,10 +1,11 @@
-"use client";
-
+import type { Metadata } from "next";
 import "./globals.css";
+import { Providers } from "./Providers";
 
-import Sidebar from "./components/Sidebar";
-
-import { useEffect, useState } from "react";
+export const metadata: Metadata = {
+  title: "Pinesphere POS",
+  description: "Restaurant Management System",
+};
 
 export default function RootLayout({
   children,
@@ -26,55 +27,17 @@ export default function RootLayout({
 
 
   return (
-    <html lang="en">
-
-      <body
-        style={{
-          backgroundColor:
-            theme === "dark"
-              ? "#111827"
-              : "#f3f4f6",
-
-          color:
-            theme === "dark"
-              ? "white"
-              : "#111827",
-        }}
-      >
-
-        <div className="flex min-h-screen">
-
-          {/* SIDEBAR */}
-
-          <Sidebar />
 
 
-          {/* PAGE */}
-
-          <main
-            style={{
-              flex: 1,
-
-              backgroundColor:
-                theme === "dark"
-                  ? "#111827"
-                  : "#f3f4f6",
-
-              color:
-                theme === "dark"
-                  ? "white"
-                  : "#111827",
-            }}
-          >
-
-            {children}
-
-          </main>
-
-        </div>
-
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">
+        <Providers>
+          {children}
+        </Providers>
       </body>
-
     </html>
   );
 }

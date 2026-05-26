@@ -1,10 +1,8 @@
-import BranchPage from "./branches/page";
+
+'use client';
+
+import Login from './components/LoginForm';
 
 export default function Home() {
-
-  return (
-    <div>
-      <BranchPage />
-    </div>
-  );
+  return <Login />;
 }

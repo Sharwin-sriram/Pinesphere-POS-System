@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="tacos-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#9333ea;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#6d28d9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#tacos-grad)"/>
+  <g opacity="0.3">
+    <polygon points="350,280 380,420 320,420" fill="#c4b5fd" opacity="0.25"/>
+    <polygon points="400,300 440,430 360,430" fill="#c4b5fd" opacity="0.25"/>
+    <polygon points="750,270 800,420 700,420" fill="#a78bfa" opacity="0.2"/>
+    <polygon points="850,300 910,430 790,430" fill="#a78bfa" opacity="0.2"/>
+  </g>
+  <g opacity="0.2" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round">
+    <path d="M 300 500 Q 400 480 500 500"/>
+    <path d="M 750 500 Q 850 480 950 500"/>
+  </g>
+  <text x="600" y="700" font-family="Inter, Arial" font-size="44" font-weight="bold" fill="#e9d5ff" text-anchor="middle">Crispy Shrimp Tacos</text>
+</svg>

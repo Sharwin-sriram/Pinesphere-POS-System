@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="combo3-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#831843;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#500724;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1f0933;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#combo3-grad)"/>
+  <g opacity="0.25">
+    <polygon points="600,200 750,400 450,400" fill="#ec4899" opacity="0.2"/>
+    <circle cx="600" cy="250" r="40" fill="#ec4899" opacity="0.25"/>
+  </g>
+  <g opacity="0.3">
+    <polygon points="250,450 350,650 150,650" fill="#f472b6" opacity="0.15"/>
+    <polygon points="1000,450 1100,650 900,650" fill="#f472b6" opacity="0.15"/>
+  </g>
+  <g opacity="0.2" stroke="#ec4899" stroke-width="2" stroke-dasharray="6,4">
+    <path d="M 200 300 Q 400 250 600 280"/>
+    <path d="M 600 280 Q 800 250 1000 300"/>
+  </g>
+  <text x="600" y="700" font-family="Inter, Arial" font-size="44" font-weight="bold" fill="#fbcfe8" text-anchor="middle">Special Promo</text>
+</svg>
