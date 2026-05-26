@@ -3,25 +3,22 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiHome, FiGrid, FiUsers, FiBox, FiPieChart, FiShoppingBag, FiCalendar, FiLogOut, FiX, FiBriefcase } from "react-icons/fi";
+import { FiHome, FiUsers, FiBriefcase, FiShield, FiSettings, FiLogOut, FiX } from "react-icons/fi";
 
-interface AdminSidebarProps {
+interface SuperAdminSidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
+export default function SuperAdminSidebar({ isOpen, onClose }: SuperAdminSidebarProps) {
   const pathname = usePathname();
 
   const menuItems = [
-    { name: "Dashboard", icon: FiHome, path: "/restaurant-admin" },
-    { name: "Menu", icon: FiGrid, path: "/restaurant-admin/menu" },
-    { name: "Staff", icon: FiUsers, path: "/restaurant-admin/staff" },
-    { name: "Inventory", icon: FiBox, path: "/restaurant-admin/inventory" },
-    { name: "Reports", icon: FiPieChart, path: "/restaurant-admin/reports" },
-    { name: "Order/Table", icon: FiShoppingBag, path: "/restaurant-admin/orders" },
-    { name: "Reservation", icon: FiCalendar, path: "/restaurant-admin/reservation" },
-    { name: "Franchise", icon: FiBriefcase, path: "/restaurant-admin/franchise" },
+    { name: "Dashboard", icon: FiHome, path: "/super-admin" },
+    { name: "Users", icon: FiUsers, path: "/super-admin/users" },
+    { name: "Restaurants", icon: FiBriefcase, path: "/super-admin/restaurants" },
+    { name: "Staff", icon: FiShield, path: "/super-admin/staff" },
+    { name: "Settings", icon: FiSettings, path: "/super-admin/settings" },
   ];
 
   return (
@@ -29,7 +26,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       {/* Mobile Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/60 z-40 lg:hidden transition-opacity"
+          className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-40 lg:hidden transition-opacity"
           onClick={onClose}
         />
       )}
@@ -43,8 +40,8 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         </button>
 
         {/* Logo */}
-        <div className="mb-8 font-bold gradient-text-light tracking-wider uppercase text-sm">
-          COSYPOS
+        <div className="mb-8 font-bold gradient-text-light tracking-wider uppercase text-xs text-center px-2">
+          SUPER ADMIN
         </div>
 
         {/* Menu Items */}
@@ -65,7 +62,6 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 <item.icon size={22} className="mb-2" />
                 <span className="text-[10px] font-semibold tracking-wider text-center">{item.name}</span>
                 
-                {/* Active Indicator line on the left (Optional for extra styling) */}
                 {isActive && (
                   <div className="absolute left-[-16px] top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-500 rounded-r-full" />
                 )}
