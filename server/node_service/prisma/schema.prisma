@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model Order {
+  id            Int           @id
+  userId        Int
+  customerName  String
+  items         Json
+  channel       String?
+  notifications Notification[] @relation("OrderNotifications")
+  bills         Bill[]         @relation("OrderBills")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  channel   String
+  message   String
+  status    String
+  createdAt DateTime @default(now())
+
+  // Relation back to Order
+  order     Order?   @relation("OrderNotifications", fields: [orderId], references: [id])
+  orderId   Int?
+}
+
+model Menu {
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Int
+  available Boolean  @default(true)
+}
+
+model Bill {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  amount    Int
+  status    String
+  createdAt DateTime @default(now())
+
+  // Relation back to Order
+  order     Order    @relation("OrderBills", fields: [orderId], references: [id])
+}
+
+model Analytics {
+  id          Int      @id @default(autoincrement())
+  type        String
+  referenceId Int
+  amount      Int?
+  createdAt   DateTime @default(now())
+}
