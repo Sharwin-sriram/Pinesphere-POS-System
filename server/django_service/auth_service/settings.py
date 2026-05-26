@@ -23,6 +23,8 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "authentication",
+    "apps.shared",
+    "apps.django_schema",
 ]
 
 MIDDLEWARE = [

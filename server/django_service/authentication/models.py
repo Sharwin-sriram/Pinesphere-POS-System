@@ -54,6 +54,8 @@ class User(AbstractBaseUser):
     id = models.AutoField(primary_key=True)
     email = models.EmailField(unique=True, null=True, blank=True, db_index=True)
     mobile = models.CharField(max_length=20, unique=True, db_index=True)
+    # store hashed password in column named `password_hash` to match DB map
+    password = models.CharField(max_length=128, db_column="password_hash")
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     role = models.CharField(max_length=32, choices=RoleChoices.choices, db_index=True)
