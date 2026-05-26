@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="family-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f766e;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0d3728;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0a2e1f;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#family-grad)"/>
+  <g opacity="0.3">
+    <rect x="200" y="220" width="120" height="280" fill="#14b8a6" opacity="0.12" stroke="#14b8a6" stroke-width="2" rx="10"/>
+    <rect x="400" y="200" width="130" height="300" fill="#14b8a6" opacity="0.12" stroke="#14b8a6" stroke-width="2" rx="10"/>
+    <rect x="650" y="240" width="110" height="260" fill="#14b8a6" opacity="0.12" stroke="#14b8a6" stroke-width="2" rx="10"/>
+    <rect x="850" y="210" width="125" height="290" fill="#14b8a6" opacity="0.12" stroke="#14b8a6" stroke-width="2" rx="10"/>
+  </g>
+  <g opacity="0.2" stroke="#14b8a6" stroke-width="2" stroke-linecap="round">
+    <path d="M 300 150 Q 400 120 500 150"/>
+    <path d="M 750 150 Q 850 120 950 150"/>
+  </g>
+  <text x="600" y="700" font-family="Inter, Arial" font-size="44" font-weight="bold" fill="#99f6e4" text-anchor="middle">Family Feast</text>
+</svg>

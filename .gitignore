@@ -10,3 +10,5 @@ logs
 *.docx
 *.xlsx
 *.tmp
+__pycache__
+db.sqllite3
