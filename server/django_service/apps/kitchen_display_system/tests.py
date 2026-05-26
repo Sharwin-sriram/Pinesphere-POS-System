@@ -18,16 +18,13 @@ class KitchenModelTests(TestCase):
     def setUp(self):
         """Set up test data"""
         # Create test restaurant and KDS
-        from apps.authentication.models import Restaurant, User
-        
-        user = User.objects.create_user(
-            email='test@restaurant.com',
-            password='testpass123'
-        )
-        
+        from authentication.models import Restaurant
+
         restaurant = Restaurant.objects.create(
             name='Test Restaurant',
-            owner=user
+            address='123 Test St',
+            phone='555-0100',
+            email='test@restaurant.com',
         )
         
         from .models import KitchenDisplaySystem

@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('authentication', '__first__'),
+        ('authentication', '0002_restaurant_branch'),
         ('orders', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]

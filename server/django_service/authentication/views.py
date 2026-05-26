@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
+import secrets
+
 from django.conf import settings
 from django.core import signing
 from django.http import HttpResponseRedirect
-from urllib.parse import urlencode
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from auth_service.exceptions import OAuthError
 
+from .models import UserSession
+from .oauth_utils import build_oauth_redirect, validate_oauth_next_url
 from .serializers import (
     EmailLoginSerializer,
     LogoutSerializer,
@@ -28,15 +31,36 @@ from .serializers import (
 from .services.auth_service import AuthService
 
 
+def _oauth_device_id():
+    return f"oauth-{secrets.token_urlsafe(16)}"
+
+
+def _client_ip(request):
+    forwarded = request.META.get("HTTP_X_FORWARDED_FOR")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR") or "127.0.0.1"
+
+
+def _redirect_oauth_error(next_url: str | None, message: str) -> HttpResponseRedirect:
+    target = validate_oauth_next_url(next_url)
+    return HttpResponseRedirect(build_oauth_redirect(target, {"error": message}))
+
+
 class GoogleOAuthStartView(APIView):
     """Redirect the user to Google OAuth consent."""
 
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
-        next_url = request.query_params.get("next") or settings.FRONTEND_OAUTH_CALLBACK_URL
+        next_url = validate_oauth_next_url(
+            request.query_params.get("next") or settings.FRONTEND_OAUTH_CALLBACK_URL
+        )
         state = signing.dumps({"next": next_url}, salt="google-oauth-state")
-        return HttpResponseRedirect(AuthService.build_google_oauth_url(state))
+        try:
+            return HttpResponseRedirect(AuthService.build_google_oauth_url(state))
+        except OAuthError as exc:
+            return _redirect_oauth_error(next_url, str(exc.detail))
 
 
 class GoogleOAuthCallbackView(APIView):
@@ -45,29 +69,50 @@ class GoogleOAuthCallbackView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
+        google_error = request.query_params.get("error")
+        if google_error:
+            return _redirect_oauth_error(
+                settings.FRONTEND_OAUTH_CALLBACK_URL,
+                request.query_params.get("error_description") or google_error,
+            )
+
         code = request.query_params.get("code")
         state = request.query_params.get("state")
+        fallback_next = settings.FRONTEND_OAUTH_CALLBACK_URL
 
         if not code or not state:
-            raise OAuthError("Missing Google OAuth callback data")
+            return _redirect_oauth_error(fallback_next, "Missing Google OAuth callback data")
 
         try:
             state_data = signing.loads(state, salt="google-oauth-state", max_age=600)
-        except signing.BadSignature as exc:
-            raise OAuthError("Invalid Google OAuth state") from exc
+        except signing.BadSignature:
+            return _redirect_oauth_error(fallback_next, "Invalid Google OAuth state")
 
-        profile = AuthService.exchange_google_code(code)
-        user = AuthService.get_or_create_google_user(profile)
-        access_token, refresh_token = AuthService.issue_tokens(user)
+        redirect_url = validate_oauth_next_url(state_data.get("next") or fallback_next)
 
-        redirect_url = state_data.get("next") or settings.FRONTEND_OAUTH_CALLBACK_URL
-        query = urlencode(
-            {
-                "access_token": access_token,
-                "refresh_token": refresh_token,
-            }
+        try:
+            profile = AuthService.exchange_google_code(code)
+            user = AuthService.get_or_create_google_user(profile)
+            device_id = _oauth_device_id()
+            AuthService.create_session(
+                user,
+                device_id,
+                UserSession.DeviceType.WEB,
+                _client_ip(request),
+            )
+            access_token, refresh_token = AuthService.issue_tokens(user, device_id=device_id)
+        except OAuthError as exc:
+            return _redirect_oauth_error(redirect_url, str(exc.detail))
+
+        return HttpResponseRedirect(
+            build_oauth_redirect(
+                redirect_url,
+                {
+                    "access_token": access_token,
+                    "refresh_token": refresh_token,
+                },
+            )
         )
-        return HttpResponseRedirect(f"{redirect_url}?{query}")
 
 
 class RegisterView(APIView):
@@ -161,10 +206,17 @@ class LogoutView(APIView):
 class MeView(APIView):
     """Return the currently authenticated user profile."""
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
-        return Response({"user": UserSerializer(request.user).data})
+        user = getattr(request, "jwt_user", None)
+        if user is None and request.user.is_authenticated:
+            user = request.user
+        if user is None:
+            from rest_framework.exceptions import NotAuthenticated
+
+            raise NotAuthenticated()
+        return Response({"user": UserSerializer(user).data})
 
 
 class MeUpdateView(APIView):
