@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Search, Settings, User, X } from "lucide-react";
+import { Home, Package, Search, Settings, User, X } from "lucide-react";
 import React from "react";
 import Link from "next/link";
 
@@ -47,6 +47,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
  <Link href="/dashboard/restaurants" onClick={onClose} className="flex items-center gap-4 p-4 rounded-xl hover:bg-blue-50 transition-colors group">
  <Search className="h-4 w-4 text-gray-500 group-hover:text-blue-500" strokeWidth={1.5} />
  <span className="font-medium text-gray-700 group-hover:text-blue-600">Search Restaurants</span>
+ </Link>
+
+ <Link href="/dashboard/orders" onClick={onClose} className="flex items-center gap-4 p-4 rounded-xl hover:bg-blue-50 transition-colors group">
+ <Package className="h-4 w-4 text-gray-500 group-hover:text-blue-500" strokeWidth={1.5} />
+ <span className="font-medium text-gray-700 group-hover:text-blue-600">My Orders</span>
  </Link>
 
  <Link href="/account" onClick={onClose} className="flex items-center gap-4 p-4 rounded-xl hover:bg-blue-50 transition-colors group">
