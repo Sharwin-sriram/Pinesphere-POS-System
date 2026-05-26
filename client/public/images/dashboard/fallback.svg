@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Dashboard fallback visual</title>
+  <desc id="desc">A local fallback visual for dashboard imagery.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#08101d" />
+      <stop offset="100%" stop-color="#10213e" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)" />
+  <circle cx="210" cy="150" r="170" fill="#8b5cf6" fill-opacity=".14" />
+  <circle cx="960" cy="640" r="220" fill="#22d3ee" fill-opacity=".11" />
+  <rect x="164" y="178" width="872" height="444" rx="42" fill="#050b16" fill-opacity=".5" stroke="#ffffff" stroke-opacity=".08" />
+  <g fill="#f8fbff">
+    <text x="600" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" letter-spacing="7" opacity=".6">LOCAL DASHBOARD VISUAL</text>
+    <text x="600" y="420" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="700">Always ready</text>
+    <text x="600" y="474" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" opacity=".74">Fallback imagery keeps cards, slides, and hero panels fully rendered.</text>
+  </g>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <rect width="1200" height="800" fill="#0b1324" />
+  <rect x="116" y="132" width="968" height="536" rx="52" fill="#0f172a" stroke="#ffffff" stroke-opacity=".08" />
+  <circle cx="242" cy="220" r="132" fill="#22d3ee" fill-opacity=".12" />
+  <circle cx="956" cy="588" r="188" fill="#8b5cf6" fill-opacity=".14" />
+  <text x="600" y="334" fill="#f8fbff" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" letter-spacing="7" opacity=".62">CATEGORY FALLBACK</text>
+  <text x="600" y="418" fill="#f8fbff" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700">Section visuals stay full</text>
+  <text x="600" y="472" fill="#f8fbff" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" opacity=".72">Every category card keeps a polished local illustration instead of a blank tile.</text>
+</svg>

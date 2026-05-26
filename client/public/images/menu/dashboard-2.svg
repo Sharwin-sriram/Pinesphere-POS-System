@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="lounge-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1f2937;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#111827;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="ambient" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" style="stop-color:#d97706;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#d97706;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#lounge-grad)"/>
+  <rect width="1200" height="800" fill="url(#ambient)"/>
+  <g opacity="0.2">
+    <rect x="150" y="200" width="200" height="300" fill="none" stroke="#d97706" stroke-width="2" rx="8"/>
+    <rect x="450" y="250" width="220" height="280" fill="none" stroke="#d97706" stroke-width="2" rx="8"/>
+    <rect x="750" y="180" width="200" height="320" fill="none" stroke="#d97706" stroke-width="2" rx="8"/>
+  </g>
+  <g opacity="0.15" stroke="#f59e0b" stroke-width="2">
+    <circle cx="200" cy="300" r="40" fill="none"/>
+    <circle cx="500" cy="320" r="45" fill="none"/>
+    <circle cx="800" cy="280" r="38" fill="none"/>
+  </g>
+  <text x="600" y="700" font-family="Inter, Arial" font-size="44" font-weight="bold" fill="#fcd34d" text-anchor="middle">Polished Dining Room</text>
+</svg>
