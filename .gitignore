@@ -11,4 +11,5 @@ logs
 *.xlsx
 *.tmp
 __pycache__
-db.sqllite3
+db.sqlite3
+*.py[cod]
