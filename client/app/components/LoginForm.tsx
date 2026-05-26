@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   FiMail,
-  FiPhone,
   FiEye,
   FiEyeOff,
   FiLock,
+  FiArrowRight,
 } from "react-icons/fi";
+import { FcGoogle } from "react-icons/fc";
 import { MdRestaurant } from "react-icons/md";
 import InputField from "./InputField";
 import Loader from "./Loader";
@@ -16,10 +18,8 @@ import { useToast } from "./Toast";
 import { authService } from "../lib/authService";
 
 const LoginForm = () => {
-  const [loginType, setLoginType] = useState("email");
   const [formData, setFormData] = useState({
     email: "",
-    mobile: "",
     password: "",
     rememberMe: false,
   });
@@ -46,18 +46,10 @@ const LoginForm = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (loginType === "email") {
-      if (!formData.email) {
-        newErrors.email = "Email is required";
-      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-        newErrors.email = "Please enter a valid email";
-      }
-    } else {
-      if (!formData.mobile) {
-        newErrors.mobile = "Mobile number is required";
-      } else if (!/^\d{10}$/.test(formData.mobile)) {
-        newErrors.mobile = "Please enter a valid 10-digit mobile number";
-      }
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email";
     }
 
     if (!formData.password) {
@@ -78,19 +70,10 @@ const LoginForm = () => {
     setIsLoading(true);
 
     try {
-      let result;
-
-      if (loginType === "email") {
-        result = await authService.loginWithEmail(
-          formData.email,
-          formData.password,
-        );
-      } else {
-        result = await authService.loginWithMobile(
-          formData.mobile,
-          formData.password,
-        );
-      }
+      const result = await authService.loginWithEmail(
+        formData.email,
+        formData.password,
+      );
 
       if (result.success) {
         success("Login Successful", "Welcome to PineSphere POS!");
@@ -101,7 +84,7 @@ const LoginForm = () => {
       } else {
         error("Login Failed", result.error);
       }
-    } catch (err) {
+    } catch {
       error("Login Failed", "An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
@@ -224,34 +207,6 @@ const LoginForm = () => {
                 <p className="text-slate-600">Access your POS dashboard</p>
               </div>
 
-              {/* Login Type Toggle */}
-              <div className="flex bg-white/60 backdrop-blur-sm rounded-2xl p-1 mb-6 border border-white/40">
-                <button
-                  type="button"
-                  onClick={() => setLoginType("email")}
-                  className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-300 ${
-                    loginType === "email"
-                      ? "bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-lg transform scale-105"
-                      : "text-slate-600 hover:text-slate-800"
-                  }`}
-                >
-                  <FiMail className="inline mr-2" />
-                  Email
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLoginType("mobile")}
-                  className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-300 ${
-                    loginType === "mobile"
-                      ? "bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-lg transform scale-105"
-                      : "text-slate-600 hover:text-slate-800"
-                  }`}
-                >
-                  <FiPhone className="inline mr-2" />
-                  Mobile
-                </button>
-              </div>
-
               {/* OTP Login Option */}
               <div className="text-center mb-6">
                 <motion.button
@@ -265,29 +220,31 @@ const LoginForm = () => {
                 </motion.button>
               </div>
 
+              <motion.button
+                type="button"
+                onClick={() => {
+                  window.location.href = authService.getGoogleOAuthUrl("/oauth/callback");
+                }}
+                whileHover={{ scale: 1.01, y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                className="mb-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+              >
+                <FcGoogle className="text-xl" />
+                Continue with Google
+                <FiArrowRight className="text-slate-400" />
+              </motion.button>
+
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Email/Mobile Input */}
-                {loginType === "email" ? (
-                  <InputField
-                    type="email"
-                    name="email"
-                    placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    icon={<FiMail />}
-                    error={errors.email}
-                  />
-                ) : (
-                  <InputField
-                    type="tel"
-                    name="mobile"
-                    placeholder="Enter mobile number"
-                    value={formData.mobile}
-                    onChange={handleInputChange}
-                    icon={<FiPhone />}
-                    error={errors.mobile}
-                  />
-                )}
+                {/* Email Input */}
+                <InputField
+                  type="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  icon={<FiMail />}
+                  error={errors.email}
+                />
 
                 {/* Password Input */}
                 <div className="relative">
@@ -354,6 +311,14 @@ const LoginForm = () => {
 
               {/* Footer */}
               <div className="mt-8 text-center">
+                <div className="mb-4">
+                  <Link
+                    href="/signup"
+                    className="inline-flex items-center justify-center rounded-2xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+                  >
+                    Create an account
+                  </Link>
+                </div>
                 <p className="text-slate-500 text-sm">
                   Need help? Contact{" "}
                   <a
