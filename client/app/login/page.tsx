@@ -1,7 +1,6 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import Login from '../components/LoginForm';
-
-export default function LoginPage() {
-  return <Login />;
+export default function LoginRedirect() {
+  // Redirect `/login` to root where the auth page now lives.
+  redirect('/');
 }

@@ -156,20 +156,6 @@ const SignupForm = () => {
                 <p className="text-slate-600">Sign up to get started</p>
               </div>
 
-              <motion.button
-                type="button"
-                onClick={() => {
-                  window.location.href = authService.getGoogleOAuthUrl("/oauth/callback");
-                }}
-                whileHover={{ scale: 1.01, y: -1 }}
-                whileTap={{ scale: 0.98 }}
-                className="mb-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
-              >
-                <FcGoogle className="text-xl" />
-                Continue with Google
-                <FiArrowRight className="text-slate-400" />
-              </motion.button>
-
               <form onSubmit={handleSubmit} className="space-y-4">
                 <InputField type="text" name="firstName" placeholder="First name" value={formData.firstName} onChange={handleInputChange} icon={<FiUser />} error={errors.firstName} />
                 <InputField type="text" name="lastName" placeholder="Last name" value={formData.lastName} onChange={handleInputChange} icon={<FiUser />} error={errors.lastName} />
@@ -190,14 +176,35 @@ const SignupForm = () => {
                   </button>
                 </div>
 
-                <motion.button
+                <button
                   type="submit"
                   disabled={isLoading}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white py-4 px-4 rounded-2xl font-medium hover:from-blue-600 hover:to-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl"
+                  className="w-full bg-transparent border border-blue-500 text-blue-600 py-4 px-4 rounded-md font-medium hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                   {isLoading ? <Loader /> : "Create Account"}
+                </button>
+
+                <div className="relative py-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-white px-4 text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">
+                      OR
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.href = authService.getGoogleOAuthUrl("/oauth/callback");
+                  }}
+                  className="flex w-full items-center justify-center gap-3 rounded-md border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+                >
+                  <FcGoogle className="text-xl" />
+                  Sign in using Google
+                  <FiArrowRight className="text-slate-400" />
                 </motion.button>
 
                 <div className="text-center">

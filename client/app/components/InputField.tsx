@@ -26,7 +26,7 @@ const InputField: React.FC<InputFieldProps> = ({
     <div className="relative">
       <div className="relative">
         {icon && (
-          <div className="absolute left-4 top-5 text-slate-500 z-10">
+          <div className="absolute left-4 top-5 text-slate-500 z-10 w-5 h-5 flex items-center justify-center">
             {icon}
           </div>
         )}

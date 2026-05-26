@@ -10,7 +10,10 @@ type DashboardData = {
   on_leave_today: number;
   salary_pending: number;
   top_performer: string;
+  pending_leaves?: number;
+  recent_leaves?: any[];
 };
+
 
 type PredictionData = {
   day: string;

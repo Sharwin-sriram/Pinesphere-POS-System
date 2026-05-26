@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Login from './components/LoginForm';
+import AuthPage from "./components/AuthPage";
 
 export default function Home() {
-  return <Login />;
+  return <AuthPage defaultMode="login" />;
 }
