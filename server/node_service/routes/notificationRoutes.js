@@ -4,7 +4,7 @@ import { getNotifications, markNotificationRead, markAllRead } from '../controll
 const router = express.Router();
 
 router.get('/', getNotifications);
+router.patch('/mark-all', markAllRead); //<-- New route to mark all notifications as read (IT MUST BE KEPT HERE ELSE CAUSES ERROR)
 router.patch('/:id', markNotificationRead);
-router.patch('/mark-all', markAllRead);
 
 export default router;

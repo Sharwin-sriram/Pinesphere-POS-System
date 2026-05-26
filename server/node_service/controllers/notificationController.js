@@ -38,16 +38,15 @@ export const markNotificationRead = async (req, res) => {
 
 export const markAllRead = async (req, res) => {
   try {
-    const { userId } = req.query;
 
+    const { userId } = req.query;
     if (!userId) {
       return res.status(400).json({ error: 'userId is required' });
     }
 
-    // ✅ Use updateMany for bulk update
     const result = await prisma.notification.updateMany({
       where: {
-        userId: parseInt(userId),
+        userId: parseInt(userId, 10),
         status: 'unread'
       },
       data: { status: 'read' }
@@ -62,3 +61,4 @@ export const markAllRead = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
