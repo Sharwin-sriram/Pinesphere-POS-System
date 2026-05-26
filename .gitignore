@@ -10,3 +10,6 @@ logs
 *.docx
 *.xlsx
 *.tmp
+__pycache__
+db.sqlite3
+*.py[cod]
