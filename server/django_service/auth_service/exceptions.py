@@ -32,6 +32,12 @@ class InvalidCredentials(AuthenticationFailed):
     default_code = "invalid_credentials"
 
 
+class OAuthError(APIException):
+    status_code = 400
+    default_detail = "OAuth login failed"
+    default_code = "oauth_failed"
+
+
 class UserNotFound(NotFound):
     default_detail = "User not found"
     default_code = "user_not_found"
@@ -47,7 +53,7 @@ def custom_exception_handler(exc, context):
     if isinstance(exc, ValidationError):
         return response
 
-    if isinstance(exc, (OTPExpired, InvalidOTP, TokenExpired, InvalidToken, InvalidCredentials, UserNotFound, AuthenticationFailed, NotFound, APIException)):
+    if isinstance(exc, (OTPExpired, InvalidOTP, TokenExpired, InvalidToken, InvalidCredentials, OAuthError, UserNotFound, AuthenticationFailed, NotFound, APIException)):
         detail = response.data.get("detail") if isinstance(response.data, dict) else response.data
         return Response({"message": detail}, status=response.status_code)
 

@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+from django.conf import settings
+from django.core import signing
+from django.http import HttpResponseRedirect
+from urllib.parse import urlencode
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from auth_service.exceptions import OAuthError
 
 from .serializers import (
     EmailLoginSerializer,
@@ -20,6 +26,48 @@ from .serializers import (
     UserSerializer,
 )
 from .services.auth_service import AuthService
+
+
+class GoogleOAuthStartView(APIView):
+    """Redirect the user to Google OAuth consent."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        next_url = request.query_params.get("next") or settings.FRONTEND_OAUTH_CALLBACK_URL
+        state = signing.dumps({"next": next_url}, salt="google-oauth-state")
+        return HttpResponseRedirect(AuthService.build_google_oauth_url(state))
+
+
+class GoogleOAuthCallbackView(APIView):
+    """Handle Google callback, issue JWTs, and redirect to the client."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        code = request.query_params.get("code")
+        state = request.query_params.get("state")
+
+        if not code or not state:
+            raise OAuthError("Missing Google OAuth callback data")
+
+        try:
+            state_data = signing.loads(state, salt="google-oauth-state", max_age=600)
+        except signing.BadSignature as exc:
+            raise OAuthError("Invalid Google OAuth state") from exc
+
+        profile = AuthService.exchange_google_code(code)
+        user = AuthService.get_or_create_google_user(profile)
+        access_token, refresh_token = AuthService.issue_tokens(user)
+
+        redirect_url = state_data.get("next") or settings.FRONTEND_OAUTH_CALLBACK_URL
+        query = urlencode(
+            {
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+            }
+        )
+        return HttpResponseRedirect(f"{redirect_url}?{query}")
 
 
 class RegisterView(APIView):

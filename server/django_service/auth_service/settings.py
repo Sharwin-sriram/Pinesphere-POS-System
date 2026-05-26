@@ -22,8 +22,12 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
-    "authentication",
-    "apps.django_schema",
+    "channels",
+    "apps.authentication",
+    "apps.orders",
+    "apps.inventory",
+    "apps.pos",
+    "apps.kitchen_display_system",
 ]
 
 MIDDLEWARE = [
@@ -55,19 +59,12 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "auth_service.wsgi.application"
+ASGI_APPLICATION = "auth_service.asgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DATABASE_NAME", default="pinesphere_db"),
-        "USER": config("DATABASE_USER", default="django_user"),
-        "PASSWORD": config("DATABASE_PASSWORD", default="djangopassword"),
-        "HOST": config("DATABASE_HOST", default="localhost"),
-        "PORT": config("DATABASE_PORT", default="5432"),
-        "OPTIONS": {
-            "options": "-c search_path=public,shared_schema,django_schema",
-        },
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
@@ -96,6 +93,29 @@ CORS_ALLOWED_ORIGINS = config(
 
 REDIS_URL = config("REDIS_URL", default="redis://localhost:6379/0")
 JWT_SECRET = config("JWT_SECRET", default=SECRET_KEY)
+FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
+FRONTEND_OAUTH_CALLBACK_URL = config(
+    "FRONTEND_OAUTH_CALLBACK_URL",
+    default=f"{FRONTEND_URL}/oauth/callback",
+)
+GOOGLE_OAUTH_CLIENT_ID = config("GOOGLE_OAUTH_CLIENT_ID", default="")
+GOOGLE_OAUTH_CLIENT_SECRET = config("GOOGLE_OAUTH_CLIENT_SECRET", default="")
+GOOGLE_OAUTH_REDIRECT_URI = config(
+    "GOOGLE_OAUTH_REDIRECT_URI",
+    default="http://localhost:8000/auth/oauth/google/callback/",
+)
+GOOGLE_OAUTH_AUTH_URL = config(
+    "GOOGLE_OAUTH_AUTH_URL",
+    default="https://accounts.google.com/o/oauth2/v2/auth",
+)
+GOOGLE_OAUTH_TOKEN_URL = config(
+    "GOOGLE_OAUTH_TOKEN_URL",
+    default="https://oauth2.googleapis.com/token",
+)
+GOOGLE_OAUTH_USERINFO_URL = config(
+    "GOOGLE_OAUTH_USERINFO_URL",
+    default="https://openidconnect.googleapis.com/v1/userinfo",
+)
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -118,4 +138,11 @@ SIMPLE_JWT = {
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
+}
+
+# Channels configuration
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
 }
