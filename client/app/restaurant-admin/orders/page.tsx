@@ -29,17 +29,17 @@ export default function OrdersPage() {
   return (
     <div className="flex flex-col h-full animate-fade-in-up">
       {/* Tabs */}
-      <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-800">
+      <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-200">
         {tabs.map(tab => (
           <button 
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-lg font-semibold transition-all ${activeTab === tab ? "bg-[#EA7C69] text-white shadow-lg" : "text-gray-400 hover:text-white"}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition-all ${activeTab === tab ? "bg-gradient-to-tr from-blue-500 to-cyan-400 text-white shadow-lg" : "text-gray-500 hover:text-gray-800 hover:bg-white"}`}
           >
             {tab}
           </button>
         ))}
-        <button className="ml-auto bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold transition-all border border-gray-700">
+        <button className="ml-auto bg-white hover:bg-gray-50 text-blue-600 px-4 py-2 rounded-lg font-semibold transition-all border border-gray-200 shadow-sm">
           + Add New Order
         </button>
       </div>
@@ -47,14 +47,14 @@ export default function OrdersPage() {
       {/* Orders Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {mockOrders.map(order => (
-          <div key={order.id} className="bg-[#252836] border border-gray-800 rounded-2xl p-5 flex flex-col hover:border-[#EA7C69]/50 transition-colors">
+          <div key={order.id} className="card-light !p-5 flex flex-col hover:border-blue-400 transition-colors">
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 flex items-center justify-center rounded-xl text-xl font-bold ${order.status === 'Ready' ? 'bg-[#ffb6c1] text-[#1f1d2b]' : 'bg-[#EA7C69]/20 text-[#EA7C69]'}`}>
+                <div className={`w-12 h-12 flex items-center justify-center rounded-xl text-xl font-bold ${order.status === 'Ready' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
                   {order.id}
                 </div>
                 <div>
-                  <h3 className="text-white font-bold">{order.name}</h3>
+                  <h3 className="text-gray-800 font-bold">{order.name}</h3>
                   <p className="text-xs text-gray-500">Order # {order.orderNo}</p>
                 </div>
               </div>
@@ -69,37 +69,37 @@ export default function OrdersPage() {
               </div>
             </div>
             
-            <div className="text-xs text-gray-400 mb-4 pb-4 border-b border-gray-800 flex justify-between">
+            <div className="text-xs text-gray-500 mb-4 pb-4 border-b border-gray-200 flex justify-between">
               <span>Wednesday, 28, 2026</span>
-              <span className="flex items-center gap-1"><FiClock /> {order.time}</span>
+              <span className="flex items-center gap-1 font-medium"><FiClock /> {order.time}</span>
             </div>
 
             <div className="flex-1 flex flex-col gap-2 mb-4">
-              <div className="flex justify-between text-xs text-gray-500 font-bold mb-1">
+              <div className="flex justify-between text-xs text-gray-400 font-bold mb-1">
                 <span>Qty</span> <span className="flex-1 ml-4">Items</span> <span>Price</span>
               </div>
               {order.items.map((item, idx) => (
-                <div key={idx} className="flex justify-between text-sm text-gray-300">
-                  <span>01</span> <span className="flex-1 ml-4 truncate">{item.name}</span> <span>${item.price}</span>
+                <div key={idx} className="flex justify-between text-sm text-gray-700 font-medium">
+                  <span className="text-gray-500">01</span> <span className="flex-1 ml-4 truncate">{item.name}</span> <span>${item.price}</span>
                 </div>
               ))}
             </div>
 
-            <div className="flex justify-between items-center mb-6 pt-4 border-t border-gray-800">
-              <span className="text-gray-400">SubTotal</span>
-              <span className="text-xl font-bold text-white">${order.total}</span>
+            <div className="flex justify-between items-center mb-6 pt-4 border-t border-gray-200">
+              <span className="text-gray-500 font-medium">SubTotal</span>
+              <span className="text-xl font-bold text-gray-800">${order.total}</span>
             </div>
 
             <div className="grid grid-cols-4 gap-3 mt-auto">
-              <button className="col-span-1 py-3 bg-[#1f1d2b] text-[#EA7C69] border border-[#EA7C69]/50 rounded-xl flex justify-center items-center hover:bg-[#EA7C69] hover:text-white transition-colors">
+              <button className="col-span-1 py-3 bg-white text-blue-500 border border-blue-200 rounded-xl flex justify-center items-center hover:bg-blue-50 transition-colors shadow-sm">
                 <FiEdit2 />
               </button>
-              <button className="col-span-1 py-3 bg-[#1f1d2b] text-red-500 border border-red-500/50 rounded-xl flex justify-center items-center hover:bg-red-500 hover:text-white transition-colors">
+              <button className="col-span-1 py-3 bg-white text-red-500 border border-red-200 rounded-xl flex justify-center items-center hover:bg-red-50 transition-colors shadow-sm">
                 <FiTrash2 />
               </button>
               <button 
                 onClick={() => setShowTipModal(true)}
-                className="col-span-2 py-3 bg-[#ffb6c1] text-[#1f1d2b] font-bold rounded-xl hover:bg-white transition-colors shadow-lg"
+                className="col-span-2 py-3 bg-gradient-to-tr from-blue-500 to-cyan-400 text-white font-bold rounded-xl hover:shadow-lg transition-all shadow-md"
               >
                 Pay Bill
               </button>
@@ -110,12 +110,12 @@ export default function OrdersPage() {
 
       {/* Tip / PIN Modal */}
       {showTipModal && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <div className="bg-[#252836] border border-gray-700 rounded-3xl w-full max-w-sm overflow-hidden flex flex-col items-center p-8 animate-fade-in-up relative">
-            <button onClick={() => setShowTipModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white"><FiX size={24} /></button>
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="card-light border-0 shadow-2xl rounded-3xl w-full max-w-sm overflow-hidden flex flex-col items-center p-8 animate-fade-in-up relative">
+            <button onClick={() => setShowTipModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><FiX size={24} /></button>
             
-            <h3 className="text-gray-400 font-medium mb-4">Tips Amount</h3>
-            <div className="text-5xl font-bold text-white mb-10 tracking-wider">
+            <h3 className="text-gray-500 font-bold mb-4">Tips Amount</h3>
+            <div className="text-5xl font-bold text-gray-800 mb-10 tracking-wider">
               {tipAmount}
             </div>
 
@@ -124,7 +124,7 @@ export default function OrdersPage() {
                 <button 
                   key={key} 
                   onClick={() => handlePinPress(key)}
-                  className={`py-4 text-xl font-bold rounded-xl transition-all ${key === 'x' ? 'bg-transparent text-gray-500 hover:bg-gray-800' : 'bg-[#1f1d2b] text-gray-300 hover:bg-[#EA7C69] hover:text-white shadow-md'}`}
+                  className={`py-4 text-xl font-bold rounded-xl transition-all ${key === 'x' ? 'bg-transparent text-gray-400 hover:bg-gray-100' : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600 shadow-sm border border-gray-100'}`}
                 >
                   {key}
                 </button>
@@ -132,12 +132,12 @@ export default function OrdersPage() {
             </div>
             
             <div className="w-full flex justify-between items-center px-4">
-              <button className="text-gray-400 hover:text-white text-sm font-medium transition-colors">
+              <button className="text-gray-500 hover:text-gray-800 text-sm font-bold transition-colors">
                 Print Receipt
               </button>
               <button 
                 onClick={() => setShowTipModal(false)}
-                className="bg-[#ffb6c1] text-[#1f1d2b] px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-white transition-colors"
+                className="bg-gradient-to-tr from-blue-500 to-cyan-400 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:scale-105 transition-all"
               >
                 Apply
               </button>

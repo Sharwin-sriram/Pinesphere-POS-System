@@ -34,15 +34,15 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed top-0 left-0 h-screen w-28 flex flex-col items-center py-6 bg-[#1f1d2b] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed top-0 left-0 h-screen w-28 flex flex-col items-center py-6 glass-light border-r border-white/50 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
         
         {/* Mobile Close Button */}
-        <button className="lg:hidden absolute top-4 right-4 text-gray-400 hover:text-white" onClick={onClose}>
+        <button className="lg:hidden absolute top-4 right-4 text-gray-500 hover:text-gray-800" onClick={onClose}>
           <FiX size={24} />
         </button>
 
         {/* Logo */}
-        <div className="mb-8 font-bold text-[#ffb6c1] tracking-wider uppercase text-sm">
+        <div className="mb-8 font-bold gradient-text-light tracking-wider uppercase text-sm">
           COSYPOS
         </div>
 
@@ -57,8 +57,8 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 onClick={() => { if(window.innerWidth < 1024) onClose(); }}
                 className={`relative flex flex-col items-center justify-center w-20 py-3 rounded-2xl transition-all duration-200 group ${
                   isActive 
-                    ? "bg-[#ffb6c1] text-[#1f1d2b] shadow-[0_0_15px_rgba(255,182,193,0.4)]" 
-                    : "text-gray-400 hover:text-[#ffb6c1]"
+                    ? "bg-gradient-to-tr from-blue-500 to-cyan-400 text-white shadow-lg" 
+                    : "text-gray-500 hover:text-blue-600 hover:bg-blue-50/50"
                 }`}
               >
                 <item.icon size={22} className="mb-2" />
@@ -66,7 +66,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 
                 {/* Active Indicator line on the left (Optional for extra styling) */}
                 {isActive && (
-                  <div className="absolute left-[-16px] top-1/2 -translate-y-1/2 w-1 h-8 bg-[#ffb6c1] rounded-r-full" />
+                  <div className="absolute left-[-16px] top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-500 rounded-r-full" />
                 )}
               </Link>
             );
@@ -75,7 +75,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
         {/* Logout */}
         <div className="mt-auto pt-6 w-full flex justify-center">
-          <Link href="/dashboard" className="flex flex-col items-center justify-center w-20 py-3 text-gray-400 hover:text-red-400 transition-colors">
+          <Link href="/dashboard" className="flex flex-col items-center justify-center w-20 py-3 text-gray-500 hover:text-red-500 hover:bg-red-50/50 rounded-2xl transition-colors">
             <FiLogOut size={22} className="mb-2" />
             <span className="text-[10px] font-semibold tracking-wider">Logout</span>
           </Link>
