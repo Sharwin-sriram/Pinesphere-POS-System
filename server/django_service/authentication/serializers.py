@@ -46,7 +46,7 @@ class RegisterSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, min_length=8)
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=100)
-    role = serializers.ChoiceField(choices=User.RoleChoices.choices)
+    role = serializers.ChoiceField(choices=User.RoleChoices.choices, required=False, default=User.RoleChoices.CUSTOMER)
     restaurant_id = serializers.IntegerField(required=False, allow_null=True)
     branch_id = serializers.IntegerField(required=False, allow_null=True)
 

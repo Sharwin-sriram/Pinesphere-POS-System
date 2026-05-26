@@ -16,6 +16,8 @@ class JWTAuthenticationMiddleware:
         "/auth/register/",
         "/auth/login/email/",
         "/auth/login/mobile/",
+        "/auth/oauth/google/start/",
+        "/auth/oauth/google/callback/",
         "/auth/otp/send/",
         "/auth/otp/verify/",
         "/auth/token/refresh/",

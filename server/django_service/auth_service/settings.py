@@ -96,6 +96,29 @@ CORS_ALLOWED_ORIGINS = config(
 
 REDIS_URL = config("REDIS_URL", default="redis://localhost:6379/0")
 JWT_SECRET = config("JWT_SECRET", default=SECRET_KEY)
+FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
+FRONTEND_OAUTH_CALLBACK_URL = config(
+    "FRONTEND_OAUTH_CALLBACK_URL",
+    default=f"{FRONTEND_URL}/oauth/callback",
+)
+GOOGLE_OAUTH_CLIENT_ID = config("GOOGLE_OAUTH_CLIENT_ID", default="")
+GOOGLE_OAUTH_CLIENT_SECRET = config("GOOGLE_OAUTH_CLIENT_SECRET", default="")
+GOOGLE_OAUTH_REDIRECT_URI = config(
+    "GOOGLE_OAUTH_REDIRECT_URI",
+    default="http://localhost:8000/auth/oauth/google/callback/",
+)
+GOOGLE_OAUTH_AUTH_URL = config(
+    "GOOGLE_OAUTH_AUTH_URL",
+    default="https://accounts.google.com/o/oauth2/v2/auth",
+)
+GOOGLE_OAUTH_TOKEN_URL = config(
+    "GOOGLE_OAUTH_TOKEN_URL",
+    default="https://oauth2.googleapis.com/token",
+)
+GOOGLE_OAUTH_USERINFO_URL = config(
+    "GOOGLE_OAUTH_USERINFO_URL",
+    default="https://openidconnect.googleapis.com/v1/userinfo",
+)
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

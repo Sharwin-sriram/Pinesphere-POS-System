@@ -7,6 +7,7 @@ import { MdRestaurant } from "react-icons/md";
 import InputField from "./InputField";
 import Loader from "./Loader";
 import AuthCard from "./AuthCard";
+import { authService } from "../lib/authService";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -31,10 +32,13 @@ const ForgotPassword = () => {
     setError("");
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setIsEmailSent(true);
-    } catch (error) {
+      const result = await authService.forgotPassword(email);
+      if (result.success) {
+        setIsEmailSent(true);
+      } else {
+        setError(result.error || "Failed to send reset email. Please try again.");
+      }
+    } catch {
       setError("Failed to send reset email. Please try again.");
     } finally {
       setIsLoading(false);

@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+import json
+from urllib.parse import parse_qsl, urlencode, urlsplit
+from urllib.request import Request, urlopen
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from auth_service.exceptions import InvalidCredentials, InvalidOTP, OTPExpired, TokenExpired, UserNotFound
+from auth_service.exceptions import InvalidCredentials, InvalidOTP, OAuthError, OTPExpired, TokenExpired, UserNotFound
 
 from ..models import UserSession
 from ..permissions import ROLE_PERMISSIONS
@@ -81,13 +86,119 @@ class AuthService:
             email=data.get("email"),
             first_name=data["first_name"],
             last_name=data["last_name"],
-            role=data["role"],
+            role=data.get("role", User.RoleChoices.CUSTOMER),
             restaurant_id=data.get("restaurant_id"),
             branch_id=data.get("branch_id"),
             is_active=True,
             is_staff=False,
         )
         return user
+
+    @staticmethod
+    @transaction.atomic
+    def get_or_create_google_user(profile):
+        """Create or update a user account from a Google profile."""
+
+        email = profile.get("email")
+        if not email:
+            raise OAuthError("Google account email is required")
+
+        first_name = profile.get("given_name") or profile.get("name", "").split(" ")[0] or ""
+        last_name = profile.get("family_name") or " ".join(profile.get("name", "").split(" ")[1:]) or ""
+        mobile_seed = profile.get("sub") or email.replace("@", "").replace(".", "")
+        mobile = f"g-{str(mobile_seed)[:18]}"
+
+        user = User.objects.filter(email__iexact=email).first()
+        if user is None:
+            user = User.objects.create_user(
+                mobile=mobile,
+                password=None,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                role=User.RoleChoices.CUSTOMER,
+                restaurant_id=None,
+                branch_id=None,
+                is_active=True,
+                is_staff=False,
+            )
+        else:
+            update_fields = []
+            if first_name and user.first_name != first_name:
+                user.first_name = first_name
+                update_fields.append("first_name")
+            if last_name and user.last_name != last_name:
+                user.last_name = last_name
+                update_fields.append("last_name")
+            if update_fields:
+                update_fields.append("updated_at")
+                user.save(update_fields=update_fields)
+
+        return user
+
+    @staticmethod
+    def build_google_oauth_url(state):
+        """Build the Google authorization redirect URL."""
+
+        if not settings.GOOGLE_OAUTH_CLIENT_ID or not settings.GOOGLE_OAUTH_REDIRECT_URI:
+            raise OAuthError("Google OAuth is not configured")
+
+        params = {
+            "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
+            "redirect_uri": settings.GOOGLE_OAUTH_REDIRECT_URI,
+            "response_type": "code",
+            "scope": "openid email profile",
+            "state": state,
+            "access_type": "offline",
+            "prompt": "select_account",
+        }
+        return f"{settings.GOOGLE_OAUTH_AUTH_URL}?{urlencode(params)}"
+
+    @staticmethod
+    def exchange_google_code(code):
+        """Exchange an OAuth code for a Google profile payload."""
+
+        if not settings.GOOGLE_OAUTH_CLIENT_ID or not settings.GOOGLE_OAUTH_CLIENT_SECRET:
+            raise OAuthError("Google OAuth is not configured")
+
+        token_payload = urlencode(
+            {
+                "code": code,
+                "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
+                "client_secret": settings.GOOGLE_OAUTH_CLIENT_SECRET,
+                "redirect_uri": settings.GOOGLE_OAUTH_REDIRECT_URI,
+                "grant_type": "authorization_code",
+            }
+        ).encode("utf-8")
+
+        token_request = Request(
+            settings.GOOGLE_OAUTH_TOKEN_URL,
+            data=token_payload,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+        try:
+            with urlopen(token_request, timeout=10) as response:
+                token_data = json.loads(response.read().decode("utf-8"))
+        except Exception as exc:  # pragma: no cover - network/provider failures.
+            raise OAuthError("Failed to exchange Google code") from exc
+
+        access_token = token_data.get("access_token")
+        if not access_token:
+            raise OAuthError("Google access token was not returned")
+
+        profile_request = Request(
+            settings.GOOGLE_OAUTH_USERINFO_URL,
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        try:
+            with urlopen(profile_request, timeout=10) as response:
+                profile_data = json.loads(response.read().decode("utf-8"))
+        except Exception as exc:  # pragma: no cover - network/provider failures.
+            raise OAuthError("Failed to fetch Google profile") from exc
+
+        return profile_data
 
     @staticmethod
     def _get_user_by_email(email):
