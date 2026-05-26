@@ -10,14 +10,14 @@
       <stop offset="100%" style="stop-color:#10b981;stop-opacity:0" />
     </radialGradient>
   </defs>
-  <rect width="1200" height="800" fill="url(#grad3)"/>
+  <rect width="1200" height="800" fill="#0f172a"/>
   <g opacity="0.2">
-    <circle cx="300" cy="280" r="50" fill="url(#glow)"/>
+    <circle cx="300" cy="280" r="50" fill="#7c3aed"/>
     <circle cx="300" cy="280" r="50" fill="none" stroke="#10b981" stroke-width="2"/>
     <path d="M 280 290 L 300 310 L 330 270" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
   <g opacity="0.2">
-    <circle cx="950" cy="500" r="60" fill="url(#glow)"/>
+    <circle cx="950" cy="500" r="60" fill="#38bdf8"/>
     <circle cx="950" cy="500" r="60" fill="none" stroke="#10b981" stroke-width="2"/>
     <path d="M 925 515 L 950 540 L 990 495" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
   </g>

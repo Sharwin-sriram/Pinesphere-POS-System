@@ -109,7 +109,8 @@ export default function TableMenuPage() {
  
  <button 
  onClick={handlePlaceOrder}
- className="bg-gradient-to-tr from-blue-500 to-cyan-400 text-white px-8 py-3 rounded-xl font-semibold hover: hover:-translate-y-1 transition-all flex items-center gap-2"
+ className="bg-[var(--color-blue)] text-white px-8 py-3 rounded-ds-md font-semibold hover:-translate-y-1 transition-smooth flex items-center gap-2"
+ style={{border: 'none'}}
  >
  <ShoppingCart />
  Submit Order

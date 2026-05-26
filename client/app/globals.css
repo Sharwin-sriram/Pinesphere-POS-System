@@ -189,15 +189,36 @@ body {
 
 @keyframes shimmer {
   0% {
-    background-position: -200% 0;
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
   }
   100% {
-    background-position: 200% 0;
+    opacity: 0.85;
   }
 }
 
 .animate-shimmer {
-  animation: shimmer 1.5s linear infinite;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Design system helpers for consistent border radii */
+.rounded-ds-xs { border-radius: var(--radius-xs); }
+.rounded-ds-sm { border-radius: var(--radius-sm); }
+.rounded-ds-md { border-radius: var(--radius-md); }
+.rounded-ds-lg { border-radius: var(--radius-lg); }
+.rounded-ds-xl { border-radius: var(--radius-xl); }
+.rounded-ds-3xl { border-radius: calc(var(--radius-xl) * 1.5); }
+.rounded-ds-full { border-radius: var(--radius-full); }
+
+/* Smooth transition helper using DS timing + easing */
+.transition-smooth {
+  transition: background-color var(--duration-base) var(--ease-in-out),
+              color var(--duration-base) var(--ease-in-out),
+              transform var(--duration-base) var(--ease-in-out),
+              border-color var(--duration-base) var(--ease-in-out),
+              opacity var(--duration-base) var(--ease-in-out);
 }
 
 /* ─── Legacy class shims (Antigravity → DS) ─── */

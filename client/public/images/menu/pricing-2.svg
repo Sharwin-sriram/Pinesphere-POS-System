@@ -6,7 +6,7 @@
       <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
     </linearGradient>
   </defs>
-  <rect width="1200" height="800" fill="url(#pricing2-grad)"/>
+  <rect width="1200" height="800" fill="#0f172a"/>
   <g opacity="0.25">
     <polygon points="300,500 350,350 400,500" fill="#7c3aed" opacity="0.2"/>
     <path d="M 300 500 Q 400 450 500 500" stroke="#7c3aed" stroke-width="2" fill="none" opacity="0.3"/>

@@ -12,7 +12,7 @@ function RevenueChart({ data }) {
   const chartData = Array.isArray(data) ? data : [];
 
   return (
-    <div className="bg-slate-900 rounded-3xl shadow-2xl p-6">
+    <div className="bg-slate-900 rounded-ds-3xl shadow-2xl p-6">
 
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
@@ -42,29 +42,7 @@ function RevenueChart({ data }) {
 
           <AreaChart data={chartData}>
 
-            <defs>
-
-              <linearGradient
-                id="colorRevenue"
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop
-                  offset="5%"
-                  stopColor="#f472b6"
-                  stopOpacity={0.8}
-                />
-
-                <stop
-                  offset="95%"
-                  stopColor="#f472b6"
-                  stopOpacity={0}
-                />
-              </linearGradient>
-
-            </defs>
+            {/* Replaced gradient fill with solid color */}
 
             <CartesianGrid
               stroke="#334155"
@@ -97,7 +75,7 @@ function RevenueChart({ data }) {
               stroke="#f472b6"
               strokeWidth={4}
               fillOpacity={1}
-              fill="url(#colorRevenue)"
+              fill="#f472b6"
             />
 
           </AreaChart>

@@ -63,10 +63,11 @@ export default function CurrentOrdersPage() {
  </div>
  </div>
  
- <button 
- onClick={() => handleGenerateBill(tableNumber)}
- className="flex items-center gap-2 bg-gradient-to-tr from-green-500 to-emerald-400 text-white px-4 py-2 rounded-lg font-semibold hover: hover:-translate-y-0.5 transition-all text-sm"
- >
+ 		 <button 
+ 		 onClick={() => handleGenerateBill(tableNumber)}
+ 		 className="flex items-center gap-2 bg-[var(--color-success)] text-white px-4 py-2 rounded-ds-md font-semibold hover:-translate-y-0.5 transition-smooth text-sm"
+ 		 style={{border: 'none'}}
+ 		 >
  <DollarSign /> Generate Bill
  </button>
  </div>

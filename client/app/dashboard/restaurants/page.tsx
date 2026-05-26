@@ -64,7 +64,7 @@ export default function RestaurantsPage() {
  className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-250"
  style={{ backgroundImage: `url('${restaurant.imageUrl}')` }}
  />
- <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80" />
+ <div className="absolute inset-0 bg-black/60 opacity-80" />
  
  <div className="absolute bottom-3 left-3 flex flex-col">
  <span className="text-white text-lg font-semibold">{restaurant.offer}</span>

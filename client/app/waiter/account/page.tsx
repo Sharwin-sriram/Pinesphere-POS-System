@@ -15,7 +15,7 @@ export default function WaiterAccountPage() {
  View your shift details, performance metrics, and profile settings here.
  </p>
  
- <button className="mt-8 bg-gradient-to-tr from-blue-500 to-cyan-400 text-white px-6 py-3 rounded-xl font-semibold hover: hover:-translate-y-1 transition-all">
+ <button className="mt-8 bg-[var(--color-blue)] text-white px-6 py-3 rounded-ds-md font-semibold hover:-translate-y-1 transition-smooth" style={{border:'none'}}>
  Edit Profile
  </button>
  </div>

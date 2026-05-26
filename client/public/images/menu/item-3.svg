@@ -10,9 +10,9 @@
       <stop offset="100%" style="stop-color:#14b8a6;stop-opacity:0" />
     </radialGradient>
   </defs>
-  <rect width="1200" height="800" fill="url(#item3-grad)"/>
+  <rect width="1200" height="800" fill="#0f172a"/>
   <g opacity="0.3">
-    <circle cx="350" cy="340" r="85" fill="url(#highlight-glow)"/>
+    <circle cx="350" cy="340" r="85" fill="#7c3aed"/>
     <circle cx="350" cy="340" r="85" fill="none" stroke="#14b8a6" stroke-width="2"/>
     <path d="M 320 300 L 360 380 L 380 330" fill="#14b8a6" opacity="0.25"/>
     <circle cx="350" cy="310" r="12" fill="#2dd4bf" opacity="0.5"/>

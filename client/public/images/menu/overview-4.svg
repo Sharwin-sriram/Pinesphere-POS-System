@@ -11,8 +11,7 @@
       <stop offset="100%" style="stop-color:#eab308;stop-opacity:0.1" />
     </linearGradient>
   </defs>
-  <rect width="1200" height="800" fill="url(#grad4)"/>
-  <rect width="1200" height="800" fill="url(#heat)"/>
+  <rect width="1200" height="800" fill="#0f172a"/>
   <g opacity="0.3">
     <circle cx="350" cy="380" r="70" fill="none" stroke="#f97316" stroke-width="2"/>
     <circle cx="350" cy="380" r="55" fill="#f97316" opacity="0.1"/>

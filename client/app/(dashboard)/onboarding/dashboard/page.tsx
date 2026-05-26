@@ -28,17 +28,17 @@ export default function Page(){
  </div>
  </div>
  <div className="mt-8 grid gap-4 sm:grid-cols-3">
- <div className="rounded-3xl bg-gradient-to-br from-violet-500/15 to-transparent p-5">
+ <div className="rounded-ds-3xl bg-white/5 p-5">
  <div className="text-sm uppercase tracking-[0.2em] text-slate-400">Revenue</div>
  <div className="mt-3 text-3xl font-semibold text-white">$24.8k</div>
  <div className="mt-2 text-sm text-slate-500">Monthly bookings</div>
  </div>
- <div className="rounded-3xl bg-gradient-to-br from-fuchsia-500/15 to-transparent p-5">
+ <div className="rounded-ds-3xl bg-white/5 p-5">
  <div className="text-sm uppercase tracking-[0.2em] text-slate-400">New trials</div>
  <div className="mt-3 text-3xl font-semibold text-white">34</div>
  <div className="mt-2 text-sm text-slate-500">Last 7 days</div>
  </div>
- <div className="rounded-3xl bg-gradient-to-br from-sky-500/15 to-transparent p-5">
+ <div className="rounded-ds-3xl bg-white/5 p-5">
  <div className="text-sm uppercase tracking-[0.2em] text-slate-400">Active plans</div>
  <div className="mt-3 text-3xl font-semibold text-white">112</div>
  <div className="mt-2 text-sm text-slate-500">Live subscriptions</div>

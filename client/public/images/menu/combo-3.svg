@@ -6,7 +6,7 @@
       <stop offset="100%" style="stop-color:#1f0933;stop-opacity:1" />
     </linearGradient>
   </defs>
-  <rect width="1200" height="800" fill="url(#combo3-grad)"/>
+  <rect width="1200" height="800" fill="#0f172a"/>
   <g opacity="0.25">
     <polygon points="600,200 750,400 450,400" fill="#ec4899" opacity="0.2"/>
     <circle cx="600" cy="250" r="40" fill="#ec4899" opacity="0.25"/>

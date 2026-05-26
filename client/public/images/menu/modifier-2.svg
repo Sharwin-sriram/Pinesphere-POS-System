@@ -6,7 +6,7 @@
       <stop offset="100%" style="stop-color:#0a2e1f;stop-opacity:1" />
     </linearGradient>
   </defs>
-  <rect width="1200" height="800" fill="url(#mod2-grad)"/>
+  <rect width="1200" height="800" fill="#0f172a"/>
   <g opacity="0.3">
     <rect x="250" y="280" width="80" height="100" rx="8" fill="none" stroke="#14b8a6" stroke-width="2"/>
     <circle cx="290" cy="320" r="20" fill="#14b8a6" opacity="0.2"/>

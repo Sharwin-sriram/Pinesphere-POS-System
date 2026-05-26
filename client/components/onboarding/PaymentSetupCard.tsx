@@ -19,9 +19,9 @@ export default function PaymentSetupCard(){
  <Button variant="ghost">Configure UPI</Button>
  </div>
  </div>
- <div className="rounded-3xl border border-white/10 bg-slate-900/80 p-6 text-center text-white">
+ <div className="rounded-ds-3xl border border-white/10 bg-slate-900/80 p-6 text-center text-white">
  <div className="mb-4 text-sm uppercase tracking-[0.24em] text-violet-300">Connected</div>
- <div className="mx-auto flex h-40 w-full items-center justify-center rounded-3xl bg-gradient-to-br from-violet-500/15 to-transparent text-4xl font-semibold text-violet-200">QR</div>
+ <div className="mx-auto flex h-40 w-full items-center justify-center rounded-ds-3xl bg-white/5 text-4xl font-semibold text-violet-200">QR</div>
  <div className="mt-5 text-sm text-slate-300">Last synced 2 days ago. Payments flowing with secure token refresh.</div>
  </div>
  </div>

@@ -41,11 +41,11 @@ export default function ImageWithFallback({
       {showLoader ? (
         <span
           aria-hidden="true"
-          className={`absolute inset-0 overflow-hidden bg-slate-900/70 transition-opacity duration-300 ${
+          className={`absolute inset-0 overflow-hidden bg-[rgba(15,23,42,0.7)] transition-opacity duration-300 ${
             isLoaded ? 'opacity-0' : 'opacity-100'
           }`}
         >
-          <span className="absolute inset-0 animate-shimmer bg-[linear-gradient(110deg,rgba(255,255,255,0)_20%,rgba(255,255,255,0.16)_45%,rgba(255,255,255,0)_70%)] bg-[length:200%_100%]" />
+          <span className="absolute inset-0 animate-shimmer bg-[var(--color-bg-tertiary)]" />
         </span>
       ) : null}
 

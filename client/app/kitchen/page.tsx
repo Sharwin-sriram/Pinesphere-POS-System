@@ -73,7 +73,8 @@ export default function KitchenDashboard() {
  <div className="mt-auto">
  <button 
  onClick={() => handleMarkAsCooked(order.orderId, order.tableNumber)}
- className="w-full flex items-center justify-center gap-2 bg-gradient-to-tr from-orange-500 to-red-400 text-white px-6 py-3.5 rounded-xl font-semibold hover: hover:-translate-y-1 transition-all"
+ className="w-full flex items-center justify-center gap-2 bg-[var(--color-warning)] text-white px-6 py-3.5 rounded-ds-md font-semibold hover:-translate-y-1 transition-smooth"
+ style={{border: 'none'}}
  >
  <Check className="h-4 w-4" strokeWidth={1.5} /> Mark as Cooked
  </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Search, ShoppingCart, Star } from "lucide-react";
+import { Menu, Search, ShoppingCart } from "lucide-react";
 import React from "react";
 
 import { useCart } from "./CartContext";
@@ -16,22 +16,13 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
  <header className="sticky top-0 z-30 w-full glass-light border-b border-white/40">
  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
  
- {/* Left Side: Menu Toggle and Cart */}
+ {/* Left Side: Menu Toggle */}
  <div className="flex items-center gap-4">
  <button 
  onClick={onMenuClick}
  className="p-2 bg-white/60 hover:bg-white rounded-xl transition-all text-gray-700"
  >
  <Menu className="h-4 w-4" strokeWidth={1.5} />
- </button>
- 
- <button className="relative p-2 bg-gradient-to-tr from-blue-500 to-cyan-400 text-white rounded-xl hover: transform hover:-translate-y-0.5 transition-all">
- <ShoppingCart className="h-4 w-4" strokeWidth={1.5} />
- {cartCount > 0 && (
- <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full border-2 border-white animate-bounce-light">
- {cartCount}
- </span>
- )}
  </button>
  </div>
 
@@ -49,13 +40,17 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
  </div>
  </div>
 
- {/* Right Side: Subscribe Button & Profile */}
- <div className="flex items-center gap-4">
- <button className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full font-semibold hover: hover:scale-105 transition-all">
- <Star className="h-4 w-4" strokeWidth={1.5} />
- Subscribe
+ {/* Right Side: Cart & Profile */}
+ <div className="flex items-center gap-3">
+ <button className="relative p-2 bg-[var(--color-blue)] text-white rounded-ds-lg hover:-translate-y-0.5 transition-smooth">
+ <ShoppingCart className="h-4 w-4" strokeWidth={1.5} />
+ {cartCount > 0 && (
+ <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full border-2 border-white animate-bounce-light">
+ {cartCount}
+ </span>
+ )}
  </button>
- 
+
  <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-white font-semibold cursor-pointer hover: transition-all">
  U
  </div>

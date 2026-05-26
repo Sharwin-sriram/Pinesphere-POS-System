@@ -30,7 +30,7 @@ export default function StaffPage() {
  <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">Platform Staff Management</h2>
  <p className="text-sm text-gray-500">Manage internal employees and their access levels.</p>
  </div>
- <button className="bg-gradient-to-tr from-blue-500 to-cyan-400 text-white px-4 py-2 rounded-xl font-semibold hover: transition-all text-sm">
+ <button className="bg-[var(--color-blue)] text-white px-4 py-2 rounded-ds-md font-semibold transition-smooth text-sm" style={{border:'none'}}>
  + Add Staff Member
  </button>
  </div>

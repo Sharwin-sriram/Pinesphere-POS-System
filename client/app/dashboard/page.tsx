@@ -8,7 +8,7 @@ export default function DashboardPage() {
  return (
  <div className="flex flex-col gap-6 animate-fade-in-up">
  {/* Promotional Banner (Optional for Swiggy-like feel) */}
- <div className="w-full h-48 md:h-64 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 p-6 flex flex-col justify-center text-white overflow-hidden relative group cursor-pointer mt-4">
+ <div className="w-full h-48 md:h-64 rounded-ds-3xl bg-[var(--color-blue)] p-6 flex flex-col justify-center text-white overflow-hidden relative group cursor-pointer mt-4">
  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-250" />
  
  {/* Antigravity floating shapes */}
@@ -18,7 +18,7 @@ export default function DashboardPage() {
  <div className="relative z-10 max-w-lg">
  <h1 className="text-3xl md:text-5xl font-semibold mb-2">50% OFF</h1>
  <p className="text-lg md:text-xl font-medium mb-4 opacity-90">On your first order! Explore the best meals near you.</p>
- <button className="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover: hover:scale-105 transition-all w-max">
+ <button className="bg-white text-blue-600 px-6 py-2 rounded-ds-md font-semibold hover:scale-105 transition-smooth w-max">
  Order Now
  </button>
  </div>

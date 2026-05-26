@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 
 const TestGuide = () => {
  return (
- <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-8">
+ <div className="min-h-screen bg-slate-50 p-8">
  {/* Floating Particles */}
  <div className="particle particle-1"></div>
  <div className="particle particle-2"></div>
@@ -27,7 +27,7 @@ const TestGuide = () => {
  animate={{ opacity: 1, y: 0 }}
  className="text-center mb-12"
  >
- <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-2xl flex items-center justify-center mx-auto mb-4 floating">
+ <div className="w-16 h-16 bg-[var(--color-blue)] rounded-ds-xl flex items-center justify-center mx-auto mb-4 floating">
  <UtensilsCrossed className="h-6 w-6 text-[var(--color-accent)]" strokeWidth={1.5} />
  </div>
  <h1 className="text-3xl font-semibold gradient-text-light mb-2">
@@ -45,7 +45,7 @@ const TestGuide = () => {
  initial={{ opacity: 0, x: -20 }}
  animate={{ opacity: 1, x: 0 }}
  transition={{ delay: 0.2 }}
- className="glass-card rounded-2xl p-6 floating-slow"
+ className="glass-card rounded-ds-3xl p-6 floating-slow"
  >
  <div className="flex items-center mb-4">
  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
@@ -70,7 +70,7 @@ const TestGuide = () => {
  initial={{ opacity: 0, x: 20 }}
  animate={{ opacity: 1, x: 0 }}
  transition={{ delay: 0.3 }}
- className="glass-card rounded-2xl p-6 floating-slow"
+ className="glass-card rounded-ds-3xl p-6 floating-slow"
  >
  <div className="flex items-center mb-4">
  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
@@ -95,7 +95,7 @@ const TestGuide = () => {
  initial={{ opacity: 0, x: -20 }}
  animate={{ opacity: 1, x: 0 }}
  transition={{ delay: 0.4 }}
- className="glass-card rounded-2xl p-6 floating-slow"
+ className="glass-card rounded-ds-3xl p-6 floating-slow"
  >
  <div className="flex items-center mb-4">
  <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
@@ -146,7 +146,7 @@ const TestGuide = () => {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.6 }}
- className="glass-card rounded-2xl p-6 mb-8"
+ className="glass-card rounded-ds-3xl p-6 mb-8"
  >
  <div className="flex items-center mb-4">
  <Info className="text-blue-500 mr-3" />
@@ -169,7 +169,7 @@ const TestGuide = () => {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.7 }}
- className="glass-card rounded-2xl p-6 mb-8"
+ className="glass-card rounded-ds-3xl p-6 mb-8"
  >
  <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Features to Test:</h3>
  <div className="grid md:grid-cols-2 gap-4">
@@ -221,7 +221,7 @@ const TestGuide = () => {
  >
  <a
  href="/otp-login"
- className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white px-6 py-3 rounded-2xl font-medium hover:from-blue-600 hover:to-cyan-500 transition-all duration-150 hover:"
+ className="bg-[var(--color-blue)] text-white px-6 py-3 rounded-ds-3xl font-medium transition-smooth"
  >
  Test OTP Login
  </a>
@@ -233,7 +233,7 @@ const TestGuide = () => {
  </a>
  <a
  href="/dashboard"
- className="bg-gradient-to-r from-green-500 to-emerald-400 text-white px-6 py-3 rounded-2xl font-medium hover:from-green-600 hover:to-emerald-500 transition-all duration-150 hover:"
+ className="bg-[var(--color-success)] text-white px-6 py-3 rounded-ds-3xl font-medium transition-smooth"
  >
  Dashboard
  </a>
