@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   FiMail,
@@ -220,20 +219,6 @@ const LoginForm = () => {
                 </motion.button>
               </div>
 
-              <motion.button
-                type="button"
-                onClick={() => {
-                  window.location.href = authService.getGoogleOAuthUrl("/oauth/callback");
-                }}
-                whileHover={{ scale: 1.01, y: -1 }}
-                whileTap={{ scale: 0.98 }}
-                className="mb-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
-              >
-                <FcGoogle className="text-xl" />
-                Continue with Google
-                <FiArrowRight className="text-slate-400" />
-              </motion.button>
-
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Email Input */}
                 <InputField
@@ -307,18 +292,35 @@ const LoginForm = () => {
                 >
                   {isLoading ? <Loader /> : "Sign In"}
                 </motion.button>
+
+                <div className="relative py-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-white px-4 text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">
+                      OR
+                    </span>
+                  </div>
+                </div>
+
+                <motion.button
+                  type="button"
+                  onClick={() => {
+                    window.location.href = authService.getGoogleOAuthUrl("/oauth/callback");
+                  }}
+                  whileHover={{ scale: 1.01, y: -1 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+                >
+                  <FcGoogle className="text-xl" />
+                  Sign in using Google
+                  <FiArrowRight className="text-slate-400" />
+                </motion.button>
               </form>
 
               {/* Footer */}
               <div className="mt-8 text-center">
-                <div className="mb-4">
-                  <Link
-                    href="/signup"
-                    className="inline-flex items-center justify-center rounded-2xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
-                  >
-                    Create an account
-                  </Link>
-                </div>
                 <p className="text-slate-500 text-sm">
                   Need help? Contact{" "}
                   <a

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const API_BASE = 'http://127.0.0.1:8000/api/hr';
 

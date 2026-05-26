@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { FiCheckCircle, FiEdit2, FiTrash2, FiClock } from "react-icons/fi";
+import { FiCheckCircle, FiEdit2, FiTrash2, FiClock, FiX } from "react-icons/fi";
 
 const mockOrders = [
   { id: "01", name: "Watson Joyce", orderNo: "990", status: "Ready", subStatus: "Ready to serve", time: "4:48 PM", total: 649, items: [{ name: "Scrambled eggs", price: 199 }, { name: "Smoked Salmon", price: 120 }, { name: "Belgian Waffles", price: 220 }, { name: "Classic Lemonade", price: 110 }] },
