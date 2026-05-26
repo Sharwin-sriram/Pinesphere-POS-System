@@ -9,6 +9,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
+        ('shared', '0001_create_schemas'),
     ]
 
     operations = [
