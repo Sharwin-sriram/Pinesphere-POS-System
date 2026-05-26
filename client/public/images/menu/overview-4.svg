@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#2d1b69;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="heat" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.2" />
+      <stop offset="50%" style="stop-color:#f97316;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#eab308;stop-opacity:0.1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#grad4)"/>
+  <rect width="1200" height="800" fill="url(#heat)"/>
+  <g opacity="0.3">
+    <circle cx="350" cy="380" r="70" fill="none" stroke="#f97316" stroke-width="2"/>
+    <circle cx="350" cy="380" r="55" fill="#f97316" opacity="0.1"/>
+    <path d="M 350 310 L 380 380 L 350 450 L 320 380 Z" fill="#f97316" opacity="0.2"/>
+  </g>
+  <g opacity="0.3">
+    <circle cx="850" cy="320" r="60" fill="none" stroke="#f97316" stroke-width="2"/>
+    <circle cx="850" cy="320" r="48" fill="#f97316" opacity="0.1"/>
+    <path d="M 850 260 L 875 320 L 850 380 L 825 320 Z" fill="#f97316" opacity="0.2"/>
+  </g>
+  <g opacity="0.15">
+    <polygon points="200,500 240,400 280,500" fill="#ef4444"/>
+    <rect x="195" y="500" width="90" height="15" fill="#ef4444"/>
+  </g>
+  <g opacity="0.15">
+    <polygon points="1000,550 1040,450 1080,550" fill="#ef4444"/>
+    <rect x="995" y="550" width="90" height="15" fill="#ef4444"/>
+  </g>
+  <g opacity="0.2">
+    <line x1="600" y1="200" x2="620" y2="550" stroke="#f97316" stroke-width="3"/>
+    <circle cx="620" cy="190" r="8" fill="#f97316"/>
+  </g>
+  <g opacity="0.2">
+    <line x1="700" y1="150" x2="680" y2="500" stroke="#f97316" stroke-width="3"/>
+    <circle cx="680" cy="140" r="8" fill="#f97316"/>
+  </g>
+  <g stroke="#f97316" stroke-width="1" opacity="0.15">
+    <line x1="400" y1="250" x2="500" y2="280"/>
+    <line x1="420" y1="240" x2="520" y2="270"/>
+    <line x1="750" y1="200" x2="850" y2="230"/>
+    <line x1="770" y1="190" x2="870" y2="220"/>
+  </g>
+  <text x="600" y="700" font-family="Inter, Arial" font-size="56" font-weight="bold" fill="#f8fafc" text-anchor="middle">Food Service Momentum</text>
+  <text x="600" y="760" font-family="Inter, Arial" font-size="18" fill="#cbd5e1" text-anchor="middle">Fast-paced service visuals for high-energy kitchens</text>
+</svg>

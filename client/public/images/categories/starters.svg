@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="starters-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f766e;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#164e63;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="starter-glow" cx="50%" cy="50%" r="45%">
+      <stop offset="0%" style="stop-color:#14b8a6;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#14b8a6;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#starters-grad)"/>
+  <g opacity="0.3">
+    <circle cx="350" cy="350" r="80" fill="url(#starter-glow)"/>
+    <circle cx="350" cy="350" r="80" fill="none" stroke="#14b8a6" stroke-width="2"/>
+    <polygon points="350,290 390,350 350,410 310,350" fill="#14b8a6" opacity="0.25"/>
+    <circle cx="350" cy="320" r="12" fill="#2dd4bf" opacity="0.5"/>
+  </g>
+  <g opacity="0.25">
+    <circle cx="900" cy="400" r="70" fill="none" stroke="#14b8a6" stroke-width="2"/>
+    <polygon points="900,350 940,400 900,450 860,400" fill="#14b8a6" opacity="0.2"/>
+    <circle cx="900" cy="370" r="10" fill="#2dd4bf" opacity="0.4"/>
+  </g>
+  <g opacity="0.15" stroke="#14b8a6" stroke-width="2">
+    <line x1="200" y1="250" x2="280" y2="300"/>
+    <line x1="1100" y1="550" x2="1020" y2="500"/>
+  </g>
+  <text x="600" y="700" font-family="Inter, Arial" font-size="44" font-weight="bold" fill="#99f6e4" text-anchor="middle">Starters & Sharables</text>
+</svg>

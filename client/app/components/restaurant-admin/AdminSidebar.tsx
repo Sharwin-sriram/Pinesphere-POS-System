@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiHome, FiGrid, FiUsers, FiBox, FiPieChart, FiShoppingBag, FiCalendar, FiLogOut, FiX } from "react-icons/fi";
+import { FiHome, FiGrid, FiUsers, FiBox, FiPieChart, FiShoppingBag, FiCalendar, FiLogOut, FiX, FiBriefcase } from "react-icons/fi";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -21,6 +21,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     { name: "Reports", icon: FiPieChart, path: "/restaurant-admin/reports" },
     { name: "Order/Table", icon: FiShoppingBag, path: "/restaurant-admin/orders" },
     { name: "Reservation", icon: FiCalendar, path: "/restaurant-admin/reservation" },
+    { name: "Franchise", icon: FiBriefcase, path: "/restaurant-admin/franchise" },
   ];
 
   return (

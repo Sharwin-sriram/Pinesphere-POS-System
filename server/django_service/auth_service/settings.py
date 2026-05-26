@@ -22,8 +22,12 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
-    "authentication",
-    "apps.django_schema",
+    "channels",
+    "apps.authentication",
+    "apps.orders",
+    "apps.inventory",
+    "apps.pos",
+    "apps.kitchen_display_system",
 ]
 
 MIDDLEWARE = [
@@ -55,19 +59,12 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "auth_service.wsgi.application"
+ASGI_APPLICATION = "auth_service.asgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DATABASE_NAME", default="pinesphere_db"),
-        "USER": config("DATABASE_USER", default="django_user"),
-        "PASSWORD": config("DATABASE_PASSWORD", default="djangopassword"),
-        "HOST": config("DATABASE_HOST", default="localhost"),
-        "PORT": config("DATABASE_PORT", default="5432"),
-        "OPTIONS": {
-            "options": "-c search_path=public,shared_schema,django_schema",
-        },
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
@@ -141,4 +138,11 @@ SIMPLE_JWT = {
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
+}
+
+# Channels configuration
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
 }
