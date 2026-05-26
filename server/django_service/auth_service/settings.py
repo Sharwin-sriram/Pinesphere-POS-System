@@ -23,7 +23,6 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "authentication",
-    "apps.shared",
     "apps.django_schema",
 ]
 
@@ -67,7 +66,7 @@ DATABASES = {
         "HOST": config("DATABASE_HOST", default="localhost"),
         "PORT": config("DATABASE_PORT", default="5432"),
         "OPTIONS": {
-            "options": "-c search_path=shared_schema,public",
+            "options": "-c search_path=public,shared_schema,django_schema",
         },
     }
 }

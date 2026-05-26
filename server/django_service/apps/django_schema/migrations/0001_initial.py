@@ -9,10 +9,19 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('shared', '0001_create_schemas'),
     ]
 
     operations = [
+        migrations.RunSQL(
+            sql='''
+            CREATE SCHEMA IF NOT EXISTS shared_schema;
+            CREATE SCHEMA IF NOT EXISTS django_schema;
+            ''',
+            reverse_sql='''
+            DROP SCHEMA IF EXISTS django_schema CASCADE;
+            DROP SCHEMA IF EXISTS shared_schema CASCADE;
+            ''',
+        ),
         migrations.CreateModel(
             name='AuditLog',
             fields=[
