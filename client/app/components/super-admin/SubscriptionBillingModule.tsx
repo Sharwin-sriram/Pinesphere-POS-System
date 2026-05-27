@@ -122,7 +122,7 @@ export default function SubscriptionBillingModule() {
   const [searchTerm, setSearchTerm] = useState("");
   const [cycle, setCycle] = useState<BillingCycle>("Annual");
   const [segment, setSegment] = useState<SegmentFilter>("All");
-  const [minimumAutomation, setMinimumAutomation] = useState(60);
+  const [minimumAutomation, setMinimumAutomation] = useState(40);
 
   const filteredPlans = useMemo(() => {
     return plans.filter((plan) => {
