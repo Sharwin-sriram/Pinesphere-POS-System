@@ -15,6 +15,14 @@ from .views import (
     restaurant_table_orders,
     restaurant_table_order_detail,
     restaurant_table_bill,
+    # Staff views
+    restaurant_staff_list,
+    restaurant_staff_detail,
+    check_staff_email,
+    check_staff_pin,
+    restaurant_roles_list,
+    restaurant_role_detail,
+    restaurant_shifts_list,
 )
 
 
@@ -35,8 +43,23 @@ urlpatterns = [
     path("restaurant/<str:pk>/tables/<str:table_id>/orders/", restaurant_table_orders, name="restaurant_table_orders"),
     path("restaurant/<str:pk>/tables/<str:table_id>/orders/<str:order_id>/", restaurant_table_order_detail, name="restaurant_table_order_detail"),
     path("restaurant/<str:pk>/tables/<str:table_id>/bill/", restaurant_table_bill, name="restaurant_table_bill"),
+    
+    # Staff management endpoints
+    path("restaurant/<str:pk>/staff/", restaurant_staff_list, name="restaurant_staff_list"),
+    path("restaurant/<str:pk>/staff/check-email/", check_staff_email, name="check_staff_email"),
+    path("restaurant/<str:pk>/staff/check-pin/", check_staff_pin, name="check_staff_pin"),
+    path("restaurant/<str:pk>/staff/<str:staff_id>/", restaurant_staff_detail, name="restaurant_staff_detail"),
+    
+    # Roles management endpoints
+    path("restaurant/<str:pk>/roles/", restaurant_roles_list, name="restaurant_roles_list"),
+    path("restaurant/<str:pk>/roles/<str:role_id>/", restaurant_role_detail, name="restaurant_role_detail"),
+    
+    # Shifts lookup endpoint
+    path("restaurant/<str:pk>/shifts/", restaurant_shifts_list, name="restaurant_shifts_list"),
+    
     path("upload/", upload_image, name="upload_image"),
 ]
+
 
 
 

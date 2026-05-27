@@ -1141,4 +1141,515 @@ def restaurant_table_bill(request, pk, table_id):
     })
 
 
+# ─── STAFF MANAGEMENT MOCK SERVICES & VIEWS ───
+
+MOCK_SHIFTS = {
+    "r1": [
+        {"id": "sf1", "name": "Morning Shift", "start_time": "9:00 AM", "end_time": "5:00 PM", "break_duration": "45 min"},
+        {"id": "sf2", "name": "Evening Shift", "start_time": "4:00 PM", "end_time": "12:00 AM", "break_duration": "45 min"},
+        {"id": "sf3", "name": "Night Shift", "start_time": "11:00 PM", "end_time": "7:00 AM", "break_duration": "30 min"}
+    ]
+}
+
+MOCK_ROLES = {
+    "r1": [
+        {"id": "r_1", "name": "Manager", "color": "blue"},
+        {"id": "r_2", "name": "Waiter", "color": "success"},
+        {"id": "r_3", "name": "Kitchen Staff", "color": "accent"},
+        {"id": "r_4", "name": "Cashier", "color": "warning"},
+    ]
+}
+
+MOCK_STAFF = {
+    "r1": [
+        {
+            "id": "s1",
+            "first_name": "Sarah",
+            "last_name": "Jenkins",
+            "email": "sarah.j@pinesphere.com",
+            "phone": "+15551234567",
+            "dob": "1995-08-22",
+            "profile_photo": "",
+            "role": "Waiter",
+            "employment_type": "Full-time",
+            "date_joined": "2024-03-10",
+            "salary_rate": 18.50,
+            "status": "Active",
+            "assigned_shift": "sf1",
+            "pin": "1111",
+            "admin_access": False,
+            "tables": ["2"],
+            "recent_activity": [
+                {"action": "Took order on Table 2", "time": "2:15 PM"},
+                {"action": "Clocked in", "time": "9:02 AM"},
+                {"action": "Served table 2", "time": "9:45 AM"}
+            ],
+            "performance": {
+                "orders_today": 12,
+                "orders_week": 65,
+                "orders_month": 240,
+                "avg_value": 42.50
+            },
+            "today_schedule": {
+                "clock_in": "09:02 AM",
+                "clock_out": "Still on shift",
+                "total_hours": "7.2"
+            }
+        },
+        {
+            "id": "s2",
+            "first_name": "Michael",
+            "last_name": "Chang",
+            "email": "m.chang@pinesphere.com",
+            "phone": "+15559876543",
+            "dob": "1992-11-05",
+            "profile_photo": "",
+            "role": "Waiter",
+            "employment_type": "Full-time",
+            "date_joined": "2023-06-15",
+            "salary_rate": 19.00,
+            "status": "Active",
+            "assigned_shift": "sf2",
+            "pin": "2222",
+            "admin_access": False,
+            "tables": ["3"],
+            "recent_activity": [
+                {"action": "Clocked in", "time": "4:05 PM"}
+            ],
+            "performance": {
+                "orders_today": 4,
+                "orders_week": 58,
+                "orders_month": 210,
+                "avg_value": 38.00
+            },
+            "today_schedule": {
+                "clock_in": "04:05 PM",
+                "clock_out": "Still on shift",
+                "total_hours": "1.5"
+            }
+        },
+        {
+            "id": "s3",
+            "first_name": "John",
+            "last_name": "Doe",
+            "email": "john.doe@pinesphere.com",
+            "phone": "+15555555555",
+            "dob": "1990-01-01",
+            "profile_photo": "",
+            "role": "Manager",
+            "employment_type": "Full-time",
+            "date_joined": "2022-01-01",
+            "salary_rate": 50.00,
+            "status": "Active",
+            "assigned_shift": "sf1",
+            "pin": "3333",
+            "admin_access": True,
+            "tables": [],
+            "recent_activity": [
+                {"action": "Clocked in", "time": "8:55 AM"}
+            ],
+            "performance": {
+                "orders_today": 0,
+                "orders_week": 0,
+                "orders_month": 0,
+                "avg_value": 0.00
+            },
+            "today_schedule": {
+                "clock_in": "08:55 AM",
+                "clock_out": "Still on shift",
+                "total_hours": "8.0"
+            }
+        },
+        {
+            "id": "s4",
+            "first_name": "Emily",
+            "last_name": "Stone",
+            "email": "emily.stone@pinesphere.com",
+            "phone": "+15554443333",
+            "dob": "1997-04-18",
+            "profile_photo": "",
+            "role": "Kitchen Staff",
+            "employment_type": "Part-time",
+            "date_joined": "2024-05-01",
+            "salary_rate": 16.00,
+            "status": "On Leave",
+            "assigned_shift": "sf2",
+            "pin": "4444",
+            "admin_access": False,
+            "tables": [],
+            "recent_activity": [],
+            "performance": {
+                "orders_today": 0,
+                "orders_week": 0,
+                "orders_month": 0,
+                "avg_value": 0.00
+            },
+            "today_schedule": {
+                "clock_in": "",
+                "clock_out": "",
+                "total_hours": "0.0"
+            }
+        }
+    ]
+}
+
+def compute_staff_summary(pk):
+    staff_list = MOCK_STAFF.get(pk, [])
+    roles_list = MOCK_ROLES.get(pk, [])
+    
+    on_leave = sum(1 for s in staff_list if s.get("status") == "On Leave")
+    inactive = sum(1 for s in staff_list if s.get("status") == "Inactive")
+    
+    # On Shift: Active and today clocked in, still on shift
+    on_shift = sum(1 for s in staff_list if s.get("status") == "Active" and s.get("today_schedule", {}).get("clock_out") == "Still on shift")
+    # Off shift: active but not clocked in / still on shift
+    off_shift = sum(1 for s in staff_list if s.get("status") == "Active" and s.get("today_schedule", {}).get("clock_out") != "Still on shift")
+    
+    return {
+        "total_staff": len(staff_list),
+        "on_shift": on_shift,
+        "off_shift": off_shift,
+        "on_leave": on_leave,
+        "total_roles": len(roles_list)
+    }
+
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])
+def restaurant_staff_list(request, pk):
+    if pk not in MOCK_STAFF:
+        MOCK_STAFF[pk] = []
+    if pk not in MOCK_ROLES:
+        MOCK_ROLES[pk] = []
+        
+    staff_list = MOCK_STAFF[pk]
+    
+    if request.method == "GET":
+        search = (request.query_params.get("search") or "").strip().lower()
+        role_filter = (request.query_params.get("role") or "").strip()
+        status_filter = (request.query_params.get("status") or "").strip()
+        shift_filter = (request.query_params.get("shift") or "").strip() # All, On Shift, Off Shift
+        sort = (request.query_params.get("sort") or "name_asc").strip()
+        
+        try:
+            page = max(int(request.query_params.get("page", 1)), 1)
+        except ValueError:
+            page = 1
+        try:
+            page_size = min(max(int(request.query_params.get("page_size", 10)), 1), 100)
+        except ValueError:
+            page_size = 10
+            
+        filtered = []
+        for s in staff_list:
+            # Search
+            if search:
+                fullName = f"{s.get('first_name', '')} {s.get('last_name', '')}".lower()
+                email = s.get("email", "").lower()
+                phone = s.get("phone", "").lower()
+                role = s.get("role", "").lower()
+                if search not in fullName and search not in email and search not in phone and search not in role:
+                    continue
+                    
+            # Role
+            if role_filter and s.get("role") != role_filter:
+                continue
+                
+            # Status
+            if status_filter and s.get("status") != status_filter:
+                continue
+                
+            # Shift
+            if shift_filter:
+                is_on_shift = s.get("status") == "Active" and s.get("today_schedule", {}).get("clock_out") == "Still on shift"
+                if shift_filter == "On Shift" and not is_on_shift:
+                    continue
+                if shift_filter == "Off Shift" and is_on_shift:
+                    continue
+                    
+            filtered.append(s)
+            
+        # Sorting
+        if sort == "name_asc":
+            filtered.sort(key=lambda x: f"{x.get('first_name','') } {x.get('last_name','')}".lower())
+        elif sort == "name_desc":
+            filtered.sort(key=lambda x: f"{x.get('first_name','') } {x.get('last_name','')}".lower(), reverse=True)
+        elif sort == "role":
+            filtered.sort(key=lambda x: x.get("role", "").lower())
+        elif sort == "date_joined_desc":
+            filtered.sort(key=lambda x: x.get("date_joined", ""), reverse=True)
+        elif sort == "date_joined_asc":
+            filtered.sort(key=lambda x: x.get("date_joined", ""))
+            
+        total = len(filtered)
+        start = (page - 1) * page_size
+        end = start + page_size
+        results = filtered[start:end]
+        
+        summary = compute_staff_summary(pk)
+        
+        return Response({
+            "results": results,
+            "page": page,
+            "page_size": page_size,
+            "total": total,
+            "has_next": end < total,
+            "summary": summary
+        })
+        
+    elif request.method == "POST":
+        data = request.data
+        
+        # Simulate error if requested
+        if data.get("fail"):
+            return Response({"detail": "Simulated error during creation"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+        # Validation
+        first_name = data.get("first_name", "").strip()
+        last_name = data.get("last_name", "").strip()
+        email = data.get("email", "").strip()
+        phone = data.get("phone", "").strip()
+        dob = data.get("dob")
+        pin = data.get("pin")
+        
+        if not first_name or not last_name or not email or not phone:
+            return Response({"detail": "First name, last name, email, and phone number are required"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Create record
+        staff_id = f"s_{uuid.uuid4().hex[:8]}"
+        
+        # Shift details mapping (mock values)
+        has_shift = data.get("assigned_shift")
+        shift_detail = next((sf for sf in MOCK_SHIFTS.get(pk, []) if sf["id"] == has_shift), None)
+        
+        clock_in = ""
+        clock_out = ""
+        total_hours = "0.0"
+        
+        if data.get("status") == "Active" and shift_detail:
+            clock_in = "09:00 AM"
+            clock_out = "Still on shift"
+            total_hours = "0.0"
+            
+        new_staff = {
+            "id": staff_id,
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+            "phone": phone,
+            "dob": dob,
+            "profile_photo": data.get("profile_photo") or "",
+            "role": data.get("role", "Waiter"),
+            "employment_type": data.get("employment_type", "Full-time"),
+            "date_joined": data.get("date_joined") or "2026-05-27",
+            "salary_rate": float(data.get("salary_rate") or 0),
+            "status": data.get("status") or "Active",
+            "assigned_shift": data.get("assigned_shift") or "",
+            "pin": pin,
+            "admin_access": bool(data.get("admin_access", False)),
+            "tables": [],
+            "recent_activity": [
+                {"action": "Added to staff directory", "time": "Just now"}
+            ],
+            "performance": {
+                "orders_today": 0,
+                "orders_week": 0,
+                "orders_month": 0,
+                "avg_value": 0.0
+            },
+            "today_schedule": {
+                "clock_in": clock_in,
+                "clock_out": clock_out,
+                "total_hours": total_hours
+            }
+        }
+        
+        staff_list.append(new_staff)
+        return Response(new_staff, status=status.HTTP_201_CREATED)
+
+@api_view(["GET", "PUT", "PATCH", "DELETE"])
+@permission_classes([AllowAny])
+def restaurant_staff_detail(request, pk, staff_id):
+    if pk not in MOCK_STAFF:
+        return Response({"detail": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+    staff_list = MOCK_STAFF[pk]
+    member = next((s for s in staff_list if s["id"] == staff_id), None)
+    if not member:
+        return Response({"detail": "Staff member not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+    if request.method == "GET":
+        return Response(member)
+        
+    elif request.method == "PUT":
+        data = request.data
+        # Simulate error
+        if data.get("fail"):
+            return Response({"detail": "Simulated edit failure"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+        # Full update
+        for field in ["first_name", "last_name", "phone", "dob", "profile_photo", "role", "employment_type", "date_joined", "assigned_shift", "pin", "admin_access", "status"]:
+            if field in data:
+                member[field] = data[field]
+                
+        if "salary_rate" in data:
+            try:
+                member["salary_rate"] = float(data["salary_rate"])
+            except ValueError:
+                pass
+                
+        # Update schedule mock values if status toggles
+        if member["status"] == "On Leave" or member["status"] == "Inactive":
+            member["today_schedule"]["clock_in"] = ""
+            member["today_schedule"]["clock_out"] = ""
+            member["today_schedule"]["total_hours"] = "0.0"
+        elif member["status"] == "Active" and member["assigned_shift"] and not member["today_schedule"]["clock_in"]:
+            member["today_schedule"]["clock_in"] = "09:00 AM"
+            member["today_schedule"]["clock_out"] = "Still on shift"
+            
+        return Response(member)
+        
+    elif request.method == "PATCH":
+        data = request.data
+        if data.get("fail") or request.query_params.get("fail"):
+            return Response({"detail": "Simulated patch failure"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+        for field in ["status", "assigned_shift", "role", "admin_access"]:
+            if field in data:
+                member[field] = data[field]
+                
+        # Sync schedule
+        if member["status"] == "On Leave" or member["status"] == "Inactive":
+            member["today_schedule"]["clock_in"] = ""
+            member["today_schedule"]["clock_out"] = ""
+            member["today_schedule"]["total_hours"] = "0.0"
+        elif member["status"] == "Active" and member["assigned_shift"] and not member["today_schedule"]["clock_in"]:
+            member["today_schedule"]["clock_in"] = "09:00 AM"
+            member["today_schedule"]["clock_out"] = "Still on shift"
+            
+        return Response(member)
+        
+    elif request.method == "DELETE":
+        if request.query_params.get("fail") or request.data.get("fail"):
+            return Response({"detail": "Simulated deletion failure"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+        # Cannot delete a staff member who is currently clocked in (On Shift)
+        is_on_shift = member.get("status") == "Active" and member.get("today_schedule", {}).get("clock_out") == "Still on shift"
+        if is_on_shift:
+            return Response({"detail": "Cannot remove staff while on shift"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        MOCK_STAFF[pk] = [s for s in staff_list if s["id"] != staff_id]
+        return Response({"success": True})
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def check_staff_email(request, pk):
+    email = (request.query_params.get("email") or "").strip().lower()
+    exclude_id = (request.query_params.get("exclude_id") or "").strip()
+    if not email:
+        return Response({"is_available": True})
+    staff_list = MOCK_STAFF.get(pk, [])
+    exists = any(s.get("email", "").lower() == email and s.get("id") != exclude_id for s in staff_list)
+    return Response({"is_available": not exists})
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def check_staff_pin(request, pk):
+    pin = (request.query_params.get("pin") or "").strip()
+    exclude_id = (request.query_params.get("exclude_id") or "").strip()
+    if not pin:
+        return Response({"is_available": True})
+    staff_list = MOCK_STAFF.get(pk, [])
+    exists = any(s.get("pin") == pin and s.get("id") != exclude_id for s in staff_list)
+    return Response({"is_available": not exists})
+
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])
+def restaurant_roles_list(request, pk):
+    if pk not in MOCK_ROLES:
+        MOCK_ROLES[pk] = []
+    roles = MOCK_ROLES[pk]
+    
+    if request.method == "GET":
+        staff_list = MOCK_STAFF.get(pk, [])
+        enriched = []
+        for r in roles:
+            count = sum(1 for s in staff_list if s.get("role") == r["name"])
+            enriched.append({
+                "id": r["id"],
+                "name": r["name"],
+                "color": r["color"],
+                "staff_count": count
+            })
+        return Response(enriched)
+        
+    elif request.method == "POST":
+        name = request.data.get("name", "").strip()
+        color = request.data.get("color", "default").strip()
+        
+        if not name:
+            return Response({"detail": "Role name is required"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        if any(r["name"].lower() == name.lower() for r in roles):
+            return Response({"detail": "Role already exists"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        new_role = {
+            "id": f"role_{uuid.uuid4().hex[:6]}",
+            "name": name,
+            "color": color
+        }
+        roles.append(new_role)
+        return Response(new_role, status=status.HTTP_201_CREATED)
+
+@api_view(["PUT", "DELETE"])
+@permission_classes([AllowAny])
+def restaurant_role_detail(request, pk, role_id):
+    if pk not in MOCK_ROLES:
+        return Response({"detail": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+    roles = MOCK_ROLES[pk]
+    role = next((r for r in roles if r["id"] == role_id), None)
+    if not role:
+        return Response({"detail": "Role not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+    if request.method == "PUT":
+        name = request.data.get("name", "").strip()
+        color = request.data.get("color", "").strip()
+        
+        if not name:
+            return Response({"detail": "Role name is required"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        if name.lower() != role["name"].lower() and any(r["name"].lower() == name.lower() for r in roles):
+            return Response({"detail": "Role name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        old_name = role["name"]
+        role["name"] = name
+        if color:
+            role["color"] = color
+            
+        # Propagate name change to staff
+        staff_list = MOCK_STAFF.get(pk, [])
+        for s in staff_list:
+            if s.get("role") == old_name:
+                s["role"] = name
+                
+        return Response(role)
+        
+    elif request.method == "DELETE":
+        staff_list = MOCK_STAFF.get(pk, [])
+        assigned = any(s.get("role") == role["name"] for s in staff_list)
+        if assigned:
+            return Response({"detail": "Cannot delete role assigned to staff members"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        MOCK_ROLES[pk] = [r for r in roles if r["id"] != role_id]
+        return Response({"success": True})
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def restaurant_shifts_list(request, pk):
+    if pk not in MOCK_SHIFTS:
+        MOCK_SHIFTS[pk] = []
+    return Response(MOCK_SHIFTS[pk])
+
+
+
 
