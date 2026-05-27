@@ -116,6 +116,20 @@ class GoogleOAuthCallbackView(APIView):
         )
 
 
+class CheckEmailView(APIView):
+    """Check whether an email address is available for registration."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        from .models import User
+        email = request.query_params.get("email", "").strip()
+        if not email:
+            return Response({"is_available": False, "message": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+        is_taken = User.objects.filter(email__iexact=email).exists()
+        return Response({"is_available": not is_taken})
+
+
 class RegisterView(APIView):
     """Register a new user and return JWT tokens."""
 

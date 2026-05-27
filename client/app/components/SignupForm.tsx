@@ -12,6 +12,15 @@ import { getRoleHomePath } from "../lib/authRoutes";
 
 const iconProps = { className: "h-4 w-4", strokeWidth: 1.5 as const };
 
+const SIGNUP_FIELD_ORDER = [
+  "firstName",
+  "lastName",
+  "email",
+  "mobile",
+  "password",
+  "confirmPassword",
+] as const;
+
 const SignupForm = () => {
   const [formData, setFormData] = useState({
     firstName: "",
@@ -26,6 +35,8 @@ const SignupForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { success, error, ToastContainer } = useToast();
+
+  const signupErrorList = SIGNUP_FIELD_ORDER.map((key) => errors[key]).filter(Boolean);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -77,8 +88,8 @@ const SignupForm = () => {
     <>
       <ToastContainer />
       <AuthShell title="Create account" subtitle="Register your restaurant to get started">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
+          <div className="grid grid-cols-2 gap-3">
             <InputField
               type="text"
               name="firstName"
@@ -99,13 +110,17 @@ const SignupForm = () => {
             />
           </div>
           <InputField
-            type="email"
+            type="text"
             name="email"
             placeholder="you@restaurant.com"
             value={formData.email}
             onChange={handleInputChange}
             icon={<Mail {...iconProps} />}
             error={errors.email}
+            autoComplete="email"
+            inputMode="email"
+            autoCapitalize="off"
+            spellCheck={false}
           />
           <InputField
             type="tel"
@@ -158,7 +173,7 @@ const SignupForm = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="inline-flex h-10 w-full items-center justify-center rounded-md bg-[var(--color-accent)] font-semibold text-[var(--color-text-inverse)] transition duration-150 hover:bg-[var(--color-accent-hover)] active:scale-[0.97] disabled:opacity-40"
+            className="mt-1 inline-flex h-10 w-full items-center justify-center rounded-md bg-[var(--color-accent)] font-semibold text-[var(--color-text-inverse)] transition duration-150 hover:bg-[var(--color-accent-hover)] active:scale-[0.97] disabled:opacity-40"
           >
             {isLoading ? <Loader /> : "Create account"}
           </button>
@@ -185,6 +200,20 @@ const SignupForm = () => {
             Sign up with Google
             <ArrowRight className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
           </button>
+
+          {signupErrorList.length > 0 ? (
+            <div
+              id="signup-form-errors"
+              role="alert"
+              className="rounded-md border border-[var(--color-danger)] bg-[var(--color-danger-subtle)] px-4 py-3"
+            >
+              <ul className="list-disc space-y-1 pl-4 text-[length:var(--text-sm)] text-[var(--color-danger)]">
+                {signupErrorList.map((message) => (
+                  <li key={message}>{message}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
           <p className="text-center text-[length:var(--text-sm)] text-[var(--color-text-secondary)]">
             Already have an account?{" "}

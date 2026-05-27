@@ -83,12 +83,18 @@ class AuthService:
     def register_user(data):
         """Create a user account and return the persisted instance."""
 
+        # mobile is optional for email-only registration — generate a unique placeholder
+        mobile = data.get("mobile") or ""
+        if not mobile:
+            import uuid
+            mobile = f"e-{uuid.uuid4().hex[:18]}"
+
         user = User.objects.create_user(
-            mobile=data["mobile"],
+            mobile=mobile,
             password=data["password"],
             email=data.get("email"),
-            first_name=data["first_name"],
-            last_name=data["last_name"],
+            first_name=data.get("first_name", ""),
+            last_name=data.get("last_name", ""),
             role=data.get("role", User.RoleChoices.CUSTOMER),
             restaurant_id=data.get("restaurant_id"),
             branch_id=data.get("branch_id"),

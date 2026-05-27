@@ -45,9 +45,9 @@ const ForgotPassword = () => {
     >
       {!isEmailSent ? (
         <>
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <InputField
-              type="email"
+              type="text"
               name="email"
               placeholder="you@restaurant.com"
               value={email}
@@ -57,6 +57,10 @@ const ForgotPassword = () => {
               }}
               icon={<Mail {...iconProps} />}
               error={error}
+              autoComplete="email"
+              inputMode="email"
+              autoCapitalize="off"
+              spellCheck={false}
             />
             <button
               type="submit"

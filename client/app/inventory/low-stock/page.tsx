@@ -44,7 +44,7 @@ export default function LowStockPage() {
  const [error, setError] = useState("");
 
  useEffect(() => {
- const fetchLowStockItems = async () => {
+ const fetchItems = async () => {
  try {
  const data = await getLowStockItems();
  setItems(data);
@@ -56,15 +56,11 @@ export default function LowStockPage() {
  };
 
  const timeoutId = window.setTimeout(() => {
- void fetchLowStockItems();
+ void fetchItems();
  }, 0);
 
  return () => window.clearTimeout(timeoutId);
  }, []);
-
- const formattedData = items.map((item) => ({
- ...item,
- }));
 
  return (
  <InventoryLayout>
@@ -77,13 +73,13 @@ export default function LowStockPage() {
  <LoadingSkeleton />
  ) : error ? (
  <p className="text-red-500">{error}</p>
- ) : formattedData.length === 0 ? (
+ ) : items.length === 0 ? (
  <EmptyState
  title="No Low Stock Alerts"
  subtitle="Low stock alerts from backend will appear here"
  />
  ) : (
- <InventoryTable columns={columns} data={formattedData} />
+ <InventoryTable columns={columns} data={items} />
  )}
  </div>
  </InventoryLayout>

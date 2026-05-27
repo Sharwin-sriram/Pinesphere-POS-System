@@ -74,9 +74,7 @@ const PhoneInput = ({ value, onChange, error, disabled = false }: PhoneInputProp
         disabled={disabled}
         className={[
           "h-10 w-full rounded-md border bg-[var(--color-bg-tertiary)] pl-28 pr-4 text-[length:var(--text-base)] text-[var(--color-text-primary)] transition duration-150 placeholder:text-[var(--color-text-muted)] focus:outline-none",
-          error
-            ? "border-[var(--color-danger)] focus:border-[var(--color-danger)]"
-            : "border-[var(--color-border)] focus:border-[var(--color-border-focus)]",
+          error ? "border-[var(--color-danger)]" : "border-[var(--color-border)]",
         ].join(" ")}
       />
       {error ? <p className="mt-2 text-[length:var(--text-sm)] text-[var(--color-danger)]">{error}</p> : null}

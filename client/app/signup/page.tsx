@@ -1,18 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import AuthPage from '../components/AuthPage';
-import { authService } from '../lib/authService';
+import AuthPage from "../components/AuthPage";
 
 export default function SignupPage() {
- const router = useRouter();
-
- useEffect(() => {
- if (authService.isAuthenticated()) {
- router.push('/dashboard');
- }
- }, [router]);
-
- return <AuthPage defaultMode="signup" />;
+  return <AuthPage defaultMode="signup" />;
 }

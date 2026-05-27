@@ -19,6 +19,16 @@ urlpatterns = [
     # INVENTORY
 
     path(
+        'items/',
+        InventoryListCreateView.as_view()
+    ),
+
+    path(
+        'items/<int:pk>/',
+        InventoryDetailView.as_view()
+    ),
+
+    path(
         'inventory/',
         InventoryListCreateView.as_view()
     ),

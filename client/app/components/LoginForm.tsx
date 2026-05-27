@@ -75,15 +75,19 @@ const LoginForm = () => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <InputField
-            type="email"
+            type="text"
             name="email"
             placeholder="you@restaurant.com"
             value={formData.email}
             onChange={handleInputChange}
             icon={<Mail {...iconProps} />}
             error={errors.email}
+            autoComplete="email"
+            inputMode="email"
+            autoCapitalize="off"
+            spellCheck={false}
           />
 
           <div className="relative">

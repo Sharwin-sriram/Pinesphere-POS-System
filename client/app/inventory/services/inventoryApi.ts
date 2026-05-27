@@ -60,6 +60,7 @@ function mapSupplier(supplier?: BackendSupplier) {
  mobile: supplier.phone,
  email: supplier.email,
  address: supplier.address,
+ gst_number: "",
  is_active: true,
  };
 }
@@ -81,36 +82,36 @@ function mapInventoryItem(item: BackendInventoryItem) {
 }
 
 function mapPurchaseOrder(order: BackendPurchaseOrder) {
- const supplier =
- typeof order.inventory_item === "object" && order.inventory_item?.supplier
- ? mapSupplier(order.inventory_item.supplier)
- : undefined;
+ const inventoryItem =
+ typeof order.inventory_item === "object"
+ ? order.inventory_item
+ : null;
 
  return {
  id: order.id,
  po_number: `PO-${String(order.id).padStart(4, "0")}`,
- status: order.status,
+ supplier: inventoryItem?.supplier ? mapSupplier(inventoryItem.supplier) : undefined,
  total: String(order.total_amount ?? "0"),
- supplier,
+ status: order.status,
  };
 }
 
 export const getInventoryItems = async () => {
- const response = await httpClient.get("/api/inventory/");
+ const response = await httpClient.get("/api/inventory/items/");
  return extractCollection<BackendInventoryItem>(response.data).map(mapInventoryItem);
 };
 
 export const getSuppliers = async () => {
- const response = await httpClient.get("/api/suppliers/");
+ const response = await httpClient.get("/api/inventory/suppliers/");
  return extractCollection<BackendSupplier>(response.data).map(mapSupplier);
 };
 
 export const getPurchaseOrders = async () => {
- const response = await httpClient.get("/api/purchase-orders/");
+ const response = await httpClient.get("/api/inventory/purchase-orders/");
  return extractCollection<BackendPurchaseOrder>(response.data).map(mapPurchaseOrder);
 };
 
 export const getLowStockItems = async () => {
- const response = await httpClient.get("/api/low-stock/");
+ const response = await httpClient.get("/api/inventory/low-stock/");
  return extractCollection<BackendInventoryItem>(response.data).map(mapInventoryItem);
 };

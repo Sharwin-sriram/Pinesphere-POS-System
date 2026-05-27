@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Menu } from "lucide-react";
+import { FiBell, FiMenu } from "react-icons/fi";
 import React from "react";
 
 import { usePathname } from "next/navigation";
@@ -30,7 +30,7 @@ export default function WaiterHeader({ onMenuClick }: WaiterHeaderProps) {
  onClick={onMenuClick}
  className="md:hidden p-2 text-gray-700 hover:text-blue-600 rounded-lg hover:bg-white/60 transition-colors"
  >
- <Menu className="h-4 w-4" strokeWidth={1.5} />
+ <FiMenu size={24} />
  </button>
  <div>
  <h1 className="text-xl font-semibold text-[var(--color-text-primary)] tracking-wide">{title}</h1>
@@ -39,7 +39,7 @@ export default function WaiterHeader({ onMenuClick }: WaiterHeaderProps) {
 
  <div className="flex items-center gap-6">
  <button className="relative p-2 text-[var(--color-text-secondary)] hover:text-blue-600 transition-colors">
- <Bell className="h-4 w-4" strokeWidth={1.5} />
+ <FiBell size={22} />
  <span className="absolute top-1 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
  </button>
 
