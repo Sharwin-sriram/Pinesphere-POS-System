@@ -25,10 +25,10 @@ const Select = forwardRef<HTMLSelectElement, Props>(function Select(
   ref
 ) {
   const stateClasses = error
-    ? 'border-[var(--color-danger)] focus:border-[var(--color-danger)]'
+    ? 'border-[var(--color-danger)]'
     : success
-      ? 'border-[var(--color-success)] focus:border-[var(--color-success)]'
-      : 'border-[var(--color-border)] focus:border-[var(--color-border)]'
+      ? 'border-[var(--color-success)]'
+      : 'border-[var(--color-border)]'
 
   const helperText = error || success || description
   const helperTone = error

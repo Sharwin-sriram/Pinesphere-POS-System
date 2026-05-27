@@ -149,9 +149,7 @@ const OTPInput: React.FC<OTPInputProps> = ({
             className={`h-12 w-12 rounded-md border bg-[var(--color-bg-tertiary)] text-center text-[length:var(--text-lg)] font-semibold transition duration-150 focus:outline-none sm:h-14 sm:w-14 sm:text-[length:var(--text-xl)] ${
               error
                 ? "border-[var(--color-danger)] text-[var(--color-danger)]"
-                : digit
-                  ? "border-[var(--color-border-focus)] text-[var(--color-text-primary)]"
-                  : "border-[var(--color-border)] text-[var(--color-text-primary)]"
+                : "border-[var(--color-border)] text-[var(--color-text-primary)]"
             } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
  />
  ))}

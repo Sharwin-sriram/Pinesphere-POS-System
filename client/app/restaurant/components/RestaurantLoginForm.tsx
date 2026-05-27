@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import AuthShell from "../../components/auth/AuthShell";
 import InputField from "../../components/InputField";
 import Loader from "../../components/Loader";
@@ -30,6 +30,7 @@ const RestaurantLoginForm: React.FC = () => {
   const { success, error, ToastContainer } = useToast();
   const emailRef = useRef<HTMLInputElement | null>(null);
   const passwordRef = useRef<HTMLInputElement | null>(null);
+  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next");
@@ -95,9 +96,9 @@ const RestaurantLoginForm: React.FC = () => {
         success("Signed in", "Welcome to your restaurant dashboard");
         setTimeout(() => {
           const role = authService.getUserRole();
-          const redirectPath = isRestaurantLoginPage ? "/restaurant/dashboard" : role ? getRoleHomePath(role) : "/dashboard";
+          const redirectPath = isRestaurantLoginPage ? "/restaurant-admin" : role ? getRoleHomePath(role) : "/dashboard";
           const safeNext = nextPath && nextPath.startsWith("/") ? nextPath : null;
-          window.location.href = safeNext || redirectPath;
+          router.replace(safeNext || redirectPath);
         }, 1200);
       } else {
         error("Sign in failed", result.error || "Invalid email or password");

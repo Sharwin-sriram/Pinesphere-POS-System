@@ -46,8 +46,8 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
     const errorId = id ? `${id}-error` : undefined;
 
     const wrapperBorder = isInvalid
-      ? "border-[var(--color-danger)] focus-within:border-[var(--color-danger)]"
-      : "border-[var(--color-border)] focus-within:border-[var(--color-border)]";
+      ? "border-[var(--color-danger)]"
+      : "border-[var(--color-border)]";
 
     return (
       <div>

@@ -10,196 +10,129 @@ import KDSAnalytics from "./components/KDSAnalytics";
 
 import { Order } from "./types/order";
 
-import {
- getKdsBootstrap,
- updateOrderStatusAPI,
-} from "./services/orderService";
+import { getKdsBootstrap, updateOrderStatusAPI } from "./services/orderService";
 
 export default function KDSPage() {
+  const [orders, setOrders] = useState<Order[]>([]);
 
- const [orders, setOrders] =
- useState<Order[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
- const [selectedOrder, setSelectedOrder] =
- useState<Order | null>(null);
+  const [searchTerm] = useState("");
 
- const [searchTerm, setSearchTerm] =
- useState("");
+  const [loading, setLoading] = useState(true);
 
- const [loading, setLoading] =
- useState(true);
+  const [kitchenId, setKitchenId] = useState<string | null>(null);
 
- const [kitchenId, setKitchenId] =
- useState<string | null>(null);
+  const [kitchenName, setKitchenName] = useState<string | null>(null);
 
- const [kitchenName, setKitchenName] =
- useState<string | null>(null);
+  // FETCH ORDERS
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
 
- // FETCH ORDERS
- const fetchOrders = async () => {
+      const data = await getKdsBootstrap();
 
- try {
+      setOrders(data.orders || []);
+      setKitchenId(data.kitchenId);
+      setKitchenName(data.kitchenName);
+    } catch (error) {
+      console.log(error);
 
- setLoading(true);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
- const data =
- await getKdsBootstrap();
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void fetchOrders();
+    }, 0);
 
- setOrders(data.orders || []);
- setKitchenId(data.kitchenId);
- setKitchenName(data.kitchenName);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
- } catch (error) {
+  // SEARCH FILTER
+  const searchedOrders = orders.filter((order) => {
+    return (
+      order.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.table?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
- console.log(error);
+  // STATUS GROUPS
+  const preparingOrders = searchedOrders.filter(
+    (order) => order.status === "Preparing",
+  );
 
- setOrders([]);
+  const readyOrders = searchedOrders.filter(
+    (order) => order.status === "Ready",
+  );
 
- } finally {
+  const delayedOrders = searchedOrders.filter(
+    (order) => order.status === "Delayed",
+  );
 
- setLoading(false);
+  // UPDATE STATUS
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    if (!kitchenId) {
+      return;
+    }
 
- }
+    const updatedOrders = orders.map((order) => {
+      if (order.id === orderId) {
+        return {
+          ...order,
+          status: newStatus,
+        };
+      }
 
- };
+      return order;
+    });
 
- useEffect(() => {
+    setOrders(updatedOrders);
 
- const timeoutId = window.setTimeout(() => {
- void fetchOrders();
- }, 0);
+    await updateOrderStatusAPI(kitchenId, orderId, newStatus);
 
- return () => window.clearTimeout(timeoutId);
+    await fetchOrders();
+  };
 
- }, []);
+  // LOADING
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-2xl font-semibold">
+        Loading Kitchen Dashboard...
+      </div>
+    );
+  }
 
- // SEARCH FILTER
- const searchedOrders =
- orders.filter((order) => {
+  return (
+    <div>
+      {/* NAVBAR */}
+      <Navbar />
 
- return (
- order.id
- ?.toLowerCase()
- .includes(searchTerm.toLowerCase()) ||
+      {/* STATS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+        <StatsCard title="Total Orders" value={orders.length.toString()} />
 
- order.table
- ?.toLowerCase()
- .includes(searchTerm.toLowerCase())
- );
+        <StatsCard
+          title="Preparing"
+          value={preparingOrders.length.toString()}
+        />
 
- });
+        <StatsCard title="Ready" value={readyOrders.length.toString()} />
 
- // STATUS GROUPS
- const preparingOrders =
- searchedOrders.filter(
- (order) =>
- order.status === "Preparing"
- );
+        <StatsCard title="Delayed" value={delayedOrders.length.toString()} />
+      </div>
 
- const readyOrders =
- searchedOrders.filter(
- (order) =>
- order.status === "Ready"
- );
-
- const delayedOrders =
- searchedOrders.filter(
- (order) =>
- order.status === "Delayed"
- );
-
- // UPDATE STATUS
- const updateOrderStatus =
- async (
- orderId: string,
- newStatus: string
- ) => {
-
- if (!kitchenId) {
- return;
- }
-
- const updatedOrders =
- orders.map((order) => {
-
- if (
- order.id === orderId
- ) {
-
- return {
- ...order,
- status: newStatus,
- };
-
- }
-
- return order;
-
- });
-
- setOrders(updatedOrders);
-
- await updateOrderStatusAPI(
- kitchenId,
- orderId,
- newStatus
- );
-
- await fetchOrders();
-
- };
-
- // LOADING
- if (loading) {
-
- return (
- <div className="flex items-center justify-center min-h-screen text-2xl font-semibold">
- Loading Kitchen Dashboard...
- </div>
- );
-
- }
-
- return (
- <div>
-
- {/* NAVBAR */}
- <Navbar />
-
- {/* STATS */}
- <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
-
- <StatsCard
- title="Total Orders"
- value={orders.length.toString()}
- />
-
- <StatsCard
- title="Preparing"
- value={preparingOrders.length.toString()}
- />
-
- <StatsCard
- title="Ready"
- value={readyOrders.length.toString()}
- />
-
- <StatsCard
- title="Delayed"
- value={delayedOrders.length.toString()}
- />
-
- </div>
-
- {/* TOP */}
+      {/* TOP */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-8">
         <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">
-          Kitchen Workflow Queue
+          {kitchenName
+            ? `${kitchenName} Workflow Queue`
+            : "Kitchen Workflow Queue"}
         </h2>
-
- <h2 className="text-2xl font-semibold">
- {kitchenName ? `${kitchenName} Workflow Queue` : "Kitchen Workflow Queue"}
- </h2>
+      </div>
 
       {/* EMPTY STATE */}
       {orders.length === 0 ? (
@@ -212,162 +145,103 @@ export default function KDSPage() {
           </p>
         </div>
       ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* PREPARING */}
+          <div className="bg-yellow-50 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-semibold text-yellow-700">
+                Preparing
+              </h2>
 
- <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <span className="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                {preparingOrders.length}
+              </span>
+            </div>
 
- {/* PREPARING */}
- <div className="bg-yellow-50 rounded-2xl p-5">
+            <div className="space-y-5">
+              {preparingOrders.map((order) => (
+                <OrderCard
+                  key={order.id}
+                  id={order.id}
+                  backendId={order.backendId}
+                  table={order.table}
+                  items={order.items}
+                  status={order.status}
+                  time={order.time}
+                  priority={order.priority}
+                  onView={() => setSelectedOrder(order)}
+                  onStatusChange={updateOrderStatus}
+                />
+              ))}
+            </div>
+          </div>
 
- <div className="flex items-center justify-between mb-5">
+          {/* READY */}
+          <div className="bg-green-50 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-semibold text-green-700">Ready</h2>
 
- <h2 className="text-xl font-semibold text-yellow-700">
- Preparing
- </h2>
+              <span className="bg-green-200 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                {readyOrders.length}
+              </span>
+            </div>
 
- <span className="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
- {preparingOrders.length}
- </span>
+            <div className="space-y-5">
+              {readyOrders.map((order) => (
+                <OrderCard
+                  key={order.id}
+                  id={order.id}
+                  backendId={order.backendId}
+                  table={order.table}
+                  items={order.items}
+                  status={order.status}
+                  time={order.time}
+                  priority={order.priority}
+                  onView={() => setSelectedOrder(order)}
+                  onStatusChange={updateOrderStatus}
+                />
+              ))}
+            </div>
+          </div>
 
- </div>
+          {/* DELAYED */}
+          <div className="bg-red-50 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-semibold text-red-700">Delayed</h2>
 
- <div className="space-y-5">
+              <span className="bg-red-200 text-red-800 px-3 py-1 rounded-full text-sm font-medium">
+                {delayedOrders.length}
+              </span>
+            </div>
 
- {preparingOrders.map(
- (order) => (
+            <div className="space-y-5">
+              {delayedOrders.map((order) => (
+                <OrderCard
+                  key={order.id}
+                  id={order.id}
+                  backendId={order.backendId}
+                  table={order.table}
+                  items={order.items}
+                  status={order.status}
+                  time={order.time}
+                  priority={order.priority}
+                  onView={() => setSelectedOrder(order)}
+                  onStatusChange={updateOrderStatus}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
- <OrderCard
- key={order.id}
- id={order.id}
- backendId={order.backendId}
- table={order.table}
- items={order.items}
- status={order.status}
- time={order.time}
- priority={order.priority}
- onView={() =>
- setSelectedOrder(
- order
- )
- }
- onStatusChange={
- updateOrderStatus
- }
- />
+      {/* ANALYTICS */}
+      <KDSAnalytics />
 
- )
- )}
-
- </div>
-
- </div>
-
- {/* READY */}
- <div className="bg-green-50 rounded-2xl p-5">
-
- <div className="flex items-center justify-between mb-5">
-
- <h2 className="text-xl font-semibold text-green-700">
- Ready
- </h2>
-
- <span className="bg-green-200 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
- {readyOrders.length}
- </span>
-
- </div>
-
- <div className="space-y-5">
-
- {readyOrders.map(
- (order) => (
-
- <OrderCard
- key={order.id}
- id={order.id}
- backendId={order.backendId}
- table={order.table}
- items={order.items}
- status={order.status}
- time={order.time}
- priority={order.priority}
- onView={() =>
- setSelectedOrder(
- order
- )
- }
- onStatusChange={
- updateOrderStatus
- }
- />
-
- )
- )}
-
- </div>
-
- </div>
-
- {/* DELAYED */}
- <div className="bg-red-50 rounded-2xl p-5">
-
- <div className="flex items-center justify-between mb-5">
-
- <h2 className="text-xl font-semibold text-red-700">
- Delayed
- </h2>
-
- <span className="bg-red-200 text-red-800 px-3 py-1 rounded-full text-sm font-medium">
- {delayedOrders.length}
- </span>
-
- </div>
-
- <div className="space-y-5">
-
- {delayedOrders.map(
- (order) => (
-
- <OrderCard
- key={order.id}
- id={order.id}
- backendId={order.backendId}
- table={order.table}
- items={order.items}
- status={order.status}
- time={order.time}
- priority={order.priority}
- onView={() =>
- setSelectedOrder(
- order
- )
- }
- onStatusChange={
- updateOrderStatus
- }
- />
-
- )
- )}
-
- </div>
-
- </div>
-
- </div>
-
- )}
-
- {/* ANALYTICS */}
- <KDSAnalytics />
-
- {/* MODAL */}
- <OrderModal
- order={selectedOrder}
- onClose={() =>
- setSelectedOrder(null)
- }
- />
-
- </div>
- );
+      {/* MODAL */}
+      <OrderModal
+        order={selectedOrder}
+        onClose={() => setSelectedOrder(null)}
+      />
+    </div>
+  );
 }

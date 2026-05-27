@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Lock, Mail, Phone, UtensilsCrossed, User } from "lucide-react";
+import { useRouter } from "next/navigation";
 import AuthShell from "../../components/auth/AuthShell";
 import InputField from "../../components/InputField";
 import Loader from "../../components/Loader";
@@ -51,6 +52,7 @@ const RestaurantSignupForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<RestaurantSignupErrors>({});
   const { success, error, ToastContainer } = useToast();
+  const router = useRouter();
 
   const [emailUniqueState, setEmailUniqueState] = useState<EmailUniqueState>("unknown");
 
@@ -311,7 +313,7 @@ const RestaurantSignupForm: React.FC = () => {
     const safeNext = next && next.startsWith("/") ? next : null;
     const role = authService.getUserRole();
     const fallback = role ? getRoleHomePath(role) : "/restaurant/dashboard";
-    window.location.href = safeNext || fallback;
+    router.replace(safeNext || fallback);
   };
 
   const handleCreateAccount = async (e: React.FormEvent) => {
