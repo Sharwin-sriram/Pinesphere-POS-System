@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getRoleHomePath } from "./authRoutes";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -10,6 +11,37 @@ const REFRESH_TOKEN_KEY = "pos_refresh_token";
 const USER_ROLE_KEY = "pos_user_role";
 const USER_INFO_KEY = "pos_user_info";
 const DEVICE_ID_KEY = "pos_device_id";
+
+const ACCESS_COOKIE_NAME = "pos_token";
+const REFRESH_COOKIE_NAME = "pos_refresh_token";
+const ROLE_COOKIE_NAME = "pos_user_role";
+
+function getCookieOptions(maxAgeSeconds = 86400) {
+  const secure = typeof window !== "undefined" && window.location.protocol === "https:" ? "; Secure" : "";
+  return `; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax${secure}`;
+}
+
+function setBrowserCookie(name, value, maxAgeSeconds = 86400) {
+  if (!isBrowser()) return;
+  document.cookie = `${name}=${encodeURIComponent(value)}${getCookieOptions(maxAgeSeconds)}`;
+}
+
+function clearBrowserCookie(name) {
+  if (!isBrowser()) return;
+  document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
+}
+
+function syncAuthCookies({ accessToken, refreshToken, role }) {
+  if (accessToken) {
+    setBrowserCookie(ACCESS_COOKIE_NAME, accessToken);
+  }
+  if (refreshToken) {
+    setBrowserCookie(REFRESH_COOKIE_NAME, refreshToken, 7 * 24 * 60 * 60);
+  }
+  if (typeof role === "string") {
+    setBrowserCookie(ROLE_COOKIE_NAME, role);
+  }
+}
 
 function getClientIpFallback() {
   return "127.0.0.1";
@@ -33,6 +65,7 @@ function getOrCreateDeviceId() {
 function normalizeUserForClient(user) {
   return {
     ...user,
+    picture: user?.picture || null,
     name: `${user?.first_name || ""} ${user?.last_name || ""}`.trim() ||
       user?.email ||
       user?.mobile ||
@@ -51,6 +84,16 @@ export function getMediaUrl(path) {
   return `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
+/** Prefer uploaded avatar, then Google/external picture URL. */
+export function getUserAvatarUrl(user) {
+  if (!user) return null;
+  if (user.profile_image) {
+    return getMediaUrl(user.profile_image);
+  }
+  const external = user.picture || user.avatar || user.image;
+  return external ? getMediaUrl(external) : null;
+}
+
 function saveSession({ access_token, refresh_token, user }) {
   if (!isBrowser()) return;
   localStorage.setItem(ACCESS_TOKEN_KEY, access_token);
@@ -61,6 +104,11 @@ function saveSession({ access_token, refresh_token, user }) {
   const normalizedUser = normalizeUserForClient(user);
   localStorage.setItem(USER_ROLE_KEY, normalizedUser.role || "");
   localStorage.setItem(USER_INFO_KEY, JSON.stringify(normalizedUser));
+  syncAuthCookies({
+    accessToken: access_token,
+    refreshToken: refresh_token,
+    role: normalizedUser.role || "",
+  });
 }
 
 function clearSession() {
@@ -69,6 +117,9 @@ function clearSession() {
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   localStorage.removeItem(USER_ROLE_KEY);
   localStorage.removeItem(USER_INFO_KEY);
+  clearBrowserCookie(ACCESS_COOKIE_NAME);
+  clearBrowserCookie(REFRESH_COOKIE_NAME);
+  clearBrowserCookie(ROLE_COOKIE_NAME);
 }
 
 function extractApiError(error, fallbackMessage) {
@@ -307,6 +358,7 @@ export const authService = {
       });
 
       localStorage.setItem(ACCESS_TOKEN_KEY, response.data.access_token);
+      syncAuthCookies({ accessToken: response.data.access_token });
       return { success: true, data: response.data };
     } catch (error) {
       clearSession();
@@ -341,6 +393,7 @@ export const authService = {
       const normalizedUser = normalizeUserForClient(response.data.user);
       localStorage.setItem(USER_ROLE_KEY, normalizedUser.role || "");
       localStorage.setItem(USER_INFO_KEY, JSON.stringify(normalizedUser));
+      syncAuthCookies({ role: normalizedUser.role || "" });
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -362,6 +415,7 @@ export const authService = {
       const normalizedUser = normalizeUserForClient(response.data.user);
       localStorage.setItem(USER_ROLE_KEY, normalizedUser.role || "");
       localStorage.setItem(USER_INFO_KEY, JSON.stringify(normalizedUser));
+      syncAuthCookies({ role: normalizedUser.role || "" });
       return { success: true, data: normalizedUser };
     } catch (error) {
       return {
@@ -379,6 +433,7 @@ export const authService = {
       if (isBrowser()) {
         localStorage.setItem(USER_ROLE_KEY, normalizedUser.role || "");
         localStorage.setItem(USER_INFO_KEY, JSON.stringify(normalizedUser));
+        syncAuthCookies({ role: normalizedUser.role || "" });
       }
       return { success: true, data: normalizedUser };
     } catch (error) {
@@ -446,6 +501,7 @@ export const authService = {
 
     localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    syncAuthCookies({ accessToken, refreshToken });
 
     const verifyResult = await authService.verifyToken();
     if (!verifyResult.success) {

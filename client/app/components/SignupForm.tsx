@@ -8,6 +8,7 @@ import InputField from "./InputField";
 import Loader from "./Loader";
 import { useToast } from "./Toast";
 import { authService } from "../lib/authService";
+import { getRoleHomePath } from "../lib/authRoutes";
 
 const iconProps = { className: "h-4 w-4", strokeWidth: 1.5 as const };
 
@@ -61,7 +62,7 @@ const SignupForm = () => {
       });
       if (result.success) {
         success("Account created", "Welcome to Pinesphere POS");
-        window.location.href = "/dashboard";
+        window.location.href = getRoleHomePath(authService.getUserRole());
       } else {
         error("Create account failed", result.error || "Unable to create account. Try again");
       }

@@ -30,6 +30,16 @@ export type RestaurantQuery = {
   page_size?: number;
 };
 
+export type MenuItem = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  is_veg: boolean;
+  image_url?: string | null;
+  category: string;
+};
+
 export async function fetchRestaurants(query: RestaurantQuery): Promise<RestaurantsResponse> {
   const response = await httpClient.get("/api/restaurants/", {
     params: {
@@ -44,4 +54,27 @@ export async function fetchRestaurants(query: RestaurantQuery): Promise<Restaura
 
   return response.data;
 }
+
+export async function fetchRestaurantById(id: string): Promise<Restaurant> {
+  const response = await httpClient.get(`/api/restaurants/${id}/`);
+  return response.data;
+}
+
+export async function fetchRestaurantMenu(id: string): Promise<MenuItem[]> {
+  const response = await httpClient.get(`/api/restaurants/${id}/menu/`);
+  return response.data;
+}
+
+export async function toggleRestaurantFavorite(
+  id: string,
+  isFavorite: boolean,
+  shouldFail: boolean = false
+): Promise<{ success: boolean; id: string; is_favorite: boolean }> {
+  const response = await httpClient.post(`/api/restaurants/${id}/favorite/`, {
+    is_favorite: isFavorite,
+    fail: shouldFail,
+  });
+  return response.data;
+}
+
 

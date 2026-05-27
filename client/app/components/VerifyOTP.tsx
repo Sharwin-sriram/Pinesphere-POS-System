@@ -9,6 +9,7 @@ import OTPInput from "./OTPInput";
 import Loader from "./Loader";
 import authService from "../lib/authService";
 import { authToastError, authToastSuccess } from "./auth/authToast";
+import { getRoleHomePath } from "../lib/authRoutes";
 
 const iconProps = { className: "h-4 w-4", strokeWidth: 1.5 as const };
 
@@ -54,7 +55,7 @@ const VerifyOTP = () => {
       if (result.success) {
         setIsVerified(true);
         toast.success("OTP verified", authToastSuccess);
-        setTimeout(() => router.push("/dashboard"), 1500);
+        setTimeout(() => router.push(getRoleHomePath(authService.getUserRole())), 1500);
       } else {
         setError(result.error || "Invalid code. Check the message and try again");
         toast.error(result.error || "Invalid code", authToastError);

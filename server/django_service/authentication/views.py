@@ -8,6 +8,7 @@ from django.conf import settings
 from django.core import signing
 from django.http import HttpResponseRedirect
 from rest_framework import permissions, status
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -223,6 +224,7 @@ class MeUpdateView(APIView):
     """Update editable fields on the authenticated user profile."""
 
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def patch(self, request):
         serializer = ProfileUpdateSerializer(data=request.data, context={"request": request})
