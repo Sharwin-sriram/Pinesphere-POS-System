@@ -1,0 +1,33 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1e2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#bgGradient)"/>
+  
+  <!-- Ingredients and modifiers display -->
+  <g opacity="0.85">
+    <!-- Sauce bottles -->
+    <rect x="150" y="150" width="60" height="140" rx="8" fill="#ef4444" opacity="0.7" stroke="#f87171" stroke-width="2"/>
+    <rect x="158" y="135" width="44" height="20" fill="#1a1a2e"/>
+    <text x="180" y="215" font-size="16" text-anchor="middle" fill="#e0e7ff" opacity="0.8">Hot Sauce</text>
+    
+    <rect x="420" y="160" width="60" height="140" rx="8" fill="#fbbf24" opacity="0.7" stroke="#fbbf24" stroke-width="2"/>
+    <rect x="428" y="145" width="44" height="20" fill="#1a1a2e"/>
+    <text x="450" y="225" font-size="16" text-anchor="middle" fill="#e0e7ff" opacity="0.8">Sriracha</text>
+    
+    <rect x="690" y="150" width="60" height="140" rx="8" fill="#10b981" opacity="0.7" stroke="#10b981" stroke-width="2"/>
+    <rect x="698" y="135" width="44" height="20" fill="#1a1a2e"/>
+    <text x="720" y="215" font-size="16" text-anchor="middle" fill="#e0e7ff" opacity="0.8">Cilantro</text>
+    
+    <rect x="960" y="160" width="60" height="140" rx="8" fill="#8b4513" opacity="0.7" stroke="#8b5cf6" stroke-width="2"/>
+    <rect x="968" y="145" width="44" height="20" fill="#1a1a2e"/>
+    <text x="990" y="225" font-size="16" text-anchor="middle" fill="#e0e7ff" opacity="0.8">Garlic</text>
+  </g>
+  
+  <!-- Text -->
+  <text x="600" y="480" font-size="44" font-weight="bold" text-anchor="middle" fill="#8b5cf6" opacity="0.9">Add-on Modifiers</text>
+  <text x="600" y="535" font-size="20" text-anchor="middle" fill="#e0e7ff" opacity="0.7">Customize with sauces, toppings, and extras</text>
+</svg>

@@ -1,0 +1,30 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1e2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#bgGradient)"/>
+  
+  <!-- Seasonal platter with variety -->
+  <g opacity="0.85">
+    <!-- Central plate -->
+    <circle cx="600" cy="280" r="180" fill="#e8b4a0" stroke="#ff6b6b" stroke-width="2"/>
+    <circle cx="600" cy="280" r="170" fill="#1a1a2e" stroke="#fbbf24" stroke-width="1" opacity="0.4"/>
+    
+    <!-- Seasonal items -->
+    <circle cx="480" cy="220" r="45" fill="#ff6b6b" opacity="0.85"/>
+    <circle cx="720" cy="210" r="45" fill="#fbbf24" opacity="0.85"/>
+    <circle cx="600" cy="320" r="50" fill="#10b981" opacity="0.85"/>
+    <circle cx="520" cy="350" r="40" fill="#f87171" opacity="0.75"/>
+    <circle cx="680" cy="360" r="40" fill="#84cc16" opacity="0.75"/>
+    
+    <!-- Garnish accent -->
+    <circle cx="600" cy="150" r="20" fill="#fbbf24" opacity="0.8"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="600" y="480" font-size="44" font-weight="bold" text-anchor="middle" fill="#ff6b6b" opacity="0.9">Seasonal Specials</text>
+  <text x="600" y="535" font-size="20" text-anchor="middle" fill="#e0e7ff" opacity="0.7">Limited time offerings with fresh seasonal ingredients</text>
+</svg>

@@ -1,0 +1,26 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" rx="40" fill="url(#paint0_linear)"/>
+  <g opacity="0.96">
+    <rect x="92" y="92" width="1016" height="616" rx="32" fill="url(#paint1_linear)"/>
+    <path d="M246 314H954V650H246V314Z" fill="white" fill-opacity="0.04"/>
+    <path d="M312 374C312 356.326 326.326 342 344 342H856C873.674 342 888 356.326 888 374V474C888 491.674 873.674 506 856 506H344C326.326 506 312 491.674 312 474V374Z" fill="white" fill-opacity="0.14"/>
+    <path d="M316 464H884V532H316V464Z" fill="white" fill-opacity="0.08"/>
+    <circle cx="476" cy="266" r="24" fill="white" fill-opacity="0.65"/>
+    <circle cx="560" cy="266" r="24" fill="white" fill-opacity="0.65"/>
+    <circle cx="644" cy="266" r="24" fill="white" fill-opacity="0.65"/>
+    <path d="M444 266L476 366H540L572 266H444Z" fill="white" fill-opacity="0.18"/>
+    <rect x="320" y="140" width="560" height="120" rx="28" fill="white" fill-opacity="0.08"/>
+    <path d="M244 226H312V238H244V226Z" fill="white" fill-opacity="0.12"/>
+    <path d="M888 226H956V238H888V226Z" fill="white" fill-opacity="0.12"/>
+  </g>
+  <defs>
+    <linearGradient id="paint0_linear" x1="600" y1="0" x2="600" y2="800" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#1E293B"/>
+    </linearGradient>
+    <linearGradient id="paint1_linear" x1="112" y1="92" x2="112" y2="708" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.02"/>
+    </linearGradient>
+  </defs>
+</svg>

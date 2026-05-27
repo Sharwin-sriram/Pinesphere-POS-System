@@ -1,0 +1,33 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1e2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#bgGradient)"/>
+  
+  <!-- Side dishes arrangement -->
+  <g opacity="0.85">
+    <!-- Fries bowl -->
+    <ellipse cx="250" cy="250" rx="70" ry="90" fill="#d4a574" stroke="#8b5cf6" stroke-width="2"/>
+    <ellipse cx="250" cy="250" rx="65" ry="80" fill="#c97f3a"/>
+    <rect x="220" y="160" width="60" height="15" fill="#c97f3a" opacity="0.8"/>
+    
+    <!-- Vegetables bowl -->
+    <ellipse cx="600" cy="280" rx="80" ry="95" fill="#a4b494" stroke="#10b981" stroke-width="2"/>
+    <ellipse cx="600" cy="280" rx="75" ry="85" fill="#7cb342"/>
+    <circle cx="570" cy="220" r="18" fill="#10b981" opacity="0.8"/>
+    <circle cx="630" cy="220" r="20" fill="#7cb342" opacity="0.8"/>
+    <circle cx="600" cy="210" r="16" fill="#ffeb3b" opacity="0.7"/>
+    
+    <!-- Grains bowl -->
+    <ellipse cx="950" cy="250" rx="75" ry="90" fill="#8b6f47" stroke="#d4af37" stroke-width="2"/>
+    <ellipse cx="950" cy="250" rx="70" ry="80" fill="#a0896d"/>
+    <rect x="925" y="180" width="50" height="12" fill="#a0896d" opacity="0.8"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="600" y="480" font-size="44" font-weight="bold" text-anchor="middle" fill="#10b981" opacity="0.9">Sides & Accompaniments</text>
+  <text x="600" y="535" font-size="20" text-anchor="middle" fill="#e0e7ff" opacity="0.7">Perfect complements to your main course</text>
+</svg>

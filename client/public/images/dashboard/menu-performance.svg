@@ -1,0 +1,49 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1e2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#bgGradient)"/>
+  
+  <!-- Menu Performance Dashboard -->
+  <g opacity="0.8">
+    <!-- Left chart - Sales trend -->
+    <rect x="80" y="80" width="380" height="220" rx="15" fill="none" stroke="#8b5cf6" stroke-width="2"/>
+    <path d="M 110 260 L 140 240 L 170 200 L 200 180 L 230 220 L 260 160 L 290 180 L 320 140 L 350 170" stroke="#3b82f6" stroke-width="3" fill="none"/>
+    <text x="270" y="320" font-size="16" fill="#8b5cf6" text-anchor="middle" font-weight="bold">Weekly Sales Trend</text>
+    
+    <!-- Right chart - Category breakdown -->
+    <rect x="540" y="80" width="380" height="220" rx="15" fill="none" stroke="#10b981" stroke-width="2"/>
+    <circle cx="650" cy="160" r="50" fill="#10b981" opacity="0.6"/>
+    <circle cx="750" cy="140" r="45" fill="#22c55e" opacity="0.5"/>
+    <circle cx="850" cy="170" r="40" fill="#84cc16" opacity="0.5"/>
+    <text x="730" y="320" font-size="16" fill="#10b981" text-anchor="middle" font-weight="bold">Category Sales Split</text>
+  </g>
+  
+  <!-- Key metrics cards -->
+  <g opacity="0.75">
+    <!-- Top seller -->
+    <rect x="100" y="350" width="200" height="150" rx="10" fill="#8b5cf6" opacity="0.2" stroke="#8b5cf6" stroke-width="1"/>
+    <text x="200" y="380" font-size="14" fill="#8b5cf6" text-anchor="middle" font-weight="bold">Top Seller</text>
+    <text x="200" y="410" font-size="20" fill="#fbbf24" text-anchor="middle" font-weight="bold">Teriyaki Bowl</text>
+    <text x="200" y="435" font-size="14" fill="#e0e7ff" text-anchor="middle" opacity="0.8">342 units/week</text>
+    
+    <!-- High margin -->
+    <rect x="500" y="350" width="200" height="150" rx="10" fill="#10b981" opacity="0.2" stroke="#10b981" stroke-width="1"/>
+    <text x="600" y="380" font-size="14" fill="#10b981" text-anchor="middle" font-weight="bold">High Margin</text>
+    <text x="600" y="410" font-size="20" fill="#fbbf24" text-anchor="middle" font-weight="bold">Premium Plates</text>
+    <text x="600" y="435" font-size="14" fill="#e0e7ff" text-anchor="middle" opacity="0.8">+42% margin</text>
+    
+    <!-- Trending -->
+    <rect x="900" y="350" width="200" height="150" rx="10" fill="#3b82f6" opacity="0.2" stroke="#3b82f6" stroke-width="1"/>
+    <text x="1000" y="380" font-size="14" fill="#3b82f6" text-anchor="middle" font-weight="bold">Trending Up</text>
+    <text x="1000" y="410" font-size="20" fill="#fbbf24" text-anchor="middle" font-weight="bold">Combo Deals</text>
+    <text x="1000" y="435" font-size="14" fill="#e0e7ff" text-anchor="middle" opacity="0.8">+24% growth</text>
+  </g>
+  
+  <!-- Title -->
+  <text x="600" y="530" font-size="40" font-weight="bold" text-anchor="middle" fill="#8b5cf6" opacity="0.9">Menu Performance Metrics</text>
+  <text x="600" y="575" font-size="18" text-anchor="middle" fill="#e0e7ff" opacity="0.7">Real-time sales analytics and trends</text>
+</svg>

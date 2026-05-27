@@ -1,0 +1,37 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1e2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#bgGradient)"/>
+  
+  <!-- Featured item showcase -->
+  <g opacity="0.9">
+    <!-- Main dish -->
+    <ellipse cx="600" cy="280" rx="200" ry="150" fill="#1a1a2e" stroke="#8b5cf6" stroke-width="3"/>
+    
+    <!-- Item representation -->
+    <ellipse cx="600" cy="270" rx="160" ry="120" fill="#c97f3a" opacity="0.8"/>
+    <circle cx="550" cy="240" r="35" fill="#22c55e" opacity="0.7"/>
+    <circle cx="650" cy="250" r="38" fill="#f87171" opacity="0.7"/>
+    <circle cx="600" cy="300" r="40" fill="#fbbf24" opacity="0.6"/>
+    
+    <!-- Plate shine -->
+    <ellipse cx="600" cy="200" rx="100" ry="30" fill="#e0e7ff" opacity="0.15"/>
+  </g>
+  
+  <!-- Stars - quality indicator -->
+  <g fill="#fbbf24" opacity="0.7">
+    <text x="450" y="420" font-size="32">★</text>
+    <text x="500" y="420" font-size="32">★</text>
+    <text x="550" y="420" font-size="32">★</text>
+    <text x="600" y="420" font-size="32">★</text>
+    <text x="650" y="420" font-size="32">★</text>
+  </g>
+  
+  <!-- Text -->
+  <text x="600" y="500" font-size="40" font-weight="bold" text-anchor="middle" fill="#8b5cf6" opacity="0.9">Featured Item</text>
+  <text x="600" y="550" font-size="18" text-anchor="middle" fill="#e0e7ff" opacity="0.7">Premium signature dish with exceptional ratings</text>
+</svg>
