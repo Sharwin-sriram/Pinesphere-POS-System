@@ -11,12 +11,7 @@ const Dashboard = () => {
 
  useEffect(() => {
  const currentUser = authService.getCurrentUser();
- if (currentUser) {
- setUser(currentUser);
- } else {
- // Redirect to login if not authenticated
- window.location.href = "/login";
- }
+ setUser(currentUser || { name: "Guest", role: "guest" });
  }, []);
 
  const handleLogout = () => {

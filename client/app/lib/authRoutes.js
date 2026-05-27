@@ -40,7 +40,6 @@ export const ROLE_HOME_PATHS = {
   waiter: "/waiter",
   kitchen: "/kitchen",
   delivery: "/delivery",
-  "restaurant-admin": "/restaurant/dashboard",
   employee: "/employee",
 };
 
@@ -52,7 +51,6 @@ export const ROLE_ALLOWED_PREFIXES = {
   waiter: ["/waiter"],
   kitchen: ["/kitchen", "/kds"],
   delivery: ["/delivery"],
-  "restaurant-admin": ["/restaurant-admin", "/restaurant/dashboard"],
   employee: ["/employee"],
 };
 

@@ -96,7 +96,11 @@ const RestaurantSignupForm: React.FC = () => {
     return "Strong";
   }, [passwordRequirements.score]);
 
-  const validateStep1Base = (values: RestaurantSignupFormState): RestaurantSignupErrors => {
+  // Debounced email uniqueness check.
+  const emailCheckIdRef = useRef(0);
+  const lastCheckedEmailRef = useRef("");
+
+  const validateStep1Format = (values: RestaurantSignupFormState): RestaurantSignupErrors => {
     const newErrors: RestaurantSignupErrors = {};
     const normalizedEmail = values.email.trim();
 
@@ -119,13 +123,62 @@ const RestaurantSignupForm: React.FC = () => {
     if (!values.confirmPassword) newErrors.confirmPassword = "Confirm password is required";
     else if (values.confirmPassword !== values.password) newErrors.confirmPassword = "Passwords do not match";
 
-    // Email uniqueness feedback (no API call here).
-    if (!newErrors.email) {
-      if (emailUniqueState === "unavailable") newErrors.email = "Email already registered";
+    return newErrors;
+  };
+
+  const validateStep1Base = (values: RestaurantSignupFormState): RestaurantSignupErrors => {
+    const newErrors = validateStep1Format(values);
+    const normalizedEmail = values.email.trim().toLowerCase();
+
+    if (
+      !newErrors.email &&
+      emailUniqueState === "unavailable" &&
+      normalizedEmail === lastCheckedEmailRef.current
+    ) {
+      newErrors.email = "Email already registered";
     }
 
     return newErrors;
   };
+
+  const doCheckEmailUnique = async (emailToCheck: string, requestId: number) => {
+    try {
+      const result = await authService.checkEmailUnique(emailToCheck);
+      if (emailCheckIdRef.current !== requestId) return;
+
+      if (!result.success) {
+        setEmailUniqueState("unknown");
+        setErrors((prev) => ({ ...prev, email: "" }));
+        return;
+      }
+
+      lastCheckedEmailRef.current = emailToCheck.trim().toLowerCase();
+
+      if (result.isAvailable) {
+        setEmailUniqueState("available");
+        setErrors((prev) => ({ ...prev, email: "" }));
+      } else {
+        setEmailUniqueState("unavailable");
+        setErrors((prev) => ({ ...prev, email: "Email already registered" }));
+      }
+    } catch {
+      if (emailCheckIdRef.current !== requestId) return;
+      setEmailUniqueState("unknown");
+      setErrors((prev) => ({ ...prev, email: "" }));
+    }
+  };
+
+  const checkEmailDebouncedRef = useRef(
+    debounce((emailToCheck: string, requestId: number) => {
+      void doCheckEmailUnique(emailToCheck, requestId);
+    }, 400)
+  );
+
+  useEffect(() => {
+    return () => {
+      checkEmailDebouncedRef.current.cancel?.();
+    };
+  }, []);
 
   const validateStep2Base = (values: RestaurantSignupFormState): RestaurantSignupErrors => {
     const newErrors: RestaurantSignupErrors = {};
@@ -159,38 +212,6 @@ const RestaurantSignupForm: React.FC = () => {
     }
   };
 
-  // Debounced email uniqueness check.
-  const emailCheckIdRef = useRef(0);
-  const doCheckEmailUnique = async (emailToCheck: string, requestId: number) => {
-    try {
-      const result = await authService.checkEmailUnique(emailToCheck);
-      if (emailCheckIdRef.current !== requestId) return;
-
-      if (result.success && result.isAvailable) {
-        setEmailUniqueState("available");
-        setErrors((prev) => ({ ...prev, email: "" }));
-      } else {
-        setEmailUniqueState("unavailable");
-        setErrors((prev) => ({ ...prev, email: "Email already registered" }));
-      }
-    } catch {
-      if (emailCheckIdRef.current !== requestId) return;
-      setEmailUniqueState("unknown");
-    }
-  };
-
-  const checkEmailDebouncedRef = useRef(
-    debounce((emailToCheck: string, requestId: number) => {
-      void doCheckEmailUnique(emailToCheck, requestId);
-    }, 400)
-  );
-
-  useEffect(() => {
-    return () => {
-      checkEmailDebouncedRef.current.cancel?.();
-    };
-  }, []);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const key = name as keyof RestaurantSignupFormState;
@@ -199,6 +220,12 @@ const RestaurantSignupForm: React.FC = () => {
       ...prev,
       [key]: value,
     }));
+
+    if (key === "email") {
+      setEmailUniqueState("unknown");
+      lastCheckedEmailRef.current = "";
+      checkEmailDebouncedRef.current.cancel?.();
+    }
 
     // If user fixes a field, clear its error.
     if (errors[key]) {
@@ -219,16 +246,16 @@ const RestaurantSignupForm: React.FC = () => {
   const handleEmailBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const emailToCheck = e.target.value.trim();
 
-    // Only start uniqueness check if base email is valid.
-    const baseErrors = validateStep1Base({
+    // Only start uniqueness check if email format is valid (ignore stale uniqueness state).
+    const formatErrors = validateStep1Format({
       ...formData,
       email: emailToCheck,
       confirmPassword: formData.confirmPassword,
     });
 
-    if (baseErrors.email) {
+    if (formatErrors.email) {
       setEmailUniqueState("unknown");
-      setErrors((prev) => ({ ...prev, email: baseErrors.email || "" }));
+      setErrors((prev) => ({ ...prev, email: formatErrors.email || "" }));
       return;
     }
 

@@ -187,9 +187,6 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       clearSession();
-      if (typeof window !== "undefined") {
-        window.location.href = "/login";
-      }
     }
     return Promise.reject(error);
   },
@@ -436,11 +433,25 @@ export const authService = {
       const response = await checkEmailApi.get("/auth/check-email/", {
         params: { email },
       });
-      const { is_available: isAvailable } = response.data ?? {};
-      return { success: true, isAvailable: Boolean(isAvailable) };
+      const data = response.data ?? {};
+      const raw =
+        data.is_available ?? data.isAvailable ?? data.available;
+      if (typeof raw !== "boolean") {
+        return {
+          success: false,
+          isAvailable: true,
+          error: "Unexpected email check response",
+        };
+      }
+
+      return { success: true, isAvailable: raw };
     } catch (error) {
       // On any network/server error treat as unknown — don't block the user
-      return { success: false, isAvailable: true, error: extractApiError(error, "Failed to check email") };
+      return {
+        success: false,
+        isAvailable: true,
+        error: extractApiError(error, "Failed to check email"),
+      };
     }
   },
 

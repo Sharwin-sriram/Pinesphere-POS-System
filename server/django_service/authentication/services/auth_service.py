@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from auth_service.exceptions import InvalidCredentials, InvalidOTP, OAuthError, OTPExpired, TokenExpired, UserNotFound
 
-from ..models import UserSession
+from ..models import Restaurant, UserSession
 from ..permissions import ROLE_PERMISSIONS
 from ..tokens import CustomRefreshToken
 from .otp_service import delete_otp, fetch_otp, generate_otp, store_otp
@@ -102,6 +102,41 @@ class AuthService:
             is_staff=False,
         )
         return user
+
+    @staticmethod
+    @transaction.atomic
+    def register_restaurant_owner(data):
+        """Create a restaurant record and its owner account."""
+
+        full_name = data["full_name"].strip()
+        name_parts = full_name.split(None, 1)
+        first_name = name_parts[0] if name_parts else ""
+        last_name = name_parts[1] if len(name_parts) > 1 else ""
+        phone = data["phone"].strip()
+
+        restaurant = Restaurant.objects.create(
+            name=data["restaurant_name"].strip(),
+            address=data["city"].strip(),
+            phone=phone,
+            email=data["email"].strip(),
+            timezone="UTC",
+            is_active=True,
+        )
+
+        user = User.objects.create_user(
+            mobile=phone,
+            password=data["password"],
+            email=data["email"].strip(),
+            first_name=first_name,
+            last_name=last_name,
+            role=User.RoleChoices.ORGANIZATION_OWNER,
+            restaurant_id=None,
+            branch_id=None,
+            is_active=True,
+            is_staff=False,
+        )
+
+        return user, restaurant
 
     @staticmethod
     @transaction.atomic

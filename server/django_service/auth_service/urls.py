@@ -5,10 +5,13 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from authentication.views import RestaurantRegisterView
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("auth/", include("authentication.urls")),
+    path("api/restaurant/register", RestaurantRegisterView.as_view()),
     path("api/kds/", include("apps.kitchen_display_system.urls")),
     path("api/hr/", include("apps.hr.urls")),
     path("api/", include("apps.pos.urls")),

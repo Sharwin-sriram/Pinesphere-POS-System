@@ -47,7 +47,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
 
     const wrapperBorder = isInvalid
       ? "border-[var(--color-danger)] focus-within:border-[var(--color-danger)]"
-      : "border-[var(--color-border)] focus-within:border-[var(--color-border-focus)]";
+      : "border-[var(--color-border)] focus-within:border-[var(--color-border)]";
 
     return (
       <div>
