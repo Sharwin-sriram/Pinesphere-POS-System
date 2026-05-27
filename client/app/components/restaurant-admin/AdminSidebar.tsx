@@ -22,7 +22,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
  { name: "Reports", icon: PieChart, path: "/restaurant-admin/reports" },
  { name: "Order/Table", icon: ShoppingBag, path: "/restaurant-admin/orders" },
  { name: "Reservation", icon: Calendar, path: "/restaurant-admin/reservation" },
- { name: "Franchise", icon: Briefcase, path: "/restaurant-admin/franchise" },
+ { name: "Franchise", icon: Briefcase, path: "/restaurant-admin/franschise" },
  ];
 
  return (
