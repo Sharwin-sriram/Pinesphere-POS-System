@@ -1,3 +1,13 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import (
+    Supplier,
+    Inventory,
+    PurchaseOrder,
+    StockMovement
+)
+
+admin.site.register(Supplier)
+admin.site.register(Inventory)
+admin.site.register(PurchaseOrder)
+admin.site.register(StockMovement)
