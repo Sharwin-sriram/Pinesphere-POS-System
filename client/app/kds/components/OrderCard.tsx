@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 
 type Props = {
  id: string;
+ backendId?: string;
  table: string;
  items: number;
  status: string;
@@ -21,6 +22,7 @@ type Props = {
 
 export default function OrderCard({
  id,
+ backendId,
  table,
  items,
  status,
@@ -29,6 +31,8 @@ export default function OrderCard({
  onView,
  onStatusChange,
 }: Props) {
+
+ const orderId = backendId || id;
 
  const initialMinutes =
  parseInt(time.split(" ")[0]);
@@ -182,7 +186,7 @@ export default function OrderCard({
 
  <button
  onClick={() =>
- onStatusChange(id, "Preparing")
+ onStatusChange(orderId, "Preparing")
  }
  className="bg-yellow-100 text-yellow-700 py-2 rounded-xl hover:bg-yellow-200 transition"
  >
@@ -191,7 +195,7 @@ export default function OrderCard({
 
  <button
  onClick={() =>
- onStatusChange(id, "Ready")
+ onStatusChange(orderId, "Ready")
  }
  className="bg-green-100 text-green-700 py-2 rounded-xl hover:bg-green-200 transition"
  >
