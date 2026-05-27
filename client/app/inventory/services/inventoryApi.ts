@@ -23,6 +23,8 @@ type BackendInventoryItem = {
  expiry_date: string;
  reorder_level: number;
  supplier?: BackendSupplier;
+ created_at?: string;
+ updated_at?: string;
 };
 
 type BackendPurchaseOrder = {
@@ -57,6 +59,7 @@ function mapSupplier(supplier?: BackendSupplier) {
  contact_person: supplier.supplier_name,
  mobile: supplier.phone,
  email: supplier.email,
+ address: supplier.address,
  gst_number: "",
  is_active: true,
  };

@@ -25,7 +25,11 @@ export default function useInventory() {
  await getInventoryItems();
 
  setItems(data);
- } catch {
+ const timeoutId = window.setTimeout(() => {
+ void fetchItems();
+ }, 0);
+
+ return () => window.clearTimeout(timeoutId);
  setError(
  "Failed to fetch inventory items"
  );

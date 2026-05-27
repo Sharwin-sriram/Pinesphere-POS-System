@@ -3,25 +3,20 @@
 import { useEffect, useState } from "react";
 
 import Navbar from "../components/Navbar";
+import { Order } from "../types/order";
 
 import {
- getOrders,
+ getKdsBootstrap,
  updateOrderStatusAPI,
 } from "../services/orderService";
-
-type Order = {
- id: string;
- customer?: string;
- table: string;
- amount?: string;
- payment?: string;
- status: string;
-};
 
 export default function OrdersPage() {
 
  const [orders, setOrders] =
  useState<Order[]>([]);
+
+ const [kitchenId, setKitchenId] =
+ useState<string | null>(null);
 
  const [loading, setLoading] =
  useState(true);
@@ -34,9 +29,10 @@ export default function OrdersPage() {
  setLoading(true);
 
  const data =
- await getOrders();
+ await getKdsBootstrap();
 
- setOrders(data || []);
+ setOrders(data.orders || []);
+ setKitchenId(data.kitchenId);
 
  } catch (error) {
 
@@ -86,6 +82,10 @@ export default function OrdersPage() {
  newStatus: string
  ) => {
 
+ if (!kitchenId) {
+ return;
+ }
+
  const updatedOrders =
  orders.map((order) => {
 
@@ -105,6 +105,7 @@ export default function OrdersPage() {
  setOrders(updatedOrders);
 
  await updateOrderStatusAPI(
+ kitchenId,
  orderId,
  newStatus
  );
@@ -269,7 +270,7 @@ export default function OrdersPage() {
  <button
  onClick={() =>
  updateStatus(
- order.id,
+ order.backendId || order.id,
  "Preparing"
  )
  }
@@ -281,7 +282,7 @@ export default function OrdersPage() {
  <button
  onClick={() =>
  updateStatus(
- order.id,
+ order.backendId || order.id,
  "Ready"
  )
  }

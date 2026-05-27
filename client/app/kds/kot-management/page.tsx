@@ -3,24 +3,20 @@
 import { useEffect, useState } from "react";
 
 import Navbar from "../components/Navbar";
+import { Order } from "../types/order";
 
 import {
- getOrders,
+ getKdsBootstrap,
  updateOrderStatusAPI,
 } from "../services/orderService";
-
-type KOTOrder = {
- id: string;
- table: string;
- chef?: string;
- items: number;
- status: string;
-};
 
 export default function KOTManagementPage() {
 
  const [orders, setOrders] =
- useState<KOTOrder[]>([]);
+ useState<Order[]>([]);
+
+ const [kitchenId, setKitchenId] =
+ useState<string | null>(null);
 
  const [loading, setLoading] =
  useState(true);
@@ -33,9 +29,10 @@ export default function KOTManagementPage() {
  setLoading(true);
 
  const data =
- await getOrders();
+ await getKdsBootstrap();
 
- setOrders(data || []);
+ setOrders(data.orders || []);
+ setKitchenId(data.kitchenId);
 
  } catch (error) {
 
@@ -67,6 +64,10 @@ export default function KOTManagementPage() {
  newStatus: string
  ) => {
 
+ if (!kitchenId) {
+ return;
+ }
+
  const updatedOrders =
  orders.map((order) => {
 
@@ -86,6 +87,7 @@ export default function KOTManagementPage() {
  setOrders(updatedOrders);
 
  await updateOrderStatusAPI(
+ kitchenId,
  orderId,
  newStatus
  );
@@ -208,7 +210,7 @@ export default function KOTManagementPage() {
  </td>
 
  <td className="px-6 py-5">
- {order.chef || "-"}
+ {order.kotNumber || "-"}
  </td>
 
  <td className="px-6 py-5">
@@ -239,7 +241,7 @@ export default function KOTManagementPage() {
  <button
  onClick={() =>
  updateStatus(
- order.id,
+ order.backendId || order.id,
  "Preparing"
  )
  }
@@ -251,7 +253,7 @@ export default function KOTManagementPage() {
  <button
  onClick={() =>
  updateStatus(
- order.id,
+ order.backendId || order.id,
  "Ready"
  )
  }

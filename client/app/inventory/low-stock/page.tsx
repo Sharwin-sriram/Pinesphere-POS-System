@@ -38,6 +38,7 @@ const columns = [
 ];
 
 export default function LowStockPage() {
+
  const [items, setItems] = useState<InventoryItem[]>([]);
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState("");
