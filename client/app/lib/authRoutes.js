@@ -1,5 +1,4 @@
 export const AUTH_ROUTE_PREFIXES = [
-  "/",
   "/login",
   "/signup",
   "/forgot-password",
@@ -12,6 +11,7 @@ export const AUTH_ROUTE_PREFIXES = [
 ];
 
 export const PUBLIC_ROUTE_PREFIXES = [
+  "/",
   "/dashboard",
   "/ordering",
   "/delivery/tracking",
@@ -55,7 +55,7 @@ export const ROLE_ALLOWED_PREFIXES = {
 };
 
 export function getRoleHomePath(role) {
-  return ROLE_HOME_PATHS[role] || "/dashboard";
+  return ROLE_HOME_PATHS[role] || "/";
 }
 
 export function matchesPathPrefix(pathname, prefix) {
