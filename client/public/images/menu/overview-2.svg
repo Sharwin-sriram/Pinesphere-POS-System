@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#312e81;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="chart" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" style="stop-color:#7c3aed;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#6366f1;stop-opacity:0.1" />
+  </defs>
+  <rect width="1200" height="800" fill="#0f172a"/>
+  <g opacity="0.3">
+    <rect x="250" y="450" width="40" height="200" fill="#06b6d4" rx="4"/>
+    <rect x="310" y="350" width="40" height="300" fill="#06b6d4" rx="4"/>
+    <rect x="370" y="380" width="40" height="270" fill="#06b6d4" rx="4"/>
+    <rect x="430" y="320" width="40" height="330" fill="#06b6d4" rx="4"/>
+    <rect x="490" y="400" width="40" height="250" fill="#06b6d4" rx="4"/>
+  </g>
+  <g opacity="0.25">
+    <polyline points="650,500 720,400 790,420 860,350 930,280 1000,310" fill="none" stroke="#7c3aed" stroke-width="2"/>
+    <circle cx="650" cy="500" r="3" fill="#7c3aed"/>
+    <circle cx="720" cy="400" r="3" fill="#7c3aed"/>
+    <circle cx="790" cy="420" r="3" fill="#7c3aed"/>
+    <circle cx="860" cy="350" r="3" fill="#7c3aed"/>
+    <circle cx="930" cy="280" r="3" fill="#7c3aed"/>
+    <circle cx="1000" cy="310" r="3" fill="#7c3aed"/>
+  </g>
+  <g opacity="0.08" stroke="#f8fafc" stroke-width="1">
+    <line x1="200" y1="200" x2="1000" y2="200"/>
+    <line x1="200" y1="300" x2="1000" y2="300"/>
+    <line x1="200" y1="400" x2="1000" y2="400"/>
+    <line x1="200" y1="500" x2="1000" y2="500"/>
+  </g>
+  <rect x="150" y="150" width="150" height="100" rx="12" fill="#7c3aed" opacity="0.12" stroke="#7c3aed" stroke-width="1" opacity="0.2"/>
+  <rect x="330" y="150" width="150" height="100" rx="12" fill="#06b6d4" opacity="0.12" stroke="#06b6d4" stroke-width="1" opacity="0.2"/>
+  <rect x="510" y="150" width="150" height="100" rx="12" fill="#10b981" opacity="0.12" stroke="#10b981" stroke-width="1" opacity="0.2"/>
+  <text x="600" y="700" font-family="Inter, Arial" font-size="56" font-weight="bold" fill="#f8fafc" text-anchor="middle">Analytics Visuals</text>
+  <text x="600" y="760" font-family="Inter, Arial" font-size="18" fill="#cbd5e1" text-anchor="middle">Real-time dashboards built for operations excellence</text>
+</svg>

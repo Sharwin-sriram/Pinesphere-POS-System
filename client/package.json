@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "lucide-react": "^1.16.0",
     "axios": "^1.16.1",
     "framer-motion": "^12.40.0",
     "lucide-react": "^1.16.0",
@@ -21,6 +22,7 @@
     "react-router-dom": "^7.15.1",
     "recharts": "^3.8.1",
     "socket.io-client": "^4.8.3",
+    "styled-components": "^6.4.2",
     "twilio": "^6.0.2"
   },
   "devDependencies": {

@@ -22,8 +22,12 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
+    "channels",
     "authentication",
-    "apps.django_schema",
+    "apps.orders",
+    "apps.inventory",
+    "apps.pos",
+    "apps.kitchen_display_system",
 ]
 
 MIDDLEWARE = [
@@ -55,19 +59,25 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "auth_service.wsgi.application"
+ASGI_APPLICATION = "auth_service.asgi.application"
+
+# Database configuration: require PostgreSQL settings via environment variables.
+# The app will raise an error at startup if required DB vars are missing.
+# Prefer `DB_NAME`/`DB_*` variables, but accept legacy `DATABASE_NAME`/`DATABASE_*` keys
+DB_NAME = config("DB_NAME", default=None)
+if not DB_NAME:
+    DB_NAME = config("DATABASE_NAME", default=None)
+if not DB_NAME:
+    raise RuntimeError("Database not configured: set DB_NAME or DATABASE_NAME in environment")
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DATABASE_NAME", default="pinesphere_db"),
-        "USER": config("DATABASE_USER", default="django_user"),
-        "PASSWORD": config("DATABASE_PASSWORD", default="djangopassword"),
-        "HOST": config("DATABASE_HOST", default="localhost"),
-        "PORT": config("DATABASE_PORT", default="5432"),
-        "OPTIONS": {
-            "options": "-c search_path=public,shared_schema,django_schema",
-        },
+        "ENGINE": config("DB_ENGINE", default="django.db.backends.postgresql"),
+        "NAME": DB_NAME,
+        "USER": config("DB_USER", default=config("DATABASE_USER", default="postgres")),
+        "PASSWORD": config("DB_PASSWORD", default=config("DATABASE_PASSWORD", default="")),
+        "HOST": config("DB_HOST", default=config("DATABASE_HOST", default="localhost")),
+        "PORT": config("DB_PORT", default=config("DATABASE_PORT", default="5432")),
     }
 }
 
@@ -141,4 +151,11 @@ SIMPLE_JWT = {
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
+}
+
+# Channels configuration
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
 }

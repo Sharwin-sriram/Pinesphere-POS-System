@@ -13,74 +13,74 @@ import StatusBadge from "../components/StatusBadge";
 import CreatePOForm from "../components/CreatePOForm";
 
 const columns = [
-  {
-    key: "po_number",
-    label: "PO Number",
-  },
-  {
-    key: "supplier",
-    label: "Supplier",
-  },
-  {
-    key: "total",
-    label: "Total",
-  },
-  {
-    key: "status",
-    label: "Status",
-  },
+ {
+ key: "po_number",
+ label: "PO Number",
+ },
+ {
+ key: "supplier",
+ label: "Supplier",
+ },
+ {
+ key: "total",
+ label: "Total",
+ },
+ {
+ key: "status",
+ label: "Status",
+ },
 ];
 
 export default function PurchaseOrdersPage() {
-  const loading = false;
+ const loading = false;
 
-  const purchaseOrders: any[] = [];
+ const purchaseOrders: any[] = [];
 
-  return (
-    <InventoryLayout>
-      <h1 className="text-3xl font-bold">
-        Purchase Orders
-      </h1>
+ return (
+ <InventoryLayout>
+ <h1 className="text-3xl font-semibold">
+ Purchase Orders
+ </h1>
 
-      <div className="space-y-6 mt-6">
-        <CreatePOForm />
+ <div className="space-y-6 mt-6">
+ <CreatePOForm />
 
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <h2 className="text-xl font-bold mb-5">
-            Purchase Orders
-          </h2>
+ <div className="bg-white rounded-2xl p-6 ">
+ <h2 className="text-xl font-semibold mb-5">
+ Purchase Orders
+ </h2>
 
-          {loading ? (
-            <LoadingSkeleton />
-          ) : purchaseOrders.length ===
-            0 ? (
-            <EmptyState
-              title="No Purchase Orders"
-              subtitle="Purchase orders from backend will appear here"
-            />
-          ) : (
-            <InventoryTable
-              columns={columns}
-              data={purchaseOrders.map(
-                (po) => ({
-                  ...po,
+ {loading ? (
+ <LoadingSkeleton />
+ ) : purchaseOrders.length ===
+ 0 ? (
+ <EmptyState
+ title="No Purchase Orders"
+ subtitle="Purchase orders from backend will appear here"
+ />
+ ) : (
+ <InventoryTable
+ columns={columns}
+ data={purchaseOrders.map(
+ (po) => ({
+ ...po,
 
-                  supplier:
-                    po.supplier?.name,
+ supplier:
+ po.supplier?.name,
 
-                  status: (
-                    <StatusBadge
-                      status={
-                        po.status
-                      }
-                    />
-                  ),
-                })
-              )}
-            />
-          )}
-        </div>
-      </div>
-    </InventoryLayout>
-  );
+ status: (
+ <StatusBadge
+ status={
+ po.status
+ }
+ />
+ ),
+ })
+ )}
+ />
+ )}
+ </div>
+ </div>
+ </InventoryLayout>
+ );
 }

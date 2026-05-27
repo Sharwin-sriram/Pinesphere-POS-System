@@ -40,7 +40,19 @@ function normalizeUserForClient(user) {
   };
 }
 
+function isBrowser() {
+  return typeof window !== "undefined" && typeof localStorage !== "undefined";
+}
+
+// Media URL helper (used by profile pages)
+export function getMediaUrl(path) {
+  if (!path) return null;
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+}
+
 function saveSession({ access_token, refresh_token, user }) {
+  if (!isBrowser()) return;
   localStorage.setItem(ACCESS_TOKEN_KEY, access_token);
   if (refresh_token) {
     localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token);
@@ -52,6 +64,7 @@ function saveSession({ access_token, refresh_token, user }) {
 }
 
 function clearSession() {
+  if (!isBrowser()) return;
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   localStorage.removeItem(USER_ROLE_KEY);
@@ -88,6 +101,9 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+// Shared HTTP client for feature services/hooks
+export const httpClient = api;
 
 function buildGoogleOAuthUrl(nextPath = "/oauth/callback") {
   if (typeof window === "undefined") {
@@ -261,6 +277,23 @@ export const authService = {
     }
   },
 
+  // Change the authenticated user's password
+  changePassword: async (currentPassword, newPassword, confirmNewPassword) => {
+    try {
+      const response = await api.post("/auth/password/change/", {
+        current_password: currentPassword,
+        new_password: newPassword,
+        confirm_new_password: confirmNewPassword,
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: extractApiError(error, "Failed to change password"),
+      };
+    }
+  },
+
   // Refresh token
   refreshAccessToken: async () => {
     try {
@@ -317,8 +350,48 @@ export const authService = {
     }
   },
 
+  // Update the authenticated user profile
+  updateProfile: async (payload) => {
+    try {
+      const response = await api.patch("/auth/me/update/", payload, {
+        headers:
+          typeof FormData !== "undefined" && payload instanceof FormData
+            ? { "Content-Type": undefined }
+            : undefined,
+      });
+      const normalizedUser = normalizeUserForClient(response.data.user);
+      localStorage.setItem(USER_ROLE_KEY, normalizedUser.role || "");
+      localStorage.setItem(USER_INFO_KEY, JSON.stringify(normalizedUser));
+      return { success: true, data: normalizedUser };
+    } catch (error) {
+      return {
+        success: false,
+        error: extractApiError(error, "Failed to save profile"),
+      };
+    }
+  },
+
+  // Fetch the authenticated user profile (used by /dashboard/account)
+  getProfile: async () => {
+    try {
+      const response = await api.get("/auth/me/");
+      const normalizedUser = normalizeUserForClient(response.data.user);
+      if (isBrowser()) {
+        localStorage.setItem(USER_ROLE_KEY, normalizedUser.role || "");
+        localStorage.setItem(USER_INFO_KEY, JSON.stringify(normalizedUser));
+      }
+      return { success: true, data: normalizedUser };
+    } catch (error) {
+      return {
+        success: false,
+        error: extractApiError(error, "Failed to load profile"),
+      };
+    }
+  },
+
   // Get current user
   getCurrentUser: () => {
+    if (!isBrowser()) return null;
     try {
       const userInfo = localStorage.getItem(USER_INFO_KEY);
       return userInfo ? JSON.parse(userInfo) : null;
@@ -330,25 +403,60 @@ export const authService = {
 
   // Check if user is authenticated
   isAuthenticated: () => {
+    if (!isBrowser()) return false;
     const token = localStorage.getItem(ACCESS_TOKEN_KEY);
     return !!token;
   },
 
   // Get user role
   getUserRole: () => {
+    if (!isBrowser()) return null;
     return localStorage.getItem(USER_ROLE_KEY);
   },
 
   // Check if user has specific role
   hasRole: (requiredRole) => {
+    if (!isBrowser()) return false;
     const userRole = localStorage.getItem(USER_ROLE_KEY);
     return userRole === requiredRole;
   },
 
   // Check if user has any of the specified roles
   hasAnyRole: (roles) => {
+    if (!isBrowser()) return false;
     const userRole = localStorage.getItem(USER_ROLE_KEY);
     return roles.includes(userRole);
+  },
+
+  completeOAuthFromQuery: async (searchParams) => {
+    const error = searchParams.get("error");
+    if (error) {
+      return {
+        success: false,
+        error: decodeURIComponent(error.replace(/\+/g, " ")),
+      };
+    }
+
+    const accessToken = searchParams.get("access_token");
+    const refreshToken = searchParams.get("refresh_token");
+
+    if (!accessToken || !refreshToken) {
+      return { success: false, error: "Missing OAuth tokens" };
+    }
+
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+
+    const verifyResult = await authService.verifyToken();
+    if (!verifyResult.success) {
+      clearSession();
+      return {
+        success: false,
+        error: verifyResult.error || "Failed to complete sign in",
+      };
+    }
+
+    return { success: true, data: verifyResult.data };
   },
 };
 

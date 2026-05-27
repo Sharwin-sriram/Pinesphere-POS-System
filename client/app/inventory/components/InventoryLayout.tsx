@@ -7,21 +7,21 @@ import InventorySidebar from "./InventorySidebar";
 import MobileSidebar from "./MobileSidebar";
 
 type Props = {
-  children: ReactNode;
+ children: ReactNode;
 };
 
 export default function InventoryLayout({
-  children,
+ children,
 }: Props) {
-  return (
-    <div className="flex min-h-screen bg-[#f5f7fb]">
-      <MobileSidebar />
+ return (
+ <div className="flex min-h-screen bg-[#f5f7fb]">
+ <MobileSidebar />
 
-      <InventorySidebar />
+ <InventorySidebar />
 
-      <main className="flex-1 p-6">
-        {children}
-      </main>
-    </div>
-  );
+ <main className="flex-1 p-6">
+ {children}
+ </main>
+ </div>
+ );
 }

@@ -1,3 +1,5 @@
-from django.db import models
+"""Deprecated: use authentication.models for Restaurant and Branch."""
 
-# Create your models here.
+from authentication.models import Branch, Restaurant
+
+__all__ = ["Restaurant", "Branch"]

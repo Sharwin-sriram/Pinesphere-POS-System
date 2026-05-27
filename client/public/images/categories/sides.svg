@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="sides-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#064e3b;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0d3728;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0a2e1f;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#sides-grad)"/>
+  <g opacity="0.28">
+    <rect x="200" y="250" width="150" height="300" fill="#10b981" opacity="0.15" stroke="#10b981" stroke-width="2" rx="12"/>
+    <polygon points="250,280 300,280 320,320 280,340 220,320" fill="#10b981" opacity="0.3"/>
+    <circle cx="275" cy="250" r="20" fill="#6ee7b7" opacity="0.4"/>
+  </g>
+  <g opacity="0.25">
+    <rect x="900" y="200" width="140" height="350" fill="#10b981" opacity="0.12" stroke="#6ee7b7" stroke-width="2" rx="10"/>
+    <polygon points="950,280 1000,300 980,360 920,340" fill="#10b981" opacity="0.2"/>
+  </g>
+  <g opacity="0.15" stroke="#10b981" stroke-width="2" stroke-linecap="round">
+    <path d="M 450 400 Q 500 420 550 400"/>
+    <path d="M 650 500 Q 700 480 750 500"/>
+  </g>
+  <text x="600" y="700" font-family="Inter, Arial" font-size="44" font-weight="bold" fill="#a7f3d0" text-anchor="middle">Sides & Accompaniments</text>
+</svg>

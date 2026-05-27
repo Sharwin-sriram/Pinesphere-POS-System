@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Revenue command dashboard</title>
+  <desc id="desc">A premium analytics illustration for the menu revenue dashboard.</desc>
+  <rect width="1200" height="800" fill="#0f172a" />
+  <circle cx="220" cy="120" r="180" fill="#8b5cf6" fill-opacity=".14" />
+  <circle cx="1020" cy="640" r="220" fill="#22d3ee" fill-opacity=".12" />
+  <rect x="120" y="138" width="430" height="524" rx="42" fill="#07101d" fill-opacity=".82" stroke="#ffffff" stroke-opacity=".08" />
+  <rect x="590" y="190" width="490" height="160" rx="36" fill="#07101d" fill-opacity=".72" stroke="#ffffff" stroke-opacity=".08" />
+  <rect x="590" y="390" width="490" height="272" rx="36" fill="#07101d" fill-opacity=".72" stroke="#ffffff" stroke-opacity=".08" />
+  <path d="M182 520C250 462 318 470 382 404C426 358 470 322 516 300" fill="none" stroke="#8b5cf6" stroke-width="18" stroke-linecap="round" />
+  <path d="M182 562C252 550 310 502 378 484C434 470 466 450 516 396" fill="none" stroke="#38bdf8" stroke-width="12" stroke-linecap="round" opacity=".92" />
+  <g fill="#f8fbff">
+    <text x="182" y="228" font-family="Arial, Helvetica, sans-serif" font-size="24" letter-spacing="6" opacity=".62">REVENUE COCKPIT</text>
+    <text x="182" y="292" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="700">$84.2K</text>
+    <text x="182" y="338" font-family="Arial, Helvetica, sans-serif" font-size="24" opacity=".7">Projected weekly menu sales</text>
+    <text x="626" y="254" font-family="Arial, Helvetica, sans-serif" font-size="22" letter-spacing="5" opacity=".62">TOP MOVERS</text>
+    <text x="626" y="304" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700">Combos +21%</text>
+    <text x="626" y="450" font-family="Arial, Helvetica, sans-serif" font-size="22" letter-spacing="5" opacity=".62">MARGIN MIX</text>
+    <text x="626" y="508" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700">Premium mains outperforming</text>
+    <text x="626" y="554" font-family="Arial, Helvetica, sans-serif" font-size="22" opacity=".68">Bundle value and seasonal pricing both trending up.</text>
+  </g>
+  <rect x="644" y="592" width="116" height="16" rx="8" fill="#8b5cf6" fill-opacity=".8" />
+  <rect x="780" y="574" width="116" height="34" rx="17" fill="#38bdf8" fill-opacity=".82" />
+  <rect x="916" y="544" width="116" height="64" rx="20" fill="#14b8a6" fill-opacity=".82" />
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Service metrics illustration</title>
+  <desc id="desc">A service performance graphic for restaurant operations dashboards.</desc>
+  <rect width="1200" height="800" fill="#0f172a" />
+  <circle cx="1030" cy="176" r="190" fill="#38bdf8" fill-opacity=".12" />
+  <circle cx="164" cy="160" r="150" fill="#8b5cf6" fill-opacity=".12" />
+  <rect x="118" y="124" width="964" height="552" rx="48" fill="#08111d" fill-opacity=".72" stroke="#ffffff" stroke-opacity=".08" />
+  <path d="M196 572H1002" stroke="#ffffff" stroke-opacity=".08" stroke-width="3" />
+  <path d="M196 482H1002" stroke="#ffffff" stroke-opacity=".08" stroke-width="3" />
+  <path d="M196 392H1002" stroke="#ffffff" stroke-opacity=".08" stroke-width="3" />
+  <path d="M196 302H1002" stroke="#ffffff" stroke-opacity=".08" stroke-width="3" />
+  <path d="M196 566C258 530 324 474 394 444C480 408 544 416 612 360C690 296 762 258 844 244C900 236 944 242 1002 278" fill="none" stroke="#38bdf8" stroke-width="16" stroke-linecap="round" />
+  <circle cx="394" cy="444" r="16" fill="#22d3ee" />
+  <circle cx="612" cy="360" r="16" fill="#8b5cf6" />
+  <circle cx="844" cy="244" r="16" fill="#f8fafc" />
+  <g fill="#f8fbff">
+    <text x="196" y="226" font-family="Arial, Helvetica, sans-serif" font-size="24" letter-spacing="6" opacity=".62">SERVICE METRICS</text>
+    <text x="196" y="292" font-family="Arial, Helvetica, sans-serif" font-size="70" font-weight="700">Shift health in motion</text>
+    <text x="196" y="338" font-family="Arial, Helvetica, sans-serif" font-size="24" opacity=".72">Queue depth, menu sell-through, and labor rhythm shown in one frame.</text>
+  </g>
+</svg>

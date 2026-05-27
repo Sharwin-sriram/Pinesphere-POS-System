@@ -2,9 +2,52 @@
 
 from __future__ import annotations
 
+import uuid
+
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db import models
+
+
+class Restaurant(models.Model):
+    """Restaurant entity for multi-tenant POS features."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255, unique=True)
+    address = models.TextField()
+    phone = models.CharField(max_length=20)
+    email = models.EmailField()
+    timezone = models.CharField(max_length=50, default="UTC")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Branch(models.Model):
+    """Branch of a restaurant."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name="branches")
+    name = models.CharField(max_length=255)
+    address = models.TextField()
+    phone = models.CharField(max_length=20)
+    manager_name = models.CharField(max_length=100, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        unique_together = [["restaurant", "name"]]
+
+    def __str__(self):
+        return f"{self.restaurant.name} - {self.name}"
 
 
 class UserManager(BaseUserManager):
@@ -72,7 +115,7 @@ class User(AbstractBaseUser):
     REQUIRED_FIELDS = ["email", "first_name", "last_name", "role"]
 
     class Meta:
-        db_table = '"shared_schema"."users"'
+        db_table = "users"
         indexes = [
             models.Index(fields=["email"]),
             models.Index(fields=["mobile"]),
@@ -109,7 +152,7 @@ class UserSession(models.Model):
     last_active = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = '"shared_schema"."user_sessions"'
+        db_table = "user_sessions"
         indexes = [
             models.Index(fields=["device_id"]),
             models.Index(fields=["is_active"]),

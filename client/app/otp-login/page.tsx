@@ -3,5 +3,5 @@
 import OTPLogin from '../components/OTPLogin';
 
 export default function OTPLoginPage() {
-  return <OTPLogin />;
+ return <OTPLogin />;
 }

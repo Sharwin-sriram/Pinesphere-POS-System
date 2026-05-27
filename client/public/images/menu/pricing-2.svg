@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="pricing2-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#312e81;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="#0f172a"/>
+  <g opacity="0.25">
+    <polygon points="300,500 350,350 400,500" fill="#7c3aed" opacity="0.2"/>
+    <path d="M 300 500 Q 400 450 500 500" stroke="#7c3aed" stroke-width="2" fill="none" opacity="0.3"/>
+  </g>
+  <g opacity="0.2">
+    <polygon points="800,450 900,280 1000,450" fill="#7c3aed" opacity="0.2"/>
+    <path d="M 800 450 Q 900 400 1000 450" stroke="#7c3aed" stroke-width="2" fill="none" opacity="0.3"/>
+  </g>
+  <g opacity="0.15" stroke="#a78bfa" stroke-width="2" stroke-dasharray="8,6" stroke-linecap="round">
+    <path d="M 200 250 Q 600 200 1000 250"/>
+  </g>
+  <text x="600" y="700" font-family="Inter, Arial" font-size="44" font-weight="bold" fill="#d8b4fe" text-anchor="middle">Growth Trends</text>
+</svg>
