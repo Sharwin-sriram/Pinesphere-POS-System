@@ -1,5 +1,5 @@
 "use client"
-import React from 'react'
+import React, { forwardRef } from 'react'
 import { ChevronDown } from 'lucide-react'
 
 type Props = React.SelectHTMLAttributes<HTMLSelectElement> & {
@@ -10,21 +10,25 @@ type Props = React.SelectHTMLAttributes<HTMLSelectElement> & {
   selectClassName?: string
 }
 
-export default function Select({
-  label,
-  description,
-  error,
-  success,
-  className = '',
-  selectClassName = '',
-  children,
-  ...props
-}: Props) {
+const Select = forwardRef<HTMLSelectElement, Props>(function Select(
+  {
+    label,
+    description,
+    error,
+    success,
+    className = '',
+    selectClassName = '',
+    children,
+    id,
+    ...props
+  }: Props,
+  ref
+) {
   const stateClasses = error
     ? 'border-[var(--color-danger)] focus:border-[var(--color-danger)]'
     : success
       ? 'border-[var(--color-success)] focus:border-[var(--color-success)]'
-      : 'border-[var(--color-border)] focus:border-[var(--color-border-focus)]'
+      : 'border-[var(--color-border)] focus:border-[var(--color-border)]'
 
   const helperText = error || success || description
   const helperTone = error
@@ -33,6 +37,8 @@ export default function Select({
       ? 'text-[var(--color-success)]'
       : 'text-[var(--color-text-muted)]'
 
+  const errorId = id ? `${id}-error` : undefined
+
   return (
     <label className={`block text-[length:var(--text-sm)] text-[var(--color-text-secondary)] ${className}`}>
       {label ? (
@@ -40,8 +46,11 @@ export default function Select({
       ) : null}
       <div className="relative">
         <select
+          ref={ref}
+          id={id}
           aria-invalid={Boolean(error)}
-          className={`h-10 w-full appearance-none rounded-md border bg-[var(--color-bg-tertiary)] px-4 pr-11 text-[length:var(--text-base)] text-[var(--color-text-primary)] transition duration-150 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${stateClasses} ${selectClassName}`}
+          aria-describedby={error ? errorId : undefined}
+          className={`h-10 w-full appearance-none rounded-md border bg-[var(--color-bg-tertiary)] px-4 pr-11 text-[length:var(--text-base)] text-[var(--color-text-primary)] transition duration-150 focus:outline-none focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 ${stateClasses} ${selectClassName}`}
           {...props}
         >
           {children}
@@ -52,10 +61,12 @@ export default function Select({
         />
       </div>
       {helperText ? (
-        <p className={`mt-2 text-[length:var(--text-sm)] leading-[var(--leading-normal)] ${helperTone}`}>
+        <p id={error ? errorId : undefined} className={`mt-2 text-[length:var(--text-sm)] leading-[var(--leading-normal)] ${helperTone}`}>
           {helperText}
         </p>
       ) : null}
     </label>
   )
-}
+})
+
+export default Select

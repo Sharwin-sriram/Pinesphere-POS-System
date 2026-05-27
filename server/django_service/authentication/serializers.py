@@ -54,10 +54,10 @@ class RegisterSerializer(serializers.Serializer):
     """Validate user registration requests."""
 
     email = serializers.EmailField(required=True)
-    mobile = serializers.CharField(max_length=20, required=True)
+    mobile = serializers.CharField(max_length=20, required=False, allow_blank=True, default="")
     password = serializers.CharField(write_only=True, min_length=8)
-    first_name = serializers.CharField(max_length=100)
-    last_name = serializers.CharField(max_length=100)
+    first_name = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
+    last_name = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
     role = serializers.ChoiceField(choices=User.RoleChoices.choices, required=False, default=User.RoleChoices.CUSTOMER)
     restaurant_id = serializers.IntegerField(required=False, allow_null=True)
     branch_id = serializers.IntegerField(required=False, allow_null=True)
@@ -68,7 +68,7 @@ class RegisterSerializer(serializers.Serializer):
         return value
 
     def validate_mobile(self, value):
-        if User.objects.filter(mobile=value).exists():
+        if value and User.objects.filter(mobile=value).exists():
             raise serializers.ValidationError("Mobile already exists")
         return value
 

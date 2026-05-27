@@ -6,6 +6,9 @@ export const AUTH_ROUTE_PREFIXES = [
   "/otp-login",
   "/verify-otp",
   "/oauth/callback",
+  "/restaurant/login",
+  "/restaurant/signup",
+  "/restaurant/forgot-password",
 ];
 
 export const PUBLIC_ROUTE_PREFIXES = [
@@ -37,7 +40,7 @@ export const ROLE_HOME_PATHS = {
   waiter: "/waiter",
   kitchen: "/kitchen",
   delivery: "/delivery",
-  "restaurant-admin": "/restaurant-admin",
+  "restaurant-admin": "/restaurant/dashboard",
   employee: "/employee",
 };
 
@@ -49,7 +52,7 @@ export const ROLE_ALLOWED_PREFIXES = {
   waiter: ["/waiter"],
   kitchen: ["/kitchen", "/kds"],
   delivery: ["/delivery"],
-  "restaurant-admin": ["/restaurant-admin"],
+  "restaurant-admin": ["/restaurant-admin", "/restaurant/dashboard"],
   employee: ["/employee"],
 };
 

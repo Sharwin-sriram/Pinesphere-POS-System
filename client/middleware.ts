@@ -52,8 +52,15 @@ export function middleware(request: NextRequest) {
 
   if (!token && isStaffRoute(pathname)) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.search = "";
+    const attemptedPath = request.nextUrl.pathname + request.nextUrl.search;
+
+    if (pathname.startsWith("/restaurant/")) {
+      url.pathname = "/restaurant/login";
+      url.search = `?next=${encodeURIComponent(attemptedPath)}`;
+    } else {
+      url.pathname = "/login";
+      url.search = "";
+    }
     return NextResponse.redirect(url);
   }
 

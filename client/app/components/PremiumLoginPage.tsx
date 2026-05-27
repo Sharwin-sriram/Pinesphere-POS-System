@@ -27,14 +27,18 @@ const PremiumLoginPage = () => {
 
   return (
     <AuthShell title="Sign in" subtitle="Premium login preview">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <InputField
-          type="email"
+          type="text"
           name="email"
           placeholder="you@restaurant.com"
           value={formData.email}
           onChange={handleInputChange}
           icon={<Mail {...iconProps} />}
+          autoComplete="email"
+          inputMode="email"
+          autoCapitalize="off"
+          spellCheck={false}
         />
         <div className="relative">
           <InputField
