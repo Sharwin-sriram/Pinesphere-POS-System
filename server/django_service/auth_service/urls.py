@@ -11,6 +11,7 @@ from authentication.views import RestaurantRegisterView
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("auth/", include("authentication.urls")),
+    path("api/", include("authentication.urls")),
     path("api/restaurant/register", RestaurantRegisterView.as_view()),
     path("api/kds/", include("apps.kitchen_display_system.urls")),
     path("api/", include("apps.inventory.urls")),

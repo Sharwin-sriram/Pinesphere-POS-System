@@ -1,17 +1,16 @@
 "use client";
-
-import { Bell, Camera, ChevronDown, Menu, Package, Search, ShoppingCart, User } from "lucide-react";
+import { Bell, ChevronDown, Menu, Package, Search, ShoppingCart, User } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
-import { useCart } from "./CartContext";
-import authService, { getUserAvatarUrl } from "../../lib/authService";
+import { useCart } from "./dashboard/CartContext";
+import authService, { getUserAvatarUrl } from "../lib/authService";
 
-interface TopbarProps {
+interface HeaderProps {
   onMenuClick: () => void;
 }
 
-export default function Topbar({ onMenuClick }: TopbarProps) {
+export default function Header({ onMenuClick }: HeaderProps) {
   const { cartCount } = useCart();
   const [open, setOpen] = useState(false);
   const [authed, setAuthed] = useState(false);

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import DashboardLanding from "./dashboard/page";
 import { authService } from "./lib/authService";
 import { getRoleHomePath } from "./lib/authRoutes";
-import Topbar from "./components/dashboard/Topbar";
+import Header from "./components/Header";
 import Sidebar from "./components/dashboard/Sidebar";
 import { CartProvider } from "./components/dashboard/CartContext";
 import { Toaster } from "react-hot-toast";
@@ -42,7 +42,7 @@ export default function Home() {
 					}}
 				/>
 				<Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-				<Topbar onMenuClick={() => setIsSidebarOpen(true)} />
+				<Header onMenuClick={() => setIsSidebarOpen(true)} />
 				<main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 					<DashboardLanding />
 				</main>
