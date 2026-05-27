@@ -14,6 +14,8 @@ class UserSerializer(serializers.ModelSerializer):
     """Compact user response serializer."""
 
     permissions = serializers.SerializerMethodField()
+    profile_image = serializers.SerializerMethodField()
+    picture = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -28,6 +30,8 @@ class UserSerializer(serializers.ModelSerializer):
             "branch_id",
             "is_active",
             "is_staff",
+            "profile_image",
+            "picture",
             "created_at",
             "updated_at",
             "permissions",
@@ -36,6 +40,14 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_permissions(self, obj):
         return list(ROLE_PERMISSIONS.get(obj.role, []))
+
+    def get_profile_image(self, obj):
+        if obj.profile_image:
+            return obj.profile_image.url
+        return None
+
+    def get_picture(self, obj):
+        return obj.google_picture_url or None
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -140,9 +152,14 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 class ProfileUpdateSerializer(serializers.Serializer):
     """Validate profile update payloads."""
 
+    MAX_PROFILE_IMAGE_BYTES = 2 * 1024 * 1024
+
     first_name = serializers.CharField(max_length=100, required=False)
     last_name = serializers.CharField(max_length=100, required=False)
     email = serializers.EmailField(required=False, allow_null=True, allow_blank=True)
+    mobile = serializers.CharField(max_length=20, required=False)
+    profile_image = serializers.ImageField(required=False)
+    remove_profile_image = serializers.BooleanField(required=False, default=False)
 
     def validate_email(self, value):
         user = self.context["request"].user
@@ -150,7 +167,22 @@ class ProfileUpdateSerializer(serializers.Serializer):
             raise serializers.ValidationError("Email already exists")
         return value
 
+    def validate_mobile(self, value):
+        user = self.context["request"].user
+        if value and User.objects.filter(mobile=value).exclude(id=user.id).exists():
+            raise serializers.ValidationError("Mobile already exists")
+        return value
+
+    def validate_profile_image(self, value):
+        if value and value.size > self.MAX_PROFILE_IMAGE_BYTES:
+            raise serializers.ValidationError("Profile image must be 2MB or smaller")
+        return value
+
     def validate(self, attrs):
-        if not attrs:
+        request = self.context["request"]
+        has_file = bool(request.FILES.get("profile_image"))
+        if not attrs and not has_file:
             raise serializers.ValidationError({"detail": "Provide at least one field to update"})
+        if attrs.get("remove_profile_image") and has_file:
+            raise serializers.ValidationError({"profile_image": "Cannot upload and remove profile image at the same time"})
         return attrs

@@ -10,6 +10,7 @@ type State = {
 
 export function useRestaurants(query: RestaurantQuery) {
   const [state, setState] = useState<State>({ data: null, loading: true, error: null });
+  const [trigger, setTrigger] = useState(0);
 
   const stableQuery = useMemo(
     () => ({
@@ -41,13 +42,15 @@ export function useRestaurants(query: RestaurantQuery) {
     return () => {
       cancelled = true;
     };
-  }, [stableQuery]);
+  }, [stableQuery, trigger]);
 
   return {
     restaurants: (state.data?.results || []) as Restaurant[],
     meta: state.data,
     loading: state.loading,
     error: state.error,
+    refetch: () => setTrigger((t) => t + 1),
   };
 }
+
 

@@ -36,6 +36,7 @@ class AuthService:
     def user_payload(user):
         """Serialize a user into the API response shape."""
 
+        profile_image = user.profile_image.url if user.profile_image else None
         return {
             "id": user.id,
             "email": user.email,
@@ -47,6 +48,8 @@ class AuthService:
             "branch_id": user.branch_id,
             "is_active": user.is_active,
             "is_staff": user.is_staff,
+            "profile_image": profile_image,
+            "picture": getattr(user, "google_picture_url", None) or None,
             "created_at": user.created_at,
             "updated_at": user.updated_at,
             "permissions": AuthService.permissions_for_role(user.role),
@@ -108,6 +111,8 @@ class AuthService:
         mobile_seed = profile.get("sub") or email.replace("@", "").replace(".", "")
         mobile = f"g-{str(mobile_seed)[:18]}"
 
+        google_picture = profile.get("picture") or ""
+
         user = User.objects.filter(email__iexact=email).first()
         if user is None:
             user = User.objects.create_user(
@@ -121,6 +126,7 @@ class AuthService:
                 branch_id=None,
                 is_active=True,
                 is_staff=False,
+                google_picture_url=google_picture,
             )
         else:
             update_fields = []
@@ -130,6 +136,9 @@ class AuthService:
             if last_name and user.last_name != last_name:
                 user.last_name = last_name
                 update_fields.append("last_name")
+            if google_picture and user.google_picture_url != google_picture:
+                user.google_picture_url = google_picture
+                update_fields.append("google_picture_url")
             if update_fields:
                 update_fields.append("updated_at")
                 user.save(update_fields=update_fields)
@@ -354,8 +363,27 @@ class AuthService:
     def update_profile(user, data):
         """Update editable profile fields for the authenticated user."""
 
-        for field in ("first_name", "last_name", "email"):
+        update_fields = []
+
+        for field in ("first_name", "last_name", "email", "mobile"):
             if field in data:
                 setattr(user, field, data[field])
-        user.save(update_fields=["first_name", "last_name", "email", "updated_at"])
+                update_fields.append(field)
+
+        if data.get("remove_profile_image") and user.profile_image:
+            user.profile_image.delete(save=False)
+            user.profile_image = None
+            update_fields.append("profile_image")
+
+        if data.get("profile_image"):
+            if user.profile_image:
+                user.profile_image.delete(save=False)
+            user.profile_image = data["profile_image"]
+            update_fields.append("profile_image")
+
+        if not update_fields:
+            return user
+
+        update_fields.append("updated_at")
+        user.save(update_fields=update_fields)
         return user
