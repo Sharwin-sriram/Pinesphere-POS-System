@@ -57,7 +57,7 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
         <div className="flex items-center gap-2">
           <button
             onClick={onMenuClick}
-            className="p-2 bg-white/60 hover:bg-white rounded-xl transition-all text-gray-700 lg:hidden"
+            className="p-2 bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-tertiary)] rounded-xl transition-all text-[var(--color-text-secondary)] lg:hidden"
             aria-label="Open menu"
           >
             <Menu className="h-4 w-4" strokeWidth={1.5} />
@@ -68,12 +68,12 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
         <div className="hidden sm:flex flex-1 max-w-2xl ml-4">
           <div className="relative group w-full">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="text-gray-400 group-focus-within:text-blue-500 transition-colors h-4 w-4" strokeWidth={1.5} />
+              <Search className="text-[var(--color-text-muted)] group-focus-within:text-[var(--color-accent)] transition-colors h-4 w-4" strokeWidth={1.5} />
             </div>
             <input
               type="text"
               placeholder="Search for restaurants, cuisines, or dishes..."
-              className="w-full bg-white/70 border border-white/60 rounded-2xl pl-12 pr-4 py-3 text-[var(--color-text-primary)] focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:bg-white transition-all"
+              className="w-full bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-2xl pl-12 pr-4 py-3 text-[var(--color-text-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--color-accent-subtle)] focus:bg-[var(--color-bg-secondary)] transition-all"
             />
           </div>
         </div>
@@ -170,7 +170,7 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
 
                   <button
                     onClick={() => authService.logout()}
-                    className="w-full text-left flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--color-danger)] hover:bg-red-50"
+                    className="w-full text-left flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--color-danger)] hover:bg-[var(--color-danger-subtle)]"
                     role="menuitem"
                   >
                     Logout
