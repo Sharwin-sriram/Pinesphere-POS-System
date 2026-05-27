@@ -3,6 +3,7 @@
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authService } from '../../lib/authService';
+import { getRoleHomePath } from '../../lib/authRoutes';
 
 function CallbackContent() {
  const router = useRouter();
@@ -17,7 +18,7 @@ function CallbackContent() {
  }
 
  if (result.success) {
- router.replace('/dashboard');
+ router.replace(getRoleHomePath(authService.getUserRole()));
  return;
  }
 

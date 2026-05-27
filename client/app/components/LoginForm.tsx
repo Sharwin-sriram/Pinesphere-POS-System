@@ -8,6 +8,7 @@ import InputField from "./InputField";
 import Loader from "./Loader";
 import { useToast } from "./Toast";
 import { authService } from "../lib/authService";
+import { getRoleHomePath } from "../lib/authRoutes";
 
 const iconProps = { className: "h-4 w-4", strokeWidth: 1.5 as const };
 
@@ -46,7 +47,7 @@ const LoginForm = () => {
       if (result.success) {
         success("Signed in", "Welcome to Pinesphere POS");
         setTimeout(() => {
-          window.location.href = "/dashboard";
+          window.location.href = getRoleHomePath(authService.getUserRole());
         }, 1500);
       } else {
         error("Sign in failed", result.error || "Check your email and password, then try again");

@@ -9,6 +9,14 @@ from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db import models
 
 
+def user_profile_image_path(instance, filename: str) -> str:
+    """Store uploaded avatars under profile_images/user_<id>.<ext>."""
+
+    extension = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+    user_id = instance.pk or "new"
+    return f"profile_images/user_{user_id}.{extension}"
+
+
 class Restaurant(models.Model):
     """Restaurant entity for multi-tenant POS features."""
 
@@ -106,6 +114,8 @@ class User(AbstractBaseUser):
     branch_id = models.IntegerField(null=True, blank=True, db_index=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    profile_image = models.ImageField(upload_to=user_profile_image_path, null=True, blank=True)
+    google_picture_url = models.URLField(max_length=512, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

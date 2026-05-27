@@ -1,0 +1,70 @@
+export const AUTH_ROUTE_PREFIXES = [
+  "/",
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/otp-login",
+  "/verify-otp",
+  "/oauth/callback",
+];
+
+export const PUBLIC_ROUTE_PREFIXES = [
+  "/dashboard",
+  "/ordering",
+  "/delivery/tracking",
+  "/test-guide",
+  "/otp-demo",
+];
+
+export const STAFF_ROUTE_PREFIXES = [
+  "/super-admin",
+  "/hr",
+  "/inventory",
+  "/restaurant-admin",
+  "/cashier",
+  "/waiter",
+  "/kitchen",
+  "/kds",
+  "/delivery",
+  "/employee",
+];
+
+export const ROLE_HOME_PATHS = {
+  admin: "/super-admin",
+  "super-admin": "/super-admin",
+  manager: "/hr",
+  cashier: "/cashier",
+  waiter: "/waiter",
+  kitchen: "/kitchen",
+  delivery: "/delivery",
+  "restaurant-admin": "/restaurant-admin",
+  employee: "/employee",
+};
+
+export const ROLE_ALLOWED_PREFIXES = {
+  admin: STAFF_ROUTE_PREFIXES,
+  "super-admin": ["/super-admin"],
+  manager: ["/hr", "/inventory", "/restaurant-admin", "/employee"],
+  cashier: ["/cashier"],
+  waiter: ["/waiter"],
+  kitchen: ["/kitchen", "/kds"],
+  delivery: ["/delivery"],
+  "restaurant-admin": ["/restaurant-admin"],
+  employee: ["/employee"],
+};
+
+export function getRoleHomePath(role) {
+  return ROLE_HOME_PATHS[role] || "/dashboard";
+}
+
+export function matchesPathPrefix(pathname, prefix) {
+  if (prefix === "/") {
+    return pathname === "/";
+  }
+
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
+export function matchesAnyPathPrefix(pathname, prefixes) {
+  return prefixes.some((prefix) => matchesPathPrefix(pathname, prefix));
+}
