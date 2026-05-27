@@ -1,6 +1,6 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import User
 
 class Employee(models.Model):
     ROLE_CHOICES = (
@@ -9,7 +9,7 @@ class Employee(models.Model):
         ('Kitchen', 'Kitchen Staff'),
         ('Cashier', 'Cashier'),
     )
-    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='employee_profile')
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='employee_profile')
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)

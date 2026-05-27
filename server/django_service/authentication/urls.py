@@ -3,6 +3,7 @@
 from django.urls import path
 
 from .views import (
+    CheckEmailView,
     EmailLoginView,
     LogoutView,
     MeUpdateView,
@@ -21,6 +22,7 @@ from .views import (
 
 urlpatterns = [
     path("register/", RegisterView.as_view()),
+    path("check-email/", CheckEmailView.as_view()),
     path("login/email/", EmailLoginView.as_view()),
     path("login/mobile/", MobileLoginView.as_view()),
     path("oauth/google/start/", GoogleOAuthStartView.as_view()),

@@ -24,6 +24,7 @@ from .serializers import (
     OtpVerifySerializer,
     PasswordResetConfirmSerializer,
     PasswordResetRequestSerializer,
+    RestaurantRegisterSerializer,
     ProfileUpdateSerializer,
     RegisterSerializer,
     TokenRefreshSerializer,
@@ -116,6 +117,20 @@ class GoogleOAuthCallbackView(APIView):
         )
 
 
+class CheckEmailView(APIView):
+    """Check whether an email address is available for registration."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        from .models import User
+        email = request.query_params.get("email", "").strip()
+        if not email:
+            return Response({"is_available": False, "message": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+        is_taken = User.objects.filter(email__iexact=email).exists()
+        return Response({"is_available": not is_taken})
+
+
 class RegisterView(APIView):
     """Register a new user and return JWT tokens."""
 
@@ -128,6 +143,36 @@ class RegisterView(APIView):
         access_token, refresh_token = AuthService.issue_tokens(user)
         return Response(
             {"user": UserSerializer(user).data, "access_token": access_token, "refresh_token": refresh_token},
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class RestaurantRegisterView(APIView):
+    """Register a restaurant owner and create the restaurant record."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = RestaurantRegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user, restaurant = AuthService.register_restaurant_owner(serializer.validated_data)
+        access_token, refresh_token = AuthService.issue_tokens(user)
+        return Response(
+            {
+                "user": UserSerializer(user).data,
+                "restaurant": {
+                    "id": str(restaurant.id),
+                    "name": restaurant.name,
+                    "address": restaurant.address,
+                    "phone": restaurant.phone,
+                    "email": restaurant.email,
+                    "timezone": restaurant.timezone,
+                    "cuisine_types": serializer.validated_data.get("cuisine_types", []),
+                    "fssai_license": serializer.validated_data.get("fssai_license", ""),
+                },
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+            },
             status=status.HTTP_201_CREATED,
         )
 

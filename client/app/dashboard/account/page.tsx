@@ -98,7 +98,7 @@ export default function AccountProfilePage() {
 
 	 if (!profileResult.success) {
 		toast.error(profileResult.error || "Unable to load profile");
-		window.location.href = "/login";
+		setIsLoading(false);
 		return;
 	 }
 

@@ -2,18 +2,23 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import AuthPage from "./components/AuthPage";
+import DashboardLanding from "./dashboard/page";
 import { authService } from "./lib/authService";
 import { getRoleHomePath } from "./lib/authRoutes";
 
 export default function Home() {
- const router = useRouter();
+	const router = useRouter();
 
- useEffect(() => {
- if (authService.isAuthenticated()) {
- router.push(getRoleHomePath(authService.getUserRole()));
- }
- }, [router]);
+	useEffect(() => {
+		if (!authService.isAuthenticated()) {
+			return;
+		}
 
- return <AuthPage defaultMode="login" />;
+		const roleHomePath = getRoleHomePath(authService.getUserRole());
+		if (roleHomePath !== "/") {
+			router.push(roleHomePath);
+		}
+	}, [router]);
+
+	return <DashboardLanding />;
 }

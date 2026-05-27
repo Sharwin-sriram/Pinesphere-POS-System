@@ -5,34 +5,33 @@ import {
   ROLE_ALLOWED_PREFIXES,
   getRoleHomePath,
   matchesAnyPathPrefix,
+  matchesPathPrefix,
 } from "./app/lib/authRoutes";
 
-const STAFF_ROUTE_PREFIXES = Object.values(ROLE_ALLOWED_PREFIXES)
-  .flat()
-  .filter((prefix, index, prefixes) => prefixes.indexOf(prefix) === index);
-
 function getSessionFromRequest(request: NextRequest) {
-  const token = request.cookies.get("pos_token")?.value || "";
-  const role = request.cookies.get("pos_user_role")?.value || "";
+  const token = request.cookies.get("pos_token")?.value ?? null;
+  const role = request.cookies.get("pos_user_role")?.value ?? null;
 
   return { token, role };
 }
 
 function isPublicRoute(pathname: string) {
-  return matchesAnyPathPrefix(pathname, AUTH_ROUTE_PREFIXES) || matchesAnyPathPrefix(pathname, PUBLIC_ROUTE_PREFIXES);
+  return matchesAnyPathPrefix(pathname, PUBLIC_ROUTE_PREFIXES);
 }
 
 function isStaffRoute(pathname: string) {
-  return matchesAnyPathPrefix(pathname, STAFF_ROUTE_PREFIXES);
+  return matchesAnyPathPrefix(pathname, Object.values(ROLE_ALLOWED_PREFIXES).flat());
 }
 
-function getRedirectForUnauthorizedRole(pathname: string, role: string) {
-  const allowedPrefixes = ROLE_ALLOWED_PREFIXES[role as keyof typeof ROLE_ALLOWED_PREFIXES] || [];
-  if (allowedPrefixes.length > 0 && matchesAnyPathPrefix(pathname, allowedPrefixes)) {
-    return null;
+function getRedirectForUnauthorizedRole(pathname: string, role: string | null) {
+  const allowedPrefixes = role ? ROLE_ALLOWED_PREFIXES[role as keyof typeof ROLE_ALLOWED_PREFIXES] : null;
+
+  if (!allowedPrefixes) {
+    return getRoleHomePath(role);
   }
 
-  return getRoleHomePath(role);
+  const hasAccess = allowedPrefixes.some((prefix) => matchesPathPrefix(pathname, prefix));
+  return hasAccess ? null : getRoleHomePath(role);
 }
 
 export function middleware(request: NextRequest) {
@@ -48,13 +47,6 @@ export function middleware(request: NextRequest) {
     }
 
     return NextResponse.next();
-  }
-
-  if (!token && isStaffRoute(pathname)) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.search = "";
-    return NextResponse.redirect(url);
   }
 
   if (token && isStaffRoute(pathname)) {

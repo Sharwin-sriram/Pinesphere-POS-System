@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from auth_service.exceptions import InvalidCredentials, InvalidOTP, OAuthError, OTPExpired, TokenExpired, UserNotFound
 
-from ..models import UserSession
+from ..models import Restaurant, UserSession
 from ..permissions import ROLE_PERMISSIONS
 from ..tokens import CustomRefreshToken
 from .otp_service import delete_otp, fetch_otp, generate_otp, store_otp
@@ -83,12 +83,18 @@ class AuthService:
     def register_user(data):
         """Create a user account and return the persisted instance."""
 
+        # mobile is optional for email-only registration — generate a unique placeholder
+        mobile = data.get("mobile") or ""
+        if not mobile:
+            import uuid
+            mobile = f"e-{uuid.uuid4().hex[:18]}"
+
         user = User.objects.create_user(
-            mobile=data["mobile"],
+            mobile=mobile,
             password=data["password"],
             email=data.get("email"),
-            first_name=data["first_name"],
-            last_name=data["last_name"],
+            first_name=data.get("first_name", ""),
+            last_name=data.get("last_name", ""),
             role=data.get("role", User.RoleChoices.CUSTOMER),
             restaurant_id=data.get("restaurant_id"),
             branch_id=data.get("branch_id"),
@@ -96,6 +102,41 @@ class AuthService:
             is_staff=False,
         )
         return user
+
+    @staticmethod
+    @transaction.atomic
+    def register_restaurant_owner(data):
+        """Create a restaurant record and its owner account."""
+
+        full_name = data["full_name"].strip()
+        name_parts = full_name.split(None, 1)
+        first_name = name_parts[0] if name_parts else ""
+        last_name = name_parts[1] if len(name_parts) > 1 else ""
+        phone = data["phone"].strip()
+
+        restaurant = Restaurant.objects.create(
+            name=data["restaurant_name"].strip(),
+            address=data["city"].strip(),
+            phone=phone,
+            email=data["email"].strip(),
+            timezone="UTC",
+            is_active=True,
+        )
+
+        user = User.objects.create_user(
+            mobile=phone,
+            password=data["password"],
+            email=data["email"].strip(),
+            first_name=first_name,
+            last_name=last_name,
+            role=User.RoleChoices.ORGANIZATION_OWNER,
+            restaurant_id=None,
+            branch_id=None,
+            is_active=True,
+            is_staff=False,
+        )
+
+        return user, restaurant
 
     @staticmethod
     @transaction.atomic

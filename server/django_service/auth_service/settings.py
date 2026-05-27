@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "apps.inventory",
     "apps.pos",
     "apps.kitchen_display_system",
+    "apps.hr",
 ]
 
 if USE_CLOUDINARY and not (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):

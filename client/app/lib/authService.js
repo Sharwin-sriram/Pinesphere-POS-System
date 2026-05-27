@@ -187,9 +187,6 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       clearSession();
-      if (typeof window !== "undefined") {
-        window.location.href = "/login";
-      }
     }
     return Promise.reject(error);
   },
@@ -217,6 +214,27 @@ export const authService = {
       return {
         success: false,
         error: extractApiError(error, "Login failed"),
+      };
+    }
+  },
+
+  // Restaurant login (email/password)
+  restaurantLogin: async (payload) => {
+    try {
+      const response = await api.post("/api/restaurant/login", {
+        ...payload,
+        device_id: getOrCreateDeviceId(),
+        device_type: "WEB",
+        ip_address: getClientIpFallback(),
+      });
+
+      saveSession(response.data);
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: extractApiError(error, "Restaurant login failed"),
       };
     }
   },
@@ -292,6 +310,20 @@ export const authService = {
       return {
         success: false,
         error: extractApiError(error, "Registration failed"),
+      };
+    }
+  },
+
+  // Register restaurant account
+  registerRestaurant: async (payload) => {
+    try {
+      const response = await api.post("/api/restaurant/register", payload);
+      saveSession(response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: extractApiError(error, "Restaurant registration failed"),
       };
     }
   },
@@ -383,6 +415,43 @@ export const authService = {
     } finally {
       clearSession();
       window.location.href = "/login";
+    }
+  },
+
+  // Check if email is available (auth-wide)
+  checkEmailUnique: async (email) => {
+    try {
+      // Create a separate axios instance without the 401 redirect interceptor
+      const checkEmailApi = axios.create({
+        baseURL: API_BASE_URL,
+        timeout: 10000,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const response = await checkEmailApi.get("/auth/check-email/", {
+        params: { email },
+      });
+      const data = response.data ?? {};
+      const raw =
+        data.is_available ?? data.isAvailable ?? data.available;
+      if (typeof raw !== "boolean") {
+        return {
+          success: false,
+          isAvailable: true,
+          error: "Unexpected email check response",
+        };
+      }
+
+      return { success: true, isAvailable: raw };
+    } catch (error) {
+      // On any network/server error treat as unknown — don't block the user
+      return {
+        success: false,
+        isAvailable: true,
+        error: extractApiError(error, "Failed to check email"),
+      };
     }
   },
 

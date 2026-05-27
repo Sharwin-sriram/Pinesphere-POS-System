@@ -1,6 +1,7 @@
-import { redirect } from 'next/navigation';
+"use client";
 
-export default function LoginRedirect() {
- // Redirect `/login` to root where the auth page now lives.
- redirect('/');
+import AuthPage from "../components/AuthPage";
+
+export default function LoginPage() {
+  return <AuthPage defaultMode="login" />;
 }

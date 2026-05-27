@@ -6,7 +6,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.db.models import Q
 from rest_framework import serializers
 
-from .models import User, UserSession
+from .models import Restaurant, User, UserSession
 from .permissions import ROLE_PERMISSIONS
 
 
@@ -54,10 +54,10 @@ class RegisterSerializer(serializers.Serializer):
     """Validate user registration requests."""
 
     email = serializers.EmailField(required=True)
-    mobile = serializers.CharField(max_length=20, required=True)
+    mobile = serializers.CharField(max_length=20, required=False, allow_blank=True, default="")
     password = serializers.CharField(write_only=True, min_length=8)
-    first_name = serializers.CharField(max_length=100)
-    last_name = serializers.CharField(max_length=100)
+    first_name = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
+    last_name = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
     role = serializers.ChoiceField(choices=User.RoleChoices.choices, required=False, default=User.RoleChoices.CUSTOMER)
     restaurant_id = serializers.IntegerField(required=False, allow_null=True)
     branch_id = serializers.IntegerField(required=False, allow_null=True)
@@ -68,9 +68,43 @@ class RegisterSerializer(serializers.Serializer):
         return value
 
     def validate_mobile(self, value):
-        if User.objects.filter(mobile=value).exists():
+        if value and User.objects.filter(mobile=value).exists():
             raise serializers.ValidationError("Mobile already exists")
         return value
+
+    def validate_password(self, value):
+        validate_password(value)
+        return value
+
+
+class RestaurantRegisterSerializer(serializers.Serializer):
+    """Validate restaurant owner registration requests."""
+
+    full_name = serializers.CharField(max_length=160)
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(write_only=True, min_length=8)
+    restaurant_name = serializers.CharField(max_length=255)
+    cuisine_types = serializers.ListField(child=serializers.CharField(), required=False, default=list)
+    city = serializers.CharField(max_length=120)
+    phone = serializers.CharField(max_length=20)
+    fssai_license = serializers.CharField(max_length=32, required=False, allow_blank=True, default="")
+
+    def validate_email(self, value):
+        if User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError("Email already exists")
+        return value
+
+    def validate_phone(self, value):
+        phone = value.strip()
+        if User.objects.filter(mobile=phone).exists():
+            raise serializers.ValidationError("Phone already exists")
+        return phone
+
+    def validate_restaurant_name(self, value):
+        restaurant_name = value.strip()
+        if Restaurant.objects.filter(name__iexact=restaurant_name).exists():
+            raise serializers.ValidationError("Restaurant already exists")
+        return restaurant_name
 
     def validate_password(self, value):
         validate_password(value)

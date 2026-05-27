@@ -11,7 +11,7 @@ import KDSAnalytics from "./components/KDSAnalytics";
 import { Order } from "./types/order";
 
 import {
- getOrders,
+ getKdsBootstrap,
  updateOrderStatusAPI,
 } from "./services/orderService";
 
@@ -29,6 +29,12 @@ export default function KDSPage() {
  const [loading, setLoading] =
  useState(true);
 
+ const [kitchenId, setKitchenId] =
+ useState<string | null>(null);
+
+ const [kitchenName, setKitchenName] =
+ useState<string | null>(null);
+
  // FETCH ORDERS
  const fetchOrders = async () => {
 
@@ -37,9 +43,11 @@ export default function KDSPage() {
  setLoading(true);
 
  const data =
- await getOrders();
+ await getKdsBootstrap();
 
- setOrders(data || []);
+ setOrders(data.orders || []);
+ setKitchenId(data.kitchenId);
+ setKitchenName(data.kitchenName);
 
  } catch (error) {
 
@@ -57,7 +65,11 @@ export default function KDSPage() {
 
  useEffect(() => {
 
- fetchOrders();
+ const timeoutId = window.setTimeout(() => {
+ void fetchOrders();
+ }, 0);
+
+ return () => window.clearTimeout(timeoutId);
 
  }, []);
 
@@ -103,6 +115,10 @@ export default function KDSPage() {
  newStatus: string
  ) => {
 
+ if (!kitchenId) {
+ return;
+ }
+
  const updatedOrders =
  orders.map((order) => {
 
@@ -124,9 +140,12 @@ export default function KDSPage() {
  setOrders(updatedOrders);
 
  await updateOrderStatusAPI(
+ kitchenId,
  orderId,
  newStatus
  );
+
+ await fetchOrders();
 
  };
 
@@ -178,14 +197,9 @@ export default function KDSPage() {
           Kitchen Workflow Queue
         </h2>
 
-        <input
-          type="text"
-          placeholder="Search KOT or Table..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="bg-[var(--color-bg-primary)] border border-[var(--color-border)] px-4 py-3 rounded-xl outline-none w-full lg:w-[300px] text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)]"
-        />
-      </div>
+ <h2 className="text-2xl font-semibold">
+ {kitchenName ? `${kitchenName} Workflow Queue` : "Kitchen Workflow Queue"}
+ </h2>
 
       {/* EMPTY STATE */}
       {orders.length === 0 ? (
@@ -224,6 +238,7 @@ export default function KDSPage() {
  <OrderCard
  key={order.id}
  id={order.id}
+ backendId={order.backendId}
  table={order.table}
  items={order.items}
  status={order.status}
@@ -269,6 +284,7 @@ export default function KDSPage() {
  <OrderCard
  key={order.id}
  id={order.id}
+ backendId={order.backendId}
  table={order.table}
  items={order.items}
  status={order.status}
@@ -314,6 +330,7 @@ export default function KDSPage() {
  <OrderCard
  key={order.id}
  id={order.id}
+ backendId={order.backendId}
  table={order.table}
  items={order.items}
  status={order.status}
