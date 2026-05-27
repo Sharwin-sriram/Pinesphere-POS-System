@@ -11,7 +11,7 @@ import KDSAnalytics from "./components/KDSAnalytics";
 import { Order } from "./types/order";
 
 import {
- getOrders,
+ getKdsBootstrap,
  updateOrderStatusAPI,
 } from "./services/orderService";
 
@@ -29,6 +29,12 @@ export default function KDSPage() {
  const [loading, setLoading] =
  useState(true);
 
+ const [kitchenId, setKitchenId] =
+ useState<string | null>(null);
+
+ const [kitchenName, setKitchenName] =
+ useState<string | null>(null);
+
  // FETCH ORDERS
  const fetchOrders = async () => {
 
@@ -37,9 +43,11 @@ export default function KDSPage() {
  setLoading(true);
 
  const data =
- await getOrders();
+ await getKdsBootstrap();
 
- setOrders(data || []);
+ setOrders(data.orders || []);
+ setKitchenId(data.kitchenId);
+ setKitchenName(data.kitchenName);
 
  } catch (error) {
 
@@ -57,7 +65,11 @@ export default function KDSPage() {
 
  useEffect(() => {
 
- fetchOrders();
+ const timeoutId = window.setTimeout(() => {
+ void fetchOrders();
+ }, 0);
+
+ return () => window.clearTimeout(timeoutId);
 
  }, []);
 
@@ -103,6 +115,10 @@ export default function KDSPage() {
  newStatus: string
  ) => {
 
+ if (!kitchenId) {
+ return;
+ }
+
  const updatedOrders =
  orders.map((order) => {
 
@@ -124,9 +140,12 @@ export default function KDSPage() {
  setOrders(updatedOrders);
 
  await updateOrderStatusAPI(
+ kitchenId,
  orderId,
  newStatus
  );
+
+ await fetchOrders();
 
  };
 
@@ -176,7 +195,7 @@ export default function KDSPage() {
  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-8">
 
  <h2 className="text-2xl font-semibold">
- Kitchen Workflow Queue
+ {kitchenName ? `${kitchenName} Workflow Queue` : "Kitchen Workflow Queue"}
  </h2>
 
  <input
@@ -235,6 +254,7 @@ export default function KDSPage() {
  <OrderCard
  key={order.id}
  id={order.id}
+ backendId={order.backendId}
  table={order.table}
  items={order.items}
  status={order.status}
@@ -280,6 +300,7 @@ export default function KDSPage() {
  <OrderCard
  key={order.id}
  id={order.id}
+ backendId={order.backendId}
  table={order.table}
  items={order.items}
  status={order.status}
@@ -325,6 +346,7 @@ export default function KDSPage() {
  <OrderCard
  key={order.id}
  id={order.id}
+ backendId={order.backendId}
  table={order.table}
  items={order.items}
  status={order.status}
