@@ -25,7 +25,7 @@ export default function useInventory() {
  await getInventoryItems();
 
  setItems(data);
- } catch (err) {
+ } catch {
  setError(
  "Failed to fetch inventory items"
  );
