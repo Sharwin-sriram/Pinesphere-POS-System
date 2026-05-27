@@ -33,31 +33,31 @@ const Dashboard = () => {
 
  if (!user) {
  return (
- <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
- <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500"></div>
+ <div className="min-h-screen bg-[var(--color-bg-primary)] flex items-center justify-center">
+ <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[var(--color-accent)]"></div>
  </div>
  );
  }
 
  return (
- <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800">
+ <div className="min-h-screen bg-[var(--color-bg-primary)]">
  {/* Sidebar */}
  <motion.div
  initial={{ x: -300 }}
  animate={{ x: sidebarOpen ? 0 : -300 }}
  transition={{ duration: 0.3 }}
- className="fixed inset-y-0 left-0 z-50 w-64 bg-black/20 border-r border-white/10 lg:translate-x-0 lg:static lg:inset-0"
+ className="fixed inset-y-0 left-0 z-50 w-64 bg-[var(--color-bg-secondary)] border-r border-[var(--color-border)] lg:translate-x-0 lg:static lg:inset-0"
  >
- <div className="flex items-center justify-between h-16 px-6 border-b border-white/10">
+ <div className="flex items-center justify-between h-16 px-6 border-b border-[var(--color-border)]">
  <div className="flex items-center space-x-3">
- <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
- <UtensilsCrossed className="h-5 w-5 text-[var(--color-accent)]" strokeWidth={1.5} />
+ <div className="w-8 h-8 bg-[var(--color-accent)] rounded-lg flex items-center justify-center">
+ <UtensilsCrossed className="h-5 w-5 text-[var(--color-text-inverse)]" strokeWidth={1.5} />
  </div>
- <span className="text-lg font-semibold text-white">PineSphere</span>
+ <span className="text-lg font-semibold text-[var(--color-text-primary)]">PineSphere</span>
  </div>
  <button
  onClick={() => setSidebarOpen(false)}
- className="lg:hidden text-gray-400 hover:text-white"
+ className="lg:hidden text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
  >
  <X className="h-4 w-4" strokeWidth={1.5} />
  </button>
@@ -74,8 +74,8 @@ const Dashboard = () => {
  transition={{ delay: index * 0.1 }}
  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
  item.active
- ? "bg-orange-500 text-white"
- : "text-gray-400 hover:text-white hover:bg-white/5"
+ ? "bg-[var(--color-accent)] text-[var(--color-text-inverse)]"
+ : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)]"
  }`}
  >
  <item.icon size={20} />
@@ -88,7 +88,7 @@ const Dashboard = () => {
  <div className="absolute bottom-4 left-4 right-4">
  <button
  onClick={handleLogout}
- className="flex items-center space-x-3 w-full px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+ className="flex items-center space-x-3 w-full px-4 py-3 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)] rounded-lg transition-colors"
  >
  <LogOut className="h-4 w-4" strokeWidth={1.5} />
  <span>Logout</span>
@@ -99,44 +99,44 @@ const Dashboard = () => {
  {/* Main Content */}
  <div className="lg:ml-64">
  {/* Header */}
- <header className="bg-black/20 border-b border-white/10 px-6 py-4">
+ <header className="bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] px-6 py-4">
  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
  <div className="flex items-center gap-4">
  <button
  onClick={() => setSidebarOpen(true)}
- className="lg:hidden text-gray-400 hover:text-white"
+ className="lg:hidden text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
  >
  <Menu className="h-4 w-4" strokeWidth={1.5} />
  </button>
  <div>
- <h1 className="text-xl font-semibold text-white">Dashboard</h1>
- <p className="text-sm text-gray-400">
+ <h1 className="text-xl font-semibold text-[var(--color-text-primary)]">Dashboard</h1>
+ <p className="text-sm text-[var(--color-text-secondary)]">
  Overview of store performance and order activity
  </p>
  </div>
  </div>
 
  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
- <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-sm text-gray-300 border border-white/10">
- <Clock className="h-4 w-4 text-orange-400" strokeWidth={1.5} />
+ <div className="inline-flex items-center gap-2 rounded-full bg-[var(--color-bg-tertiary)] px-4 py-2 text-sm text-[var(--color-text-secondary)] border border-[var(--color-border)]">
+ <Clock className="h-4 w-4 text-[var(--color-accent)]" strokeWidth={1.5} />
  <span>Live data — updated now</span>
  </div>
  <div className="flex items-center space-x-4">
- <button className="relative text-gray-400 hover:text-white">
+ <button className="relative text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
  <Bell className="h-4 w-4" strokeWidth={1.5} />
- <span className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full"></span>
+ <span className="absolute -top-1 -right-1 w-3 h-3 bg-[var(--color-accent)] rounded-full"></span>
  </button>
  <div className="flex items-center space-x-3">
- <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
- <span className="text-sm font-medium text-white">
+ <div className="w-10 h-10 bg-[var(--color-accent)] rounded-full flex items-center justify-center">
+ <span className="text-sm font-medium text-[var(--color-text-inverse)]">
  {user?.name?.charAt(0) || "U"}
  </span>
  </div>
  <div className="hidden sm:block">
- <p className="text-sm font-medium text-white">
+ <p className="text-sm font-medium text-[var(--color-text-primary)]">
  {user?.name || "User"}
  </p>
- <p className="text-xs text-gray-400 capitalize">
+ <p className="text-xs text-[var(--color-text-secondary)] capitalize">
  {user?.role || "cashier"}
  </p>
  </div>
@@ -155,10 +155,10 @@ const Dashboard = () => {
  >
  {/* Welcome Section */}
  <div className="mb-8">
- <h2 className="text-3xl font-semibold text-white mb-2">
+ <h2 className="text-3xl font-semibold text-[var(--color-text-primary)] mb-2">
  Welcome back, {user?.name || "User"}! 👋
  </h2>
- <p className="text-gray-400">
+ <p className="text-[var(--color-text-secondary)]">
  Here's a summary of your restaurant's performance today
  </p>
  </div>
@@ -263,9 +263,9 @@ const Dashboard = () => {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.4 }}
- className="bg-white/5 rounded-2xl p-6 border border-white/10"
+ className="bg-[var(--color-bg-secondary)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm"
  >
- <h3 className="text-lg font-semibold text-white mb-4">
+ <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
  Recent Orders
  </h3>
  <div className="space-y-4">
@@ -297,32 +297,32 @@ const Dashboard = () => {
  initial={{ opacity: 0, x: -20 }}
  animate={{ opacity: 1, x: 0 }}
  transition={{ delay: 0.5 + index * 0.1 }}
- className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/5"
+ className="flex items-center justify-between p-4 bg-[var(--color-bg-primary)] rounded-lg border border-[var(--color-border)]"
  >
  <div className="flex items-center space-x-4">
- <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
- <span className="text-sm font-medium text-white">
+ <div className="w-10 h-10 bg-[var(--color-accent)] rounded-full flex items-center justify-center">
+ <span className="text-sm font-medium text-[var(--color-text-inverse)]">
  {order.customer.charAt(0)}
  </span>
  </div>
  <div>
- <p className="text-white font-medium">
+ <p className="text-[var(--color-text-primary)] font-medium">
  {order.customer}
  </p>
- <p className="text-gray-400 text-sm">
+ <p className="text-[var(--color-text-secondary)] text-sm">
  {order.id} • {order.time}
  </p>
  </div>
  </div>
  <div className="text-right">
- <p className="text-white font-medium">{order.amount}</p>
+ <p className="text-[var(--color-text-primary)] font-medium">{order.amount}</p>
  <span
  className={`text-sm px-2 py-1 rounded-full ${
  order.status === "Completed"
- ? "bg-green-500/20 text-green-400"
+ ? "bg-green-100 text-green-700"
  : order.status === "Preparing"
- ? "bg-yellow-500/20 text-yellow-400"
- : "bg-blue-500/20 text-blue-400"
+ ? "bg-yellow-100 text-yellow-700"
+ : "bg-blue-100 text-blue-700"
  }`}
  >
  {order.status}

@@ -35,15 +35,15 @@ export default function WaiterDashboard() {
 
  return (
  <div className="flex flex-col h-full animate-fade-in-up">
- <div className="mb-6">
- <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">Select a Table</h2>
- <p className="text-sm text-gray-500">Tap on a table to start taking an order.</p>
- </div>
+    <div className="mb-6">
+      <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">Select a Table</h2>
+      <p className="text-sm text-[var(--color-text-secondary)]">Tap on a table to start taking an order.</p>
+    </div>
 
  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
  {tables.map((table) => {
- let cardClasses = 'border-transparent hover:border-blue-400';
- let circleClasses = 'bg-white text-gray-700';
+        let cardClasses = 'border-transparent hover:border-[var(--color-accent)] bg-[var(--color-bg-secondary)] shadow-sm';
+        let circleClasses = 'bg-[var(--color-bg-primary)] border border-[var(--color-border)] text-[var(--color-text-primary)]';
  let badgeClasses = 'bg-green-100 text-green-600';
 
  if (table.status === 'Waiting for food') {
@@ -72,10 +72,9 @@ export default function WaiterDashboard() {
  </span>
  </div>
 
- {table.status !== 'Available' && (
- <div className="flex items-center gap-1 text-xs text-gray-500 mt-3 font-medium">
- <Users className="h-4 w-4" strokeWidth={1.5} /> {table.pax} seated
- </div>
+              <div className="flex items-center gap-1 text-xs text-[var(--color-text-secondary)] mt-3 font-medium">
+                <Users className="h-4 w-4" strokeWidth={1.5} /> {table.pax} seated
+              </div>
  )}
  </Link>
  );

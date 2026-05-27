@@ -173,42 +173,31 @@ export default function KDSPage() {
  </div>
 
  {/* TOP */}
- <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-8">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-8">
+        <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">
+          Kitchen Workflow Queue
+        </h2>
 
- <h2 className="text-2xl font-semibold">
- Kitchen Workflow Queue
- </h2>
+        <input
+          type="text"
+          placeholder="Search KOT or Table..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="bg-[var(--color-bg-primary)] border border-[var(--color-border)] px-4 py-3 rounded-xl outline-none w-full lg:w-[300px] text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)]"
+        />
+      </div>
 
- <input
- type="text"
- placeholder="Search KOT or Table..."
- value={searchTerm}
- onChange={(e) =>
- setSearchTerm(
- e.target.value
- )
- }
- className="bg-white border border-gray-200 px-4 py-3 rounded-xl outline-none w-full lg:w-[300px]"
- />
-
- </div>
-
- {/* EMPTY STATE */}
- {orders.length === 0 ? (
-
- <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
-
- <h2 className="text-2xl font-semibold mb-3">
- No Orders Available
- </h2>
-
- <p className="text-gray-500">
- Orders from backend will appear here.
- </p>
-
- </div>
-
- ) : (
+      {/* EMPTY STATE */}
+      {orders.length === 0 ? (
+        <div className="bg-[var(--color-bg-secondary)] rounded-2xl p-12 text-center border border-[var(--color-border)] shadow-sm">
+          <h2 className="text-2xl font-semibold mb-3 text-[var(--color-text-primary)]">
+            No Orders Available
+          </h2>
+          <p className="text-[var(--color-text-secondary)]">
+            Orders from backend will appear here.
+          </p>
+        </div>
+      ) : (
 
  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 

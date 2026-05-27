@@ -9,7 +9,7 @@ import EarningsCard from "./components/EarningsCard";
 
 export default function DeliveryDashboardPage() {
   return (
-    <div className="flex bg-[#f5f7fb] min-h-screen">
+    <div className="flex bg-[var(--color-bg-primary)] min-h-screen">
       <DeliverySidebar />
 
       <main className="flex-1 p-6">
