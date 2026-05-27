@@ -1,5 +1,4 @@
 export const AUTH_ROUTE_PREFIXES = [
-  "/",
   "/login",
   "/signup",
   "/forgot-password",
@@ -12,6 +11,7 @@ export const AUTH_ROUTE_PREFIXES = [
 ];
 
 export const PUBLIC_ROUTE_PREFIXES = [
+  "/",
   "/dashboard",
   "/ordering",
   "/delivery/tracking",
@@ -40,7 +40,6 @@ export const ROLE_HOME_PATHS = {
   waiter: "/waiter",
   kitchen: "/kitchen",
   delivery: "/delivery",
-  "restaurant-admin": "/restaurant/dashboard",
   employee: "/employee",
 };
 
@@ -52,12 +51,11 @@ export const ROLE_ALLOWED_PREFIXES = {
   waiter: ["/waiter"],
   kitchen: ["/kitchen", "/kds"],
   delivery: ["/delivery"],
-  "restaurant-admin": ["/restaurant-admin", "/restaurant/dashboard"],
   employee: ["/employee"],
 };
 
 export function getRoleHomePath(role) {
-  return ROLE_HOME_PATHS[role] || "/dashboard";
+  return ROLE_HOME_PATHS[role] || "/";
 }
 
 export function matchesPathPrefix(pathname, prefix) {

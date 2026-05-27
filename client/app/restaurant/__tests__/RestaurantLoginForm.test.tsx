@@ -8,6 +8,7 @@ const restaurantLoginMock = vi.hoisted(() => vi.fn());
 const getUserRoleMock = vi.hoisted(() => vi.fn());
 
 vi.mock("next/navigation", () => ({
+  usePathname: () => "/restaurant/login",
   useSearchParams: () => new URLSearchParams("next=/restaurant/orders/123"),
 }));
 
@@ -131,6 +132,63 @@ describe("RestaurantLoginForm", () => {
     });
 
     expect(hrefSetter).toHaveBeenCalledWith("/restaurant/orders/123");
+
+    (window as any).location = originalLocation;
+    vi.useRealTimers();
+  });
+
+  it("falls back to the restaurant dashboard on the restaurant login page when next is absent", async () => {
+    vi.useFakeTimers();
+
+    vi.mocked = undefined as never;
+    getUserRoleMock.mockReturnValue("restaurant-admin");
+    let resolveLogin: (v: any) => void;
+    const loginPromise = new Promise((res) => {
+      resolveLogin = res;
+    });
+    restaurantLoginMock.mockReturnValue(loginPromise);
+
+    vi.doMock("next/navigation", () => ({
+      usePathname: () => "/restaurant/login",
+      useSearchParams: () => new URLSearchParams(""),
+    }));
+
+    render(<RestaurantLoginForm />);
+
+    fireEvent.change(screen.getByLabelText("Email address"), {
+      target: { value: "owner@restaurant.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "Password1!" },
+    });
+
+    const loginButton = screen.getAllByRole("button", { name: "Login" })[0];
+    const hrefSetter = vi.fn();
+    const originalLocation = window.location;
+    (window as any).location = {
+      ...originalLocation,
+      get href() {
+        return "";
+      },
+      set href(v: string) {
+        hrefSetter(v);
+      },
+    };
+
+    fireEvent.click(loginButton);
+    act(() => {
+      resolveLogin?.({ success: true, data: {} });
+    });
+
+    await act(async () => {
+      await loginPromise;
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(1200);
+    });
+
+    expect(hrefSetter).toHaveBeenCalledWith("/restaurant/dashboard");
 
     (window as any).location = originalLocation;
     vi.useRealTimers();

@@ -116,6 +116,47 @@ describe("RestaurantSignupForm", () => {
     expect(await screen.findByLabelText("Restaurant name")).toBeTruthy();
   });
 
+  it("does not show email taken when uniqueness check fails", async () => {
+    checkEmailUniqueMock.mockResolvedValue({ success: false, isAvailable: true });
+
+    render(<RestaurantSignupForm />);
+
+    fireEvent.change(screen.getByLabelText("Full name"), { target: { value: "Priya Sharma" } });
+    fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "new@restaurant.com" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "Password1!" } });
+    fireEvent.change(screen.getByLabelText("Confirm password"), { target: { value: "Password1!" } });
+    fireEvent.blur(screen.getByLabelText("Email address"));
+
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 450));
+    });
+
+    await waitFor(() => {
+      expect(checkEmailUniqueMock).toHaveBeenCalledWith("new@restaurant.com");
+    });
+
+    expect(screen.queryByText("Email already registered")).toBeNull();
+  });
+
+  it("clears stale email taken error when user edits email", async () => {
+    checkEmailUniqueMock.mockResolvedValue({ success: true, isAvailable: false });
+
+    render(<RestaurantSignupForm />);
+
+    const emailInput = screen.getByLabelText("Email address");
+    fireEvent.change(emailInput, { target: { value: "taken@restaurant.com" } });
+    fireEvent.blur(emailInput);
+
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 450));
+    });
+
+    expect(await screen.findByText("Email already registered")).toBeTruthy();
+
+    fireEvent.change(emailInput, { target: { value: "fresh@restaurant.com" } });
+    expect(screen.queryByText("Email already registered")).toBeNull();
+  });
+
   it("validates Step 2 fields on Create Account submit", async () => {
     checkEmailUniqueMock.mockResolvedValue({ success: true, isAvailable: true });
 

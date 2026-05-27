@@ -20,34 +20,34 @@ export default function KitchenHeader({ onMenuClick }: KitchenHeaderProps) {
  }
 
  return (
- <header className="sticky top-0 z-30 w-full glass-light border-b border-white/40 h-20 flex items-center justify-between px-6">
- <div className="flex items-center gap-4">
- <button 
- onClick={onMenuClick}
- className="md:hidden p-2 text-gray-700 hover:text-orange-600 rounded-lg hover:bg-white/60 transition-colors"
- >
- <Menu className="h-4 w-4" strokeWidth={1.5} />
- </button>
+    <header className="sticky top-0 z-30 w-full bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] h-20 flex items-center justify-between px-6">
+      <div className="flex items-center gap-4">
+        <button 
+          onClick={onMenuClick}
+          className="md:hidden p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] rounded-lg hover:bg-[var(--color-bg-tertiary)] transition-colors"
+        >
+          <Menu className="h-4 w-4" strokeWidth={1.5} />
+        </button>
  <div>
  <h1 className="text-xl font-semibold text-[var(--color-text-primary)] tracking-wide">{title}</h1>
  </div>
  </div>
 
- <div className="flex items-center gap-6">
- <button className="relative p-2 text-[var(--color-text-secondary)] hover:text-orange-600 transition-colors">
- <Bell className="h-4 w-4" strokeWidth={1.5} />
- </button>
+      <div className="flex items-center gap-6">
+        <button className="relative p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] transition-colors">
+          <Bell className="h-4 w-4" strokeWidth={1.5} />
+        </button>
 
- <div className="flex items-center gap-3 border-l border-gray-200 pl-6 cursor-pointer group">
- <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-orange-400 to-red-500 flex items-center justify-center text-white font-semibold hover: transition-all">
- KM
- </div>
- <div className="hidden sm:block">
- <p className="text-sm font-semibold text-gray-700 group-hover:text-orange-600 transition-colors">Kitchen Manager</p>
- <p className="text-xs text-gray-500">Main Kitchen</p>
- </div>
- </div>
- </div>
- </header>
- );
+        <div className="flex items-center gap-3 border-l border-[var(--color-border)] pl-6 cursor-pointer group">
+          <div className="h-10 w-10 rounded-full bg-[var(--color-accent)] flex items-center justify-center text-[var(--color-text-inverse)] font-semibold hover: transition-all">
+            KM
+          </div>
+          <div className="hidden sm:block">
+            <p className="text-sm font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors">Kitchen Manager</p>
+            <p className="text-xs text-[var(--color-text-secondary)]">Main Kitchen</p>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
 }
