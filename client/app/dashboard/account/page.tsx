@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
-import { authService, getMediaUrl } from "../../lib/authService";
+import { authService, getMediaUrl, getUserAvatarUrl } from "../../lib/authService";
 
 type ProfileForm = {
  full_name: string;
@@ -70,6 +70,8 @@ export default function AccountProfilePage() {
  const [isEditing, setIsEditing] = useState(false);
  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
+ const [removeProfileImage, setRemoveProfileImage] = useState(false);
+ const [googlePictureUrl, setGooglePictureUrl] = useState<string | null>(null);
  const imageInputRef = useRef<HTMLInputElement | null>(null);
  const [profile, setProfile] = useState<ProfileForm>({
 	full_name: "",
@@ -129,7 +131,9 @@ export default function AccountProfilePage() {
 		language: storedPreferences?.language || "English",
 	 }));
 
-	 setProfileImagePreview(user?.profile_image ? getMediaUrl(user.profile_image) : null);
+	 setGooglePictureUrl(user?.picture || null);
+	 setProfileImagePreview(getUserAvatarUrl(user));
+	 setRemoveProfileImage(false);
 
 	 setIsLoading(false);
 	}
@@ -159,6 +163,13 @@ export default function AccountProfilePage() {
 		return;
 	}
 
+	if (file.size > 2 * 1024 * 1024) {
+		toast.error("Image must be 2MB or smaller");
+		event.target.value = "";
+		return;
+	}
+
+	setRemoveProfileImage(false);
 	setProfileImageFile(file);
 	setProfileImagePreview((currentPreview) => {
 		if (currentPreview?.startsWith("blob:")) {
@@ -208,12 +219,19 @@ export default function AccountProfilePage() {
 	}
 
 	const { first_name, last_name } = splitName(profile.full_name || `${profile.first_name} ${profile.last_name}`);
-	const payload = {
-	 first_name,
-	 last_name,
-	 email: profile.email,
-	 mobile: profile.phone,
-	};
+
+	// Build FormData so profile_image file can be included
+	const payload = new FormData();
+	payload.append("first_name", first_name);
+	payload.append("last_name", last_name);
+	payload.append("email", profile.email);
+	payload.append("mobile", profile.phone);
+	if (profileImageFile) {
+	 payload.append("profile_image", profileImageFile);
+	}
+	if (removeProfileImage) {
+	 payload.append("remove_profile_image", "true");
+	}
 
 	const result = await authService.updateProfile(payload);
 	if (!result.success) {
@@ -233,6 +251,9 @@ export default function AccountProfilePage() {
 	 );
 	}
 
+	setGooglePictureUrl(result.data?.picture || null);
+	setProfileImagePreview(getUserAvatarUrl(result.data));
+
 	setProfile((prev) => ({
 	 ...prev,
 	 first_name,
@@ -240,11 +261,14 @@ export default function AccountProfilePage() {
 	 full_name: buildFullName(first_name, last_name),
 	 email: result.data?.email || prev.email,
 	 phone: result.data?.mobile || prev.phone,
+	 profile_image: result.data?.profile_image || prev.profile_image,
 	 current_password: "",
 	 new_password: "",
 	 confirm_password: "",
 	}));
 
+	setProfileImageFile(null);
+	setRemoveProfileImage(false);
 	setIsEditing(false);
 	setIsSaving(false);
 	toast.success("Profile saved");
@@ -300,33 +324,58 @@ export default function AccountProfilePage() {
 		 <div className="mt-6 flex flex-col gap-5">
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center">
 			 <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] text-xl font-semibold text-[var(--color-text-muted)]">
-				{initials}
-				<label
-				 className={`absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/0 text-white opacity-0 transition-smooth hover:bg-black/40 hover:opacity-100 ${isEditing ? "" : "pointer-events-none"}`}
+				{profileImagePreview ? (
+				 // eslint-disable-next-line @next/next/no-img-element
+				 <img src={profileImagePreview} alt="Profile" className="h-full w-full object-cover" />
+				) : (
+				 initials
+				)}
+				<button
+				 type="button"
+				 onClick={openProfileImagePicker}
+				 className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/0 text-white opacity-0 transition-smooth hover:bg-black/40 hover:opacity-100"
+				 aria-label="Change profile picture"
 				>
 				 <Camera className="h-5 w-5" strokeWidth={1.5} />
-				 <input type="file" accept="image/*" className="hidden" disabled={!isEditing} />
-				</label>
+				</button>
+				<input
+				 ref={imageInputRef}
+				 type="file"
+				 accept="image/*"
+				 className="hidden"
+				 onChange={handleProfileImageSelect}
+				/>
 			 </div>
 			 <div className="flex flex-col gap-2">
 				<label className="text-sm font-medium text-[var(--color-text-secondary)]">
 				 Profile picture
 				</label>
 				<div className="flex flex-wrap gap-3">
-				 <label className={`rounded-ds-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-2 text-sm font-semibold text-[var(--color-text-primary)] transition-smooth hover:border-[var(--color-border-hover)] ${isEditing ? "cursor-pointer" : "cursor-not-allowed opacity-60"}`}>
-					Upload image
-					<input type="file" accept="image/*" className="hidden" disabled={!isEditing} />
-				 </label>
 				 <button
 					type="button"
-					disabled={!isEditing}
-					className="rounded-ds-md border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] transition-smooth hover:border-[var(--color-border-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+					onClick={openProfileImagePicker}
+					className="rounded-ds-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-2 text-sm font-semibold text-[var(--color-text-primary)] transition-smooth hover:border-[var(--color-border-hover)] cursor-pointer"
 				 >
-					Change
+					{profileImagePreview ? "Change image" : "Upload image"}
 				 </button>
+				 {(profile.profile_image || profileImageFile) && (
+					<button
+					 type="button"
+					 onClick={() => {
+						setProfileImageFile(null);
+						setRemoveProfileImage(true);
+						setProfileImagePreview(googlePictureUrl ? getMediaUrl(googlePictureUrl) : null);
+						updateField("profile_image", null);
+						setIsEditing(true);
+					 }}
+					 className="rounded-ds-md border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-danger)] transition-smooth hover:border-red-200 hover:bg-red-50"
+					>
+					 Remove upload
+					</button>
+				 )}
 				</div>
 				<p className="text-xs text-[var(--color-text-muted)]">
-				 PNG or JPG up to 2MB.
+				 PNG or JPG up to 2MB. Hover the avatar to change.
 				</p>
 			 </div>
 			</div>

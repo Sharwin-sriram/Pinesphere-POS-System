@@ -18,6 +18,7 @@ import InputField from "./InputField";
 import Loader from "./Loader";
 import { authService } from "../lib/authService";
 import { useToast } from "./Toast";
+import { getRoleHomePath } from "../lib/authRoutes";
 
 const iconProps = { className: "h-4 w-4", strokeWidth: 1.5 as const };
 
@@ -127,7 +128,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ defaultMode }) => {
       if (result.success) {
         success("Signed in", "Welcome back to Pinesphere POS");
         setTimeout(() => {
-          window.location.href = "/dashboard";
+          window.location.href = getRoleHomePath(authService.getUserRole());
         }, 1200);
       } else {
         error("Sign in failed", result.error || "Invalid email or password");
@@ -154,7 +155,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ defaultMode }) => {
       if (result.success) {
         success("Account created", "Welcome to Pinesphere POS");
         setTimeout(() => {
-          window.location.href = "/dashboard";
+          window.location.href = getRoleHomePath(authService.getUserRole());
         }, 1200);
       } else {
         error("Create account failed", result.error || "Unable to create account");
