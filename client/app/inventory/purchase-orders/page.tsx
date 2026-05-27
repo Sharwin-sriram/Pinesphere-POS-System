@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import InventoryLayout from "../components/InventoryLayout";
 
 import LoadingSkeleton from "../components/LoadingSkeleton";
@@ -11,6 +13,16 @@ import InventoryTable from "../components/InventoryTable";
 import StatusBadge from "../components/StatusBadge";
 
 import CreatePOForm from "../components/CreatePOForm";
+
+import { getPurchaseOrders } from "../services/inventoryApi";
+
+type PurchaseOrderRow = {
+ id: number;
+ po_number: string;
+ supplier?: { name: string };
+ total: string;
+ status: string;
+};
 
 const columns = [
  {
@@ -32,9 +44,28 @@ const columns = [
 ];
 
 export default function PurchaseOrdersPage() {
- const loading = false;
+ const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderRow[]>([]);
+ const [loading, setLoading] = useState(true);
+ const [error, setError] = useState("");
 
- const purchaseOrders: any[] = [];
+ useEffect(() => {
+ const fetchPurchaseOrders = async () => {
+ try {
+ const data = await getPurchaseOrders();
+ setPurchaseOrders(data);
+ } catch {
+ setError("Failed to fetch purchase orders");
+ } finally {
+ setLoading(false);
+ }
+ };
+
+ const timeoutId = window.setTimeout(() => {
+ void fetchPurchaseOrders();
+ }, 0);
+
+ return () => window.clearTimeout(timeoutId);
+ }, []);
 
  return (
  <InventoryLayout>
@@ -52,6 +83,8 @@ export default function PurchaseOrdersPage() {
 
  {loading ? (
  <LoadingSkeleton />
+) : error ? (
+ <p className="text-red-500">{error}</p>
  ) : purchaseOrders.length ===
  0 ? (
  <EmptyState

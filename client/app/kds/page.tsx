@@ -57,7 +57,11 @@ export default function KDSPage() {
 
  useEffect(() => {
 
- fetchOrders();
+ const timeoutId = window.setTimeout(() => {
+ void fetchOrders();
+ }, 0);
+
+ return () => window.clearTimeout(timeoutId);
 
  }, []);
 
