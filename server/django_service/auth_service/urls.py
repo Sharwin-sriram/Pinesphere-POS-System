@@ -11,9 +11,13 @@ from authentication.views import RestaurantRegisterView
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("auth/", include("authentication.urls")),
+    # Spec-compatible v1 prefix (keep existing /auth/ for backward compatibility).
+    path("api/v1/auth/", include("authentication.urls")),
+    path("api/v1/", include("pinesphere.apps.orders.urls")),
+    path("api/v1/", include("pinesphere.apps.kitchen.urls")),
     path("api/restaurant/register", RestaurantRegisterView.as_view()),
-    path("api/kds/", include("apps.kitchen_display_system.urls")),
-    path("api/", include("apps.inventory.urls")),
+    path("api/kds/", include("pinesphere.apps.kitchen.urls")),
+    path("api/", include("pinesphere.apps.inventory.urls")),
     path("api/hr/", include("apps.hr.urls")),
     path("api/", include("apps.pos.urls")),
 ]

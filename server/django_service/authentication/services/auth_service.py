@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from urllib.parse import parse_qsl, urlencode, urlsplit
 from urllib.request import Request, urlopen
 
@@ -17,7 +18,7 @@ from auth_service.exceptions import InvalidCredentials, InvalidOTP, OAuthError, 
 from ..models import Restaurant, UserSession
 from ..permissions import ROLE_PERMISSIONS
 from ..tokens import CustomRefreshToken
-from .otp_service import delete_otp, fetch_otp, generate_otp, store_otp
+from .otp_service import delete_otp, fetch_otp, generate_otp, store_otp, get_redis_client
 
 
 User = get_user_model()
@@ -25,6 +26,10 @@ User = get_user_model()
 
 class AuthService:
     """Domain service for user registration, login, sessions, and password flows."""
+
+    FAILED_LOGIN_PREFIX = "auth_failures"
+    FAILED_LOGIN_WINDOW_SECONDS = 15 * 60
+    DEFAULT_MAX_FAILURES = 5
 
     @staticmethod
     def permissions_for_role(role):
@@ -77,6 +82,59 @@ class AuthService:
             },
         )
         return session
+
+    @staticmethod
+    def register_device(user, device_fingerprint, device_type, ip_address):
+        """
+        Register (or refresh) a user device session.
+
+        This maps to the existing `UserSession` table using `device_id` as the device fingerprint.
+        """
+
+        if not device_fingerprint:
+            raise ValueError("device_fingerprint is required")
+        return AuthService.create_session(
+            user=user,
+            device_id=device_fingerprint,
+            device_type=device_type,
+            ip_address=ip_address,
+        )
+
+    @staticmethod
+    def _failure_key(user_id: int) -> str:
+        return f"{AuthService.FAILED_LOGIN_PREFIX}:{user_id}"
+
+    @staticmethod
+    def _now_bucket() -> int:
+        return int(time.time())
+
+    @staticmethod
+    def lock_account_after_failures(user, max: int = DEFAULT_MAX_FAILURES):
+        """
+        Enforce account lockout after repeated failures.
+
+        Implementation: rolling counter in Redis with TTL (no schema changes).
+        Raises InvalidCredentials when locked.
+        """
+
+        if user is None:
+            # Can't lock a non-existent user account; handled by InvalidCredentials.
+            return
+
+        client = get_redis_client()
+        key = AuthService._failure_key(user.id)
+        failures = client.incr(key)
+        if failures == 1:
+            client.expire(key, AuthService.FAILED_LOGIN_WINDOW_SECONDS)
+        if failures >= max:
+            raise InvalidCredentials()
+
+    @staticmethod
+    def _clear_failures(user):
+        if user is None:
+            return
+        client = get_redis_client()
+        client.delete(AuthService._failure_key(user.id))
 
     @staticmethod
     @transaction.atomic
@@ -274,8 +332,21 @@ class AuthService:
     def _authenticate_user(user, password):
         """Validate credentials for an existing user."""
 
-        if user is None or not user.check_password(password) or not user.is_active:
+        if user is None:
             raise InvalidCredentials()
+
+        # If already locked, raise early.
+        client = get_redis_client()
+        key = AuthService._failure_key(user.id)
+        current_failures = client.get(key)
+        if current_failures is not None and int(current_failures) >= AuthService.DEFAULT_MAX_FAILURES:
+            raise InvalidCredentials()
+
+        if not user.is_active or not user.check_password(password):
+            AuthService.lock_account_after_failures(user, max=AuthService.DEFAULT_MAX_FAILURES)
+            raise InvalidCredentials()
+
+        AuthService._clear_failures(user)
         return user
 
     @staticmethod
