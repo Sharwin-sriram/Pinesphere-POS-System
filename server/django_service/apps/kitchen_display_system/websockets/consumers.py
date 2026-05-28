@@ -183,6 +183,10 @@ class KitchenDisplayConsumer(AsyncWebsocketConsumer):
             'timestamp': event['timestamp']
         }))
 
+    async def kds_ticket_update(self, event):
+        """Forward KDS ticket mutations (bump/recall/hold) to all board clients."""
+        await self.send(text_data=event['payload'])
+
     # Database operations
     @database_sync_to_async
     def get_kitchen_data(self):

@@ -1,6 +1,6 @@
 "use client";
 
-import { Briefcase, Calendar, Grid, Home, LayoutGrid, LogOut, Package, PieChart, ShoppingBag, Users, X } from "lucide-react";
+import { Briefcase, Calendar, Grid, Home, LayoutGrid, LogOut, Monitor, Package, PieChart, ShoppingBag, Users, X } from "lucide-react";
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

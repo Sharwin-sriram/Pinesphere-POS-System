@@ -2,8 +2,12 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Avg, F
 from django.utils import timezone
+from datetime import timedelta
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+import json
 from .models import (
     KitchenDisplaySystem,
     Kitchen,
@@ -29,6 +33,8 @@ from .serializers import (
     OrderPrioritySerializer,
     KitchenAlertSerializer,
     KitchenDashboardSerializer,
+    KDSTicketSerializer,
+    KDSStatsSerializer,
 )
 from .services.order_service import KitchenOrderService
 from .services.printer_service import PrinterService
@@ -443,3 +449,182 @@ class KitchenDashboardViewSet(viewsets.ViewSet):
         
         serializer = KitchenDashboardSerializer(dashboard_data)
         return Response(serializer.data)
+
+
+# ─── KDS Ticket ViewSet ────────────────────────────────────────────────────────
+
+class KDSTicketViewSet(viewsets.GenericViewSet):
+    """ViewSet for the KDS board: fetch, bump, recall, hold, stats."""
+    permission_classes = [IsAuthenticated]
+    serializer_class = KDSTicketSerializer
+
+    OVERDUE_THRESHOLD_MINUTES = 12
+
+    def _get_base_qs(self):
+        return KitchenOrderTicket.objects.select_related(
+            'order', 'kitchen', 'department', 'bumped_by'
+        ).prefetch_related('items')
+
+    def _broadcast(self, kitchen_id, event_type, ticket):
+        """Push a ticket update to all clients connected to this kitchen's WS group."""
+        channel_layer = get_channel_layer()
+        if channel_layer is None:
+            return
+        group_name = f'kitchen_{kitchen_id}'
+        payload = {
+            'type': 'ticket_update',
+            'event': event_type,
+            'ticket': KDSTicketSerializer(ticket).data,
+        }
+        # Serialize datetime objects before sending
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                'type': 'kds_ticket_update',
+                'payload': json.dumps(payload, default=str),
+            },
+        )
+
+    def list(self, request):
+        """GET /api/kds/tickets/ — active tickets for a station, sorted oldest-first.
+
+        Query params:
+          - station (kitchen id, required)
+          - status  (active|bumped|recalled|held, default: active)
+          - order_type (dine_in|takeaway|delivery)
+        """
+        kitchen_id = request.query_params.get('station')
+        if not kitchen_id:
+            return Response(
+                {'error': 'station query parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        filter_status = request.query_params.get('status', 'active')
+        order_type = request.query_params.get('order_type')
+
+        # 'active' maps to pending/printed/recalled (non-terminal, non-bumped)
+        if filter_status == 'active':
+            qs = self._get_base_qs().filter(
+                kitchen_id=kitchen_id,
+                status__in=['pending', 'printed', 'recalled'],
+            )
+        elif filter_status == 'held':
+            qs = self._get_base_qs().filter(
+                kitchen_id=kitchen_id, hold=True,
+            )
+        else:
+            qs = self._get_base_qs().filter(
+                kitchen_id=kitchen_id, status=filter_status,
+            )
+
+        if order_type:
+            qs = qs.filter(order_type=order_type)
+
+        # Held tickets sorted last, then oldest-first within each group
+        qs = qs.order_by('hold', 'created_at')
+
+        serializer = KDSTicketSerializer(qs, many=True)
+        return Response({'results': serializer.data, 'count': len(serializer.data)})
+
+    @action(detail=True, methods=['patch'])
+    def bump(self, request, pk=None):
+        """PATCH /api/kds/tickets/<id>/bump/ — mark ticket as completed."""
+        try:
+            ticket = self._get_base_qs().get(pk=pk)
+        except KitchenOrderTicket.DoesNotExist:
+            return Response({'error': 'Ticket not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if ticket.status == 'bumped':
+            return Response(
+                {'error': 'Ticket is already bumped'},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        ticket.status = 'bumped'
+        ticket.bumped_at = timezone.now()
+        ticket.bumped_by = request.user
+        ticket.hold = False
+        ticket.save(update_fields=['status', 'bumped_at', 'bumped_by', 'hold', 'updated_at'])
+
+        self._broadcast(ticket.kitchen_id, 'bumped', ticket)
+        return Response(KDSTicketSerializer(ticket).data)
+
+    @action(detail=True, methods=['patch'])
+    def recall(self, request, pk=None):
+        """PATCH /api/kds/tickets/<id>/recall/ — revert a bumped ticket to active."""
+        try:
+            ticket = self._get_base_qs().get(pk=pk)
+        except KitchenOrderTicket.DoesNotExist:
+            return Response({'error': 'Ticket not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        ticket.status = 'recalled'
+        ticket.recalled_at = timezone.now()
+        ticket.save(update_fields=['status', 'recalled_at', 'updated_at'])
+
+        self._broadcast(ticket.kitchen_id, 'recalled', ticket)
+        return Response(KDSTicketSerializer(ticket).data)
+
+    @action(detail=True, methods=['patch'])
+    def hold(self, request, pk=None):
+        """PATCH /api/kds/tickets/<id>/hold/ — toggle the hold flag."""
+        try:
+            ticket = self._get_base_qs().get(pk=pk)
+        except KitchenOrderTicket.DoesNotExist:
+            return Response({'error': 'Ticket not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        ticket.hold = not ticket.hold
+        ticket.save(update_fields=['hold', 'updated_at'])
+
+        self._broadcast(ticket.kitchen_id, 'held' if ticket.hold else 'unheld', ticket)
+        return Response(KDSTicketSerializer(ticket).data)
+
+    @action(detail=False, methods=['get'])
+    def stats(self, request):
+        """GET /api/kds/tickets/stats/ — aggregate stats for a kitchen station."""
+        kitchen_id = request.query_params.get('station')
+        if not kitchen_id:
+            return Response(
+                {'error': 'station query parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        threshold = timezone.now() - timedelta(minutes=self.OVERDUE_THRESHOLD_MINUTES)
+        today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+        active_qs = KitchenOrderTicket.objects.filter(
+            kitchen_id=kitchen_id,
+            status__in=['pending', 'printed', 'recalled'],
+        )
+
+        active_count = active_qs.count()
+        overdue_count = active_qs.filter(created_at__lte=threshold).count()
+
+        bumped_today = KitchenOrderTicket.objects.filter(
+            kitchen_id=kitchen_id,
+            status='bumped',
+            bumped_at__gte=today_start,
+        ).count()
+
+        # Average prep time today (seconds) for bumped tickets
+        bumped_today_qs = KitchenOrderTicket.objects.filter(
+            kitchen_id=kitchen_id,
+            status='bumped',
+            bumped_at__gte=today_start,
+            bumped_at__isnull=False,
+        )
+        avg_prep_seconds = 0.0
+        if bumped_today_qs.exists():
+            total_seconds = sum(
+                (t.bumped_at - t.created_at).total_seconds()
+                for t in bumped_today_qs
+            )
+            avg_prep_seconds = total_seconds / bumped_today_qs.count()
+
+        data = {
+            'active_count': active_count,
+            'overdue_count': overdue_count,
+            'bumped_today': bumped_today,
+            'avg_prep_seconds': round(avg_prep_seconds, 1),
+        }
+        return Response(KDSStatsSerializer(data).data)

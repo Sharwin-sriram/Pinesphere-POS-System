@@ -156,6 +156,10 @@ class KitchenOrderTicket(models.Model):
         ('printed', 'Printed'),
         ('reprinted', 'Reprinted'),
         ('cancelled', 'Cancelled'),
+        # KDS lifecycle statuses
+        ('bumped', 'Bumped'),
+        ('recalled', 'Recalled'),
+        ('held', 'Held'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -188,6 +192,37 @@ class KitchenOrderTicket(models.Model):
     print_count = models.IntegerField(default=0)
     last_printed_at = models.DateTimeField(null=True, blank=True)
     special_instructions = models.TextField(blank=True, null=True)
+    # KDS operational fields
+    bumped_at = models.DateTimeField(null=True, blank=True)
+    bumped_by = models.ForeignKey(
+        'authentication.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='bumped_kots',
+    )
+    recalled_at = models.DateTimeField(null=True, blank=True)
+    hold = models.BooleanField(default=False)
+    allergy_flags = models.JSONField(default=list, blank=True)
+    order_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('dine_in', 'Dine In'),
+            ('takeaway', 'Takeaway'),
+            ('delivery', 'Delivery'),
+        ],
+        default='dine_in',
+    )
+    course = models.CharField(
+        max_length=20,
+        choices=[
+            ('starter', 'Starter'),
+            ('main', 'Main'),
+            ('side', 'Side'),
+            ('dessert', 'Dessert'),
+        ],
+        default='main',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
