@@ -32,6 +32,12 @@ export default function Header({ onMenuClick }: HeaderProps) {
   }, []);
 
   const avatarUrl = getUserAvatarUrl(user);
+  const [isRestaurantUser, setIsRestaurantUser] = useState(false);
+
+  useEffect(() => {
+    const role = authService.getUserRole();
+    setIsRestaurantUser(["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(role || ""));
+  }, []);
 
   const initial = (user?.name?.[0] || user?.email?.[0] || "U").toUpperCase();
   const profileLabel = authed ? "Profile menu" : "Login";
@@ -80,19 +86,21 @@ export default function Header({ onMenuClick }: HeaderProps) {
         {/* Right: cart + notifications + profile */}
         <div className="flex items-center gap-2">
 
-          {/* Cart */}
-          <Link
-            href="/dashboard/cart"
-            className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:border-[var(--color-border-hover)] hover:text-[var(--color-text-primary)] transition-smooth"
-            aria-label="My cart"
-          >
-            <ShoppingCart className="h-4 w-4" strokeWidth={1.5} />
-            {cartCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-semibold text-white">
-                {cartCount}
-              </span>
-            )}
-          </Link>
+          {/* Cart (hidden for restaurant users) */}
+          {!isRestaurantUser && (
+            <Link
+              href="/dashboard/cart"
+              className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:border-[var(--color-border-hover)] hover:text-[var(--color-text-primary)] transition-smooth"
+              aria-label="My cart"
+            >
+              <ShoppingCart className="h-4 w-4" strokeWidth={1.5} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-semibold text-white">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+          )}
 
           {/* Notifications */}
           <button
@@ -155,15 +163,18 @@ export default function Header({ onMenuClick }: HeaderProps) {
                     <User className="h-3.5 w-3.5" strokeWidth={1.5} />
                     Account
                   </Link>
-                  <Link
-                    href="/dashboard/orders"
-                    onClick={() => setOpen(false)}
-                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-text-primary)]"
-                    role="menuitem"
-                  >
-                    <Package className="h-3.5 w-3.5" strokeWidth={1.5} />
-                    My Orders
-                  </Link>
+                  {/* Hide "My Orders" for restaurant roles */}
+                  {!isRestaurantUser && (
+                    <Link
+                      href="/dashboard/orders"
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-text-primary)]"
+                      role="menuitem"
+                    >
+                      <Package className="h-3.5 w-3.5" strokeWidth={1.5} />
+                      My Orders
+                    </Link>
+                  )}
 
                   <div className="my-1 border-t border-[var(--color-border)]" />
 

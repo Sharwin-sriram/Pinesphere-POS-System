@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ArrowLeft, RefreshCw, PackageSearch } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { authService } from "../../lib/authService";
 import { useOrderTracking } from "./useOrderTracking";
 import OrderCard from "./OrderCard";
 import { OrderStatus } from "./types";
@@ -50,6 +52,46 @@ function OrderSkeleton() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function OrdersPage() {
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const userRole = authService.getUserRole();
+    // Restrict access for restaurant roles
+    if (userRole && ["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(userRole)) {
+      setIsAuthorized(false);
+      // Redirect to restaurant admin dashboard
+      router.push("/restaurant-admin");
+    }
+    setIsLoading(false);
+  }, [router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <p className="text-sm text-[var(--color-text-secondary)]">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] py-16 text-center">
+        <PackageSearch className="mb-4 h-10 w-10 text-[var(--color-text-muted)]" strokeWidth={1.25} />
+        <p className="text-sm font-semibold text-[var(--color-text-primary)]">Access Denied</p>
+        <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+          This page is not available for restaurant staff. Please use the restaurant admin dashboard.
+        </p>
+        <Link
+          href="/restaurant-admin"
+          className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-accent-hover)] transition-smooth"
+        >
+          Go to Restaurant Admin
+        </Link>
+      </div>
+    );
+  }
   // In production, get orderId from URL params or user session
   const orderId = "demo-order-001";
 

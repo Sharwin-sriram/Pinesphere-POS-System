@@ -1,9 +1,9 @@
 "use client";
 
 import { Home, Package, Search, Settings, User, X } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-
+import { authService } from "../../lib/authService";
 
 interface SidebarProps {
  isOpen: boolean;
@@ -11,6 +11,15 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+ const [userRole, setUserRole] = useState<string | null>(null);
+
+ useEffect(() => {
+   const role = authService.getUserRole();
+   setUserRole(role);
+ }, []);
+
+ // Check if user is a restaurant role
+ const isRestaurantRole = userRole && ["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(userRole);
  return (
  <>
   {/* Overlay */}
@@ -49,10 +58,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <span className="font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)]">Search Restaurants</span>
       </Link>
 
-      <Link href="/dashboard/orders" onClick={onClose} className="flex items-center gap-4 p-4 rounded-xl hover:bg-[var(--color-bg-tertiary)] transition-colors group">
-        <Package className="h-4 w-4 text-[var(--color-text-secondary)] group-hover:text-[var(--color-accent)]" strokeWidth={1.5} />
-        <span className="font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)]">My Orders</span>
-      </Link>
+      {/* Hide "My Orders" for restaurant roles */}
+      {!isRestaurantRole && (
+        <Link href="/dashboard/orders" onClick={onClose} className="flex items-center gap-4 p-4 rounded-xl hover:bg-[var(--color-bg-tertiary)] transition-colors group">
+          <Package className="h-4 w-4 text-[var(--color-text-secondary)] group-hover:text-[var(--color-accent)]" strokeWidth={1.5} />
+          <span className="font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)]">My Orders</span>
+        </Link>
+      )}
 
       <Link href="/account" onClick={onClose} className="flex items-center gap-4 p-4 rounded-xl hover:bg-[var(--color-bg-tertiary)] transition-colors group">
         <User className="h-4 w-4 text-[var(--color-text-secondary)] group-hover:text-[var(--color-accent)]" strokeWidth={1.5} />

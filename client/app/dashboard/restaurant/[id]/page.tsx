@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useEffect, useState, useMemo, useRef } from "react";
+import authService from "../../../lib/authService";
 import { ArrowLeft, Clock, MapPin, Star, AlertCircle, RefreshCw, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -368,6 +369,12 @@ export default function RestaurantDetailPage({ params }: PageProps) {
 function MenuItemCard({ item }: { item: MenuItem }) {
   const [expanded, setExpanded] = useState(false);
   const { cartItems, addToCart, updateQuantity } = useCart();
+  const [isRestaurantUser, setIsRestaurantUser] = useState(false);
+
+  useEffect(() => {
+    const role = authService.getUserRole();
+    setIsRestaurantUser(["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(role || ""));
+  }, []);
 
   // Check if item is already in the cart
   const cartItem = cartItems.find((i) => i.id === item.id);
@@ -448,34 +455,36 @@ function MenuItemCard({ item }: { item: MenuItem }) {
         </div>
 
         <div className="mt-2 -translate-y-4">
-          {quantity > 0 ? (
-            <div className="flex items-center gap-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] px-2.5 py-1 rounded-md shadow-sm">
+          {!isRestaurantUser && (
+            (quantity > 0 ? (
+              <div className="flex items-center gap-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] px-2.5 py-1 rounded-md shadow-sm">
+                <button
+                  onClick={handleDecrement}
+                  className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] font-bold text-sm px-1.5 focus:outline-none"
+                  aria-label="Decrease quantity"
+                >
+                  -
+                </button>
+                <span className="font-semibold text-xs text-[var(--color-text-primary)] min-w-[12px] text-center">
+                  {quantity}
+                </span>
+                <button
+                  onClick={handleIncrement}
+                  className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] font-bold text-sm px-1.5 focus:outline-none"
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
+              </div>
+            ) : (
               <button
-                onClick={handleDecrement}
-                className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] font-bold text-sm px-1.5 focus:outline-none"
-                aria-label="Decrease quantity"
+                onClick={handleAdd}
+                className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] hover:border-[var(--color-border-hover)] px-5 py-1 rounded-md text-xs font-bold text-[var(--color-success)] shadow-sm hover:bg-[var(--color-bg-tertiary)] transition"
+                aria-label={`Add ${item.name} to cart`}
               >
-                -
+                ADD
               </button>
-              <span className="font-semibold text-xs text-[var(--color-text-primary)] min-w-[12px] text-center">
-                {quantity}
-              </span>
-              <button
-                onClick={handleIncrement}
-                className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] font-bold text-sm px-1.5 focus:outline-none"
-                aria-label="Increase quantity"
-              >
-                +
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={handleAdd}
-              className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] hover:border-[var(--color-border-hover)] px-5 py-1 rounded-md text-xs font-bold text-[var(--color-success)] shadow-sm hover:bg-[var(--color-bg-tertiary)] transition"
-              aria-label={`Add ${item.name} to cart`}
-            >
-              ADD
-            </button>
+            ))
           )}
         </div>
       </div>

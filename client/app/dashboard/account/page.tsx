@@ -13,10 +13,13 @@ import {
  Sun,
  User,
  Users,
+ MapPin,
+ Clock,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 import { authService, getMediaUrl, getUserAvatarUrl } from "../../lib/authService";
+import { restaurantService, Restaurant } from "../../lib/restaurantService";
 
 type ProfileForm = {
  full_name: string;
@@ -72,6 +75,8 @@ export default function AccountProfilePage() {
  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
  const [removeProfileImage, setRemoveProfileImage] = useState(false);
  const [googlePictureUrl, setGooglePictureUrl] = useState<string | null>(null);
+ const [userRole, setUserRole] = useState<string | null>(null);
+ const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
  const imageInputRef = useRef<HTMLInputElement | null>(null);
  const [profile, setProfile] = useState<ProfileForm>({
 	full_name: "",
@@ -89,10 +94,15 @@ export default function AccountProfilePage() {
 	language: "English",
  });
 
+ const isRestaurantRole = userRole && ["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(userRole);
+
  useEffect(() => {
 	let cancelled = false;
 
 	async function loadProfile() {
+	 const role = authService.getUserRole();
+	 setUserRole(role);
+
 	 const profileResult = await authService.getProfile();
 	 if (cancelled) return;
 
@@ -134,6 +144,14 @@ export default function AccountProfilePage() {
 	 setGooglePictureUrl(user?.picture || null);
 	 setProfileImagePreview(getUserAvatarUrl(user));
 	 setRemoveProfileImage(false);
+
+	 // Fetch restaurant data if user is a restaurant role
+	 if (role && ["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(role)) {
+		const restaurantData = await restaurantService.getRestaurants();
+		if (restaurantData && restaurantData.length > 0) {
+		 setRestaurant(restaurantData[0]);
+		}
+	 }
 
 	 setIsLoading(false);
 	}
@@ -404,61 +422,167 @@ export default function AccountProfilePage() {
 			</div>
 			<div>
 			 <h2 className="text-base font-semibold text-[var(--color-text-primary)]">
-				Personal & contact
+				{isRestaurantRole ? "Restaurant Information" : "Personal & contact"}
 			 </h2>
 			 <p className="text-sm text-[var(--color-text-secondary)]">
-				Keep your contact details current.
+				{isRestaurantRole ? "Your restaurant details and role." : "Keep your contact details current."}
 			 </p>
 			</div>
 		 </div>
 
 		 <div className="mt-6 grid grid-cols-1 gap-4">
-			<div className="flex flex-col gap-2">
-			 <label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-				Full name
-			 </label>
-			 <div className={fieldShellClass}>
-				<input
-				 type="text"
-				 value={profile.full_name}
-				 onChange={(e) => updateField("full_name", e.target.value)}
-				 disabled={!isEditing}
-				 className={fieldInputClass}
-				/>
-			 </div>
-			</div>
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-			 <div className="flex flex-col gap-2">
-				<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-				 Email address
-				</label>
-				<div className={fieldShellClass}>
-				 <Mail className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
-				 <input
-					type="email"
-					value={profile.email}
-					onChange={(e) => updateField("email", e.target.value)}
-					disabled={!isEditing}
-					className={fieldInputClass}
-				 />
+			{isRestaurantRole ? (
+			 <>
+				<div className="flex flex-col gap-2">
+				 <label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+					Restaurant Name
+				 </label>
+				 <div className={fieldShellClass}>
+					<input
+					 type="text"
+					 value={restaurant?.name || profile.full_name}
+					 disabled={true}
+					 className={fieldInputClass}
+					/>
+				 </div>
 				</div>
-			 </div>
-			 <div className="flex flex-col gap-2">
-				<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-				 Phone number
-				</label>
-				<div className={fieldShellClass}>
-				 <Phone className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
-				 <input
-					type="tel"
-					value={profile.phone}
-					onChange={(e) => updateField("phone", e.target.value)}
-					disabled={!isEditing}
-					className={fieldInputClass}
-				 />
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+				 <div className="flex flex-col gap-2">
+					<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+					 Contact Email
+					</label>
+					<div className={fieldShellClass}>
+					 <Mail className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
+					 <input
+						type="email"
+						value={restaurant?.email || profile.email}
+						disabled={true}
+						className={fieldInputClass}
+					 />
+					</div>
+				 </div>
+				 <div className="flex flex-col gap-2">
+					<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+					 Contact Phone
+					</label>
+					<div className={fieldShellClass}>
+					 <Phone className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
+					 <input
+						type="tel"
+						value={restaurant?.phone || profile.phone}
+						disabled={true}
+						className={fieldInputClass}
+					 />
+					</div>
+				 </div>
 				</div>
-			 </div>
-			</div>
+				<div className="flex flex-col gap-2">
+				 <label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+					Address
+				 </label>
+				 <div className={fieldShellClass}>
+					<MapPin className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
+					<input
+					 type="text"
+					 value={restaurant?.address || ""}
+					 disabled={true}
+					 className={fieldInputClass}
+					/>
+				 </div>
+				</div>
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+				 <div className="flex flex-col gap-2">
+					<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+					 Timezone
+					</label>
+					<div className={fieldShellClass}>
+					 <Clock className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
+					 <input
+						type="text"
+						value={restaurant?.timezone || "UTC"}
+						disabled={true}
+						className={fieldInputClass}
+					 />
+					</div>
+				 </div>
+				 <div className="flex flex-col gap-2">
+					<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+					 Status
+					</label>
+					<div className={fieldShellClass}>
+					 <input
+						type="text"
+						value={restaurant?.is_active ? "Active" : "Inactive"}
+						disabled={true}
+						className={fieldInputClass}
+					 />
+					</div>
+				 </div>
+				</div>
+				<div className="flex flex-col gap-2">
+				 <label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+					Account Role
+				 </label>
+				 <div className={fieldShellClass}>
+					<input
+					 type="text"
+					 value={userRole || ""}
+					 disabled={true}
+					 className={fieldInputClass}
+					/>
+				 </div>
+				</div>
+			 </>
+			) : (
+			 <>
+				<div className="flex flex-col gap-2">
+				 <label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+					Full name
+				 </label>
+				 <div className={fieldShellClass}>
+					<input
+					 type="text"
+					 value={profile.full_name}
+					 onChange={(e) => updateField("full_name", e.target.value)}
+					 disabled={!isEditing}
+					 className={fieldInputClass}
+					/>
+				 </div>
+				</div>
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+				 <div className="flex flex-col gap-2">
+					<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+					 Email address
+					</label>
+					<div className={fieldShellClass}>
+					 <Mail className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
+					 <input
+						type="email"
+						value={profile.email}
+						onChange={(e) => updateField("email", e.target.value)}
+						disabled={!isEditing}
+						className={fieldInputClass}
+					 />
+					</div>
+				 </div>
+				 <div className="flex flex-col gap-2">
+					<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+					 Phone number
+					</label>
+					<div className={fieldShellClass}>
+					 <Phone className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
+					 <input
+						type="tel"
+						value={profile.phone}
+						onChange={(e) => updateField("phone", e.target.value)}
+						disabled={!isEditing}
+						className={fieldInputClass}
+					 />
+					</div>
+				 </div>
+				</div>
+			 </>
+			)}
 		 </div>
 		</section>
 	 </div>
@@ -474,7 +598,7 @@ export default function AccountProfilePage() {
 				Account settings
 			 </h2>
 			 <p className="text-sm text-[var(--color-text-secondary)]">
-				Secure access and password management.
+				{isRestaurantRole ? "Your restaurant account credentials." : "Secure access and password management."}
 			 </p>
 			</div>
 		 </div>
@@ -489,79 +613,84 @@ export default function AccountProfilePage() {
 				 type="text"
 				 value={profile.username}
 				 onChange={(e) => updateField("username", e.target.value)}
-				 disabled={!isEditing}
+				 disabled={!isEditing || isRestaurantRole}
 				 className={fieldInputClass}
 				/>
 			 </div>
 			</div>
-			<div className="flex items-center justify-between rounded-ds-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-3">
-			 <div>
-				<p className="text-sm font-medium text-[var(--color-text-primary)]">
-				 Change password
-				</p>
-				<p className="text-xs text-[var(--color-text-muted)]">
-				 Update your password using the fields below.
-				</p>
-			 </div>
-			 <button
-				type="button"
-				disabled={!isEditing}
-				className="rounded-ds-md border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text-secondary)] transition-smooth hover:border-[var(--color-border-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-			 >
-				Manage
-			 </button>
-			</div>
-			 <div className="grid grid-cols-1 gap-4">
-			 <div className="flex flex-col gap-2">
-				<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-				    Current password
-				</label>
-				<div className={fieldShellClass}>
-				 <KeyRound className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
-				 <input
-					type="password"
-					value={profile.current_password}
-					onChange={(e) => updateField("current_password", e.target.value)}
+			{!isRestaurantRole && (
+			 <>
+				<div className="flex items-center justify-between rounded-ds-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-3">
+				 <div>
+					<p className="text-sm font-medium text-[var(--color-text-primary)]">
+					 Change password
+					</p>
+					<p className="text-xs text-[var(--color-text-muted)]">
+					 Update your password using the fields below.
+					</p>
+				 </div>
+				 <button
+					type="button"
 					disabled={!isEditing}
-					className={fieldInputClass}
-				 />
+					className="rounded-ds-md border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text-secondary)] transition-smooth hover:border-[var(--color-border-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+				 >
+					Manage
+				 </button>
 				</div>
-			 </div>
-			 <div className="flex flex-col gap-2">
-				<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-				 New password
-				</label>
-				<div className={fieldShellClass}>
-				 <KeyRound className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
-				 <input
-					type="password"
-					value={profile.new_password}
-					onChange={(e) => updateField("new_password", e.target.value)}
-					disabled={!isEditing}
-					className={fieldInputClass}
-				 />
+				 <div className="grid grid-cols-1 gap-4">
+				 <div className="flex flex-col gap-2">
+					<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+					    Current password
+					</label>
+					<div className={fieldShellClass}>
+					 <KeyRound className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
+					 <input
+						type="password"
+						value={profile.current_password}
+						onChange={(e) => updateField("current_password", e.target.value)}
+						disabled={!isEditing}
+						className={fieldInputClass}
+					 />
+					</div>
+				 </div>
+				 <div className="flex flex-col gap-2">
+					<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+					 New password
+					</label>
+					<div className={fieldShellClass}>
+					 <KeyRound className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
+					 <input
+						type="password"
+						value={profile.new_password}
+						onChange={(e) => updateField("new_password", e.target.value)}
+						disabled={!isEditing}
+						className={fieldInputClass}
+					 />
+					</div>
+				 </div>
+				 <div className="flex flex-col gap-2">
+					<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+					 Confirm password
+					</label>
+					<div className={fieldShellClass}>
+					 <KeyRound className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
+					 <input
+						type="password"
+						value={profile.confirm_password}
+						onChange={(e) => updateField("confirm_password", e.target.value)}
+						disabled={!isEditing}
+						className={fieldInputClass}
+					 />
+					</div>
+				 </div>
 				</div>
-			 </div>
-			 <div className="flex flex-col gap-2">
-				<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-				 Confirm password
-				</label>
-				<div className={fieldShellClass}>
-				 <KeyRound className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
-				 <input
-					type="password"
-					value={profile.confirm_password}
-					onChange={(e) => updateField("confirm_password", e.target.value)}
-					disabled={!isEditing}
-					className={fieldInputClass}
-				 />
-				</div>
-			 </div>
-			</div>
+			 </>
+			)}
 		 </div>
 		</section>
 	 </div>
 
+	 {!isRestaurantRole && (
 	 <section className="glass-card p-6">
 		<div className="flex items-center gap-3">
 		 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)]">
@@ -641,6 +770,7 @@ export default function AccountProfilePage() {
 		 </div>
 		</div>
 	 </section>
+	 )}
 
 	 <div className="sticky bottom-4 z-[var(--z-sticky)] mt-6">
 		<div className="flex flex-col gap-3 rounded-ds-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)]/95 p-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between">

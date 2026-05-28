@@ -13,6 +13,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import useMenu from "./hooks/useMenu";
 import MenuStats from "./components/MenuStats";
 import MenuTable from "./components/MenuTable";
@@ -27,12 +28,81 @@ import Skeleton from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import { MenuItem } from "./types";
 import { toast } from "react-hot-toast";
+import authService from "../../lib/authService";
+import { fetchRestaurants } from "../../dashboard/services/restaurantsApi";
 
 export default function MenuManagementPage() {
-  // Use "r1" as the default restaurant ID for the logged-in admin.
-  // In a real multi-franchise scenario, this could be read from session or router params.
-  const restaurantId = "r1";
-  const restaurantName = "KFC - Kentucky Fried Chicken";
+  const router = useRouter();
+  const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const [restaurantName, setRestaurantName] = useState<string>("Restaurant");
+  const [restaurantLookupDone, setRestaurantLookupDone] = useState(false);
+  const [restaurantLookupError, setRestaurantLookupError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const resolveRestaurantContext = async () => {
+      try {
+        const profileResult = await authService.getProfile();
+        const user = profileResult.success ? profileResult.data : authService.getCurrentUser();
+        
+        console.log("User profile loaded:", user);
+        
+        const resolvedRestaurantId =
+          user?.restaurant_id ??
+          user?.restaurant?.id ??
+          user?.restaurant?.restaurant_id ??
+          user?.restaurantId;
+
+        let resolvedRestaurantName = user?.restaurant_name || user?.restaurant?.name || user?.name || "Restaurant";
+
+        if (!resolvedRestaurantId && user?.email) {
+          console.log("No restaurant_id found, attempting to fetch restaurants by email...");
+          const response = await fetchRestaurants({ page_size: 1000, sort: "name_asc" });
+          const ownedRestaurant = response.results.find(
+            (restaurant) => restaurant.email?.toLowerCase() === user.email.toLowerCase()
+          );
+
+          if (ownedRestaurant) {
+            if (!mounted) return;
+            console.log("Found restaurant by email:", ownedRestaurant);
+            setRestaurantId(ownedRestaurant.id);
+            setRestaurantName(ownedRestaurant.name || resolvedRestaurantName);
+            setRestaurantLookupDone(true);
+            return;
+          }
+        }
+
+        if (!mounted) return;
+
+        if (!resolvedRestaurantId) {
+          console.error("Unable to resolve restaurant ID from user:", user);
+          setRestaurantLookupError("Unable to load restaurant information");
+          router.replace("/restaurant-admin");
+          return;
+        }
+
+        console.log("Restaurant ID resolved:", resolvedRestaurantId);
+        setRestaurantId(String(resolvedRestaurantId));
+        setRestaurantName(resolvedRestaurantName);
+      } catch (error) {
+        console.error("Error resolving restaurant context:", error);
+        if (!mounted) return;
+        setRestaurantLookupError("Unable to load restaurant information");
+        router.replace("/restaurant-admin");
+      } finally {
+        if (mounted) {
+          setRestaurantLookupDone(true);
+        }
+      }
+    };
+
+    resolveRestaurantContext();
+
+    return () => {
+      mounted = false;
+    };
+  }, [router]);
 
   const {
     items,
@@ -51,7 +121,7 @@ export default function MenuManagementPage() {
     addCategory,
     renameCategory,
     removeCategory,
-  } = useMenu(restaurantId);
+  } = useMenu(restaurantId || "");
 
   // View settings: table vs grid
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
@@ -203,6 +273,21 @@ export default function MenuManagementPage() {
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in-up pb-10">
+      {/* Show loading state while restaurant ID is being fetched */}
+      {!restaurantLookupDone && (
+        <div className="flex items-center justify-center py-20">
+          <p className="text-sm text-[var(--color-text-secondary)]">Loading restaurant menu...</p>
+        </div>
+      )}
+
+      {restaurantLookupDone && restaurantLookupError && (
+        <div className="flex items-center justify-center py-20">
+          <p className="text-sm text-[var(--color-text-secondary)]">{restaurantLookupError}</p>
+        </div>
+      )}
+
+      {restaurantId && restaurantLookupDone && !restaurantLookupError && (
+        <>
       {/* Breadcrumbs & Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -506,6 +591,8 @@ export default function MenuManagementPage() {
           </span>
         </div>
       </Modal>
+        </>
+      )}
     </div>
   );
 }

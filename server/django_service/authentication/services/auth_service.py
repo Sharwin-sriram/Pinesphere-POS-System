@@ -27,6 +27,24 @@ class AuthService:
     """Domain service for user registration, login, sessions, and password flows."""
 
     @staticmethod
+    def resolve_restaurant_for_user(user):
+        """Return the restaurant linked to a user, falling back to owner email matching."""
+
+        if not user:
+            return None
+
+        if user.restaurant_id:
+            try:
+                return Restaurant.objects.get(id=user.restaurant_id)
+            except (Restaurant.DoesNotExist, ValueError, TypeError):
+                pass
+
+        if user.role == User.RoleChoices.ORGANIZATION_OWNER and user.email:
+            return Restaurant.objects.filter(email__iexact=user.email).first()
+
+        return None
+
+    @staticmethod
     def permissions_for_role(role):
         """Return a copy of the permissions assigned to a role."""
 
@@ -36,6 +54,7 @@ class AuthService:
     def user_payload(user):
         """Serialize a user into the API response shape."""
 
+        restaurant = AuthService.resolve_restaurant_for_user(user)
         profile_image = user.profile_image.url if user.profile_image else None
         return {
             "id": user.id,
@@ -45,6 +64,19 @@ class AuthService:
             "last_name": user.last_name,
             "role": user.role,
             "restaurant_id": user.restaurant_id,
+            "restaurant": None
+            if restaurant is None
+            else {
+                "id": str(restaurant.id),
+                "name": restaurant.name,
+                "address": restaurant.address,
+                "phone": restaurant.phone,
+                "email": restaurant.email,
+                "timezone": restaurant.timezone,
+                "is_active": restaurant.is_active,
+                "created_at": restaurant.created_at.isoformat() if restaurant.created_at else None,
+                "updated_at": restaurant.updated_at.isoformat() if restaurant.updated_at else None,
+            },
             "branch_id": user.branch_id,
             "is_active": user.is_active,
             "is_staff": user.is_staff,
@@ -59,7 +91,13 @@ class AuthService:
     def issue_tokens(user, device_id=None):
         """Create a refresh/access token pair with the custom claim set."""
 
-        refresh_token = CustomRefreshToken.for_user(user, device_id=device_id)
+        restaurant = AuthService.resolve_restaurant_for_user(user)
+        restaurant_id = str(restaurant.id) if restaurant is not None else user.restaurant_id
+        refresh_token = CustomRefreshToken.for_user(
+            user,
+            device_id=device_id,
+            restaurant_id=restaurant_id,
+        )
         return str(refresh_token.access_token), str(refresh_token)
 
     @staticmethod

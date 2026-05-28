@@ -7,6 +7,12 @@ import uuid
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.utils import timezone
+from datetime import date
+from decimal import Decimal
+from django.db import transaction
+from django.db.models import Q
+from .models import StaffMember, Role, Shift, MenuItem, MenuCategory
 
 
 RESTAURANTS = [
@@ -402,14 +408,91 @@ def restaurant_detail(request, pk):
         return Response({"detail": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
     return Response(restaurant)
 
+
+def serialize_menu_item(item):
+    return {
+        "id": str(item.id),
+        "name": item.name,
+        "description": item.description,
+        "price": float(item.price),
+        "discount_price": float(item.discount_price) if item.discount_price is not None else None,
+        "is_veg": item.is_veg,
+        "image_url": item.image_url,
+        "category": item.category or "General",
+        "tags": item.tags or [],
+        "quantity": item.quantity,
+        "low_stock_threshold": item.low_stock_threshold,
+        "status": item.status,
+        "available_days": item.available_days or [],
+        "available_hours": item.available_hours or None,
+        "created_at": item.created_at.isoformat(),
+        "updated_at": item.updated_at.isoformat(),
+    }
+
+
+def serialize_category(category):
+    return {
+        "id": str(category.id),
+        "name": category.name,
+    }
+
+
+def seed_menu_data_if_needed(restaurant_id):
+    if MenuItem.objects.filter(restaurant_id=restaurant_id).exists():
+        return
+
+    seed_items = MOCK_MENUS.get(restaurant_id)
+    if not seed_items:
+        return
+
+    with transaction.atomic():
+        if MenuItem.objects.filter(restaurant_id=restaurant_id).exists():
+            return
+
+        category_cache = {}
+        for seed_item in seed_items:
+            category_name = seed_item.get("category") or "General"
+            if category_name not in category_cache:
+                category_cache[category_name], _ = MenuCategory.objects.get_or_create(
+                    restaurant_id=restaurant_id,
+                    name=category_name,
+                )
+
+            quantity = int(seed_item.get("quantity", 0))
+            status_value = seed_item.get("status") or "Active"
+            if quantity <= 0:
+                status_value = "Out of Stock"
+
+            MenuItem.objects.create(
+                restaurant_id=restaurant_id,
+                name=seed_item.get("name", "").strip(),
+                description=seed_item.get("description", "").strip(),
+                category=category_name,
+                is_veg=bool(seed_item.get("is_veg", True)),
+                tags=seed_item.get("tags", []),
+                price=Decimal(str(seed_item.get("price", 0))),
+                discount_price=(
+                    Decimal(str(seed_item["discount_price"]))
+                    if seed_item.get("discount_price") is not None
+                    else None
+                ),
+                quantity=quantity,
+                low_stock_threshold=int(seed_item.get("low_stock_threshold", 5)),
+                status=status_value,
+                image_url=seed_item.get("image_url") or None,
+                available_days=seed_item.get("available_days", []),
+                available_hours=seed_item.get("available_hours") or None,
+            )
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def restaurant_menu(request, pk):
     """
     Get menu items for a single restaurant.
     """
-    menu = MOCK_MENUS.get(pk, [])
-    return Response(menu)
+    seed_menu_data_if_needed(pk)
+    menu = MenuItem.objects.filter(restaurant_id=pk).order_by("id")
+    return Response([serialize_menu_item(item) for item in menu])
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -448,10 +531,8 @@ def restaurant_menu_list(request, pk):
     - POST: Create a new menu item.
     - DELETE: Bulk delete menu items.
     """
-    if pk not in MOCK_MENUS:
-        MOCK_MENUS[pk] = []
-
-    menu_list = MOCK_MENUS[pk]
+    seed_menu_data_if_needed(pk)
+    menu_queryset = MenuItem.objects.filter(restaurant_id=pk)
 
     if request.method == "GET":
         q = (request.query_params.get("q") or "").strip().lower()
@@ -468,27 +549,28 @@ def restaurant_menu_list(request, pk):
         except ValueError:
             page_size = 10
 
-        # Filter items
         filtered = []
-        for item in menu_list:
+        for item in menu_queryset:
+            item_data = serialize_menu_item(item)
+
             # Search filter
             if q:
-                in_name = q in item.get("name", "").lower()
-                in_desc = q in item.get("description", "").lower()
-                in_tags = any(q in t.lower() for t in item.get("tags", []))
-                in_cat = q in item.get("category", "").lower()
+                in_name = q in item_data.get("name", "").lower()
+                in_desc = q in item_data.get("description", "").lower()
+                in_tags = any(q in t.lower() for t in item_data.get("tags", []))
+                in_cat = q in item_data.get("category", "").lower()
                 if not (in_name or in_desc or in_tags or in_cat):
                     continue
 
             # Category filter
-            if category and item.get("category") != category:
+            if category and item_data.get("category") != category:
                 continue
 
             # Status filter
-            if status_filter and item.get("status") != status_filter:
+            if status_filter and item_data.get("status") != status_filter:
                 continue
 
-            filtered.append(item)
+            filtered.append(item_data)
 
         # Sorting
         if sort == "name_asc":
@@ -517,6 +599,9 @@ def restaurant_menu_list(request, pk):
 
     elif request.method == "POST":
         data = request.data
+        if data.get("fail"):
+            return Response({"detail": "Simulated error during creation"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         name = data.get("name", "").strip()
         price = data.get("price")
         quantity = data.get("quantity", 0)
@@ -526,37 +611,37 @@ def restaurant_menu_list(request, pk):
         if price is None:
             return Response({"detail": "Price is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Generate a unique ID
-        item_id = f"m_{uuid.uuid4().hex[:8]}"
+        try:
+            price_value = Decimal(str(price))
+            quantity_value = int(quantity)
+            low_stock_threshold = int(data.get("low_stock_threshold", 5))
+        except (TypeError, ValueError):
+            return Response({"detail": "Invalid numeric value supplied"}, status=status.HTTP_400_BAD_REQUEST)
+
+        category_name = (data.get("category") or "General").strip() or "General"
+        category_name = MenuCategory.objects.filter(restaurant_id=pk, name__iexact=category_name).values_list("name", flat=True).first() or category_name
+        MenuCategory.objects.get_or_create(restaurant_id=pk, name=category_name)
 
         # Compute initial status based on quantity
-        computed_status = "Out of Stock" if int(quantity) <= 0 else (data.get("status") or "Active")
+        computed_status = "Out of Stock" if quantity_value <= 0 else (data.get("status") or "Active")
 
-        new_item = {
-            "id": item_id,
-            "name": name,
-            "description": data.get("description", "").strip(),
-            "price": float(price),
-            "discount_price": float(data["discount_price"]) if data.get("discount_price") else None,
-            "is_veg": data.get("is_veg", True),
-            "image_url": data.get("image_url") or None,
-            "category": data.get("category", "General").strip(),
-            "tags": data.get("tags", []),
-            "quantity": int(quantity),
-            "low_stock_threshold": int(data.get("low_stock_threshold", 5)),
-            "status": computed_status,
-            "available_days": data.get("available_days", ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]),
-            "available_hours": data.get("available_hours") or {"from": "00:00", "to": "23:59"},
-            "created_at": "2026-05-27T15:00:00Z",
-            "updated_at": "2026-05-27T15:00:00Z",
-        }
-
-        # Handle simulating error for failure test if requested
-        if data.get("fail"):
-            return Response({"detail": "Simulated error during creation"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        menu_list.append(new_item)
-        return Response(new_item, status=status.HTTP_201_CREATED)
+        new_item = MenuItem.objects.create(
+            restaurant_id=pk,
+            name=name,
+            description=data.get("description", "").strip(),
+            price=price_value,
+            discount_price=(Decimal(str(data["discount_price"])) if data.get("discount_price") is not None else None),
+            is_veg=bool(data.get("is_veg", True)),
+            image_url=data.get("image_url") or None,
+            category=category_name,
+            tags=data.get("tags", []),
+            quantity=quantity_value,
+            low_stock_threshold=low_stock_threshold,
+            status=computed_status,
+            available_days=data.get("available_days", ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]),
+            available_hours=data.get("available_hours") or {"from": "00:00", "to": "23:59"},
+        )
+        return Response(serialize_menu_item(new_item), status=status.HTTP_201_CREATED)
 
     elif request.method == "DELETE":
         # Bulk Deletion
@@ -568,8 +653,8 @@ def restaurant_menu_list(request, pk):
         if request.data.get("fail"):
             return Response({"detail": "Simulated bulk deletion error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        MOCK_MENUS[pk] = [item for item in menu_list if item["id"] not in ids]
-        return Response({"success": True, "deleted_count": len(ids)})
+        deleted_count, _ = MenuItem.objects.filter(restaurant_id=pk, id__in=ids).delete()
+        return Response({"success": True, "deleted_count": deleted_count})
 
 @api_view(["GET", "PATCH", "DELETE"])
 @permission_classes([AllowAny])
@@ -580,18 +665,14 @@ def restaurant_menu_detail(request, pk, item_id):
     - PATCH: Partial updates (e.g. inline quantity or status changes).
     - DELETE: Single item deletion.
     """
-    if pk not in MOCK_MENUS:
-        return Response({"detail": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    menu_list = MOCK_MENUS[pk]
-    item = next((i for i in menu_list if i["id"] == item_id), None)
+    seed_menu_data_if_needed(pk)
+    item = MenuItem.objects.filter(restaurant_id=pk, id=item_id).first()
     if not item:
         return Response({"detail": "Menu item not found"}, status=status.HTTP_404_NOT_FOUND)
-
     if request.method == "GET":
-        return Response(item)
+        return Response(serialize_menu_item(item))
 
-    elif request.method == "PATCH":
+    if request.method == "PATCH":
         data = request.data
 
         # Support simulated failure for rollback testing
@@ -599,41 +680,53 @@ def restaurant_menu_detail(request, pk, item_id):
             return Response({"detail": "Simulated API failure for rollback verification"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Update fields
-        for field in ["name", "description", "price", "discount_price", "is_veg", "image_url", "category", "tags", "low_stock_threshold", "available_days", "available_hours"]:
-            if field in data:
-                if field == "price":
-                    item["price"] = float(data["price"])
-                elif field == "discount_price":
-                    item["discount_price"] = float(data["discount_price"]) if data["discount_price"] is not None else None
-                else:
-                    item[field] = data[field]
+        if "name" in data:
+            item.name = data["name"]
+        if "description" in data:
+            item.description = data["description"]
+        if "price" in data:
+            item.price = Decimal(str(data["price"]))
+        if "discount_price" in data:
+            item.discount_price = Decimal(str(data["discount_price"])) if data["discount_price"] is not None else None
+        if "is_veg" in data:
+            item.is_veg = bool(data["is_veg"])
+        if "image_url" in data:
+            item.image_url = data["image_url"] or None
+        if "category" in data:
+            category_name = (data.get("category") or "General").strip() or "General"
+            category_name = MenuCategory.objects.filter(restaurant_id=pk, name__iexact=category_name).values_list("name", flat=True).first() or category_name
+            MenuCategory.objects.get_or_create(restaurant_id=pk, name=category_name)
+            item.category = category_name
+        if "tags" in data:
+            item.tags = data["tags"] or []
+        if "low_stock_threshold" in data:
+            item.low_stock_threshold = int(data["low_stock_threshold"])
+        if "available_days" in data:
+            item.available_days = data["available_days"] or []
+        if "available_hours" in data:
+            item.available_hours = data["available_hours"] or None
 
-        # Sync quantity & status updates
+        old_quantity = item.quantity
         if "quantity" in data:
-            old_qty = item["quantity"]
-            new_qty = int(data["quantity"])
-            item["quantity"] = new_qty
-
-            # Stepper Status rule:
-            # - If quantity reaches 0, status automatically switches to "Out of Stock"
-            # - If quantity rises from 0, status automatically switches to "Active"
-            if new_qty <= 0:
-                item["status"] = "Out of Stock"
-            elif old_qty <= 0 and new_qty > 0 and item["status"] == "Out of Stock":
-                item["status"] = "Active"
+            new_quantity = int(data["quantity"])
+            item.quantity = new_quantity
+            if new_quantity <= 0:
+                item.status = "Out of Stock"
+            elif old_quantity <= 0 and new_quantity > 0 and item.status == "Out of Stock":
+                item.status = "Active"
 
         if "status" in data:
-            item["status"] = data["status"]
+            item.status = data["status"]
 
-        item["updated_at"] = "2026-05-27T15:15:00Z"
-        return Response(item)
+        item.save()
+        return Response(serialize_menu_item(item))
 
-    elif request.method == "DELETE":
+    if request.method == "DELETE":
         # Support simulated failure for rollback verification
         if request.query_params.get("fail") or request.data.get("fail"):
             return Response({"detail": "Simulated deletion failure"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        MOCK_MENUS[pk] = [i for i in menu_list if i["id"] != item_id]
+        item.delete()
         return Response({"success": True})
 
 @api_view(["GET", "POST"])
@@ -644,13 +737,11 @@ def restaurant_categories_list(request, pk):
     - GET: Retrieve categories list.
     - POST: Create a category.
     """
-    if pk not in MOCK_CATEGORIES:
-        MOCK_CATEGORIES[pk] = []
-
-    categories = MOCK_CATEGORIES[pk]
+    seed_menu_data_if_needed(pk)
+    categories = MenuCategory.objects.filter(restaurant_id=pk).order_by("name")
 
     if request.method == "GET":
-        return Response(categories)
+        return Response([serialize_category(category) for category in categories])
 
     elif request.method == "POST":
         name = request.data.get("name", "").strip()
@@ -658,50 +749,45 @@ def restaurant_categories_list(request, pk):
             return Response({"detail": "Category name is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if already exists
-        if any(c["name"].lower() == name.lower() for c in categories):
+        if MenuCategory.objects.filter(restaurant_id=pk, name__iexact=name).exists():
             return Response({"detail": "Category already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
-        new_cat = {
-            "id": f"c_{uuid.uuid4().hex[:6]}",
-            "name": name
-        }
-        categories.append(new_cat)
-        return Response(new_cat, status=status.HTTP_201_CREATED)
+        new_cat = MenuCategory.objects.create(restaurant_id=pk, name=name)
+        return Response(serialize_category(new_cat), status=status.HTTP_201_CREATED)
 
 @api_view(["PATCH", "DELETE"])
 @permission_classes([AllowAny])
 def restaurant_category_detail(request, pk, cat_id):
     """
     Manage category operations:
-    - PATCH: Rename a category and update all items in MOCK_MENUS mapped to this category.
+    - PATCH: Rename a category and update all items mapped to this category.
     - DELETE: Delete a category.
     """
-    if pk not in MOCK_CATEGORIES:
-        return Response({"detail": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    categories = MOCK_CATEGORIES[pk]
-    category = next((c for c in categories if c["id"] == cat_id), None)
+    category = MenuCategory.objects.filter(restaurant_id=pk, id=cat_id).first()
     if not category:
-        return Response({"detail": "Category not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == "PATCH":
         name = request.data.get("name", "").strip()
         if not name:
             return Response({"detail": "Category name is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        old_name = category["name"]
-        category["name"] = name
+        if MenuCategory.objects.filter(restaurant_id=pk, name__iexact=name).exclude(id=category.id).exists():
+            return Response({"detail": "Category already exists"}, status=status.HTTP_400_BAD_REQUEST)
+
+        old_name = category.name
+        category.name = name
+        category.save()
 
         # Propagate renaming to menu items to avoid broken references
-        if pk in MOCK_MENUS:
-            for item in MOCK_MENUS[pk]:
-                if item.get("category") == old_name:
-                    item["category"] = name
+        MenuItem.objects.filter(restaurant_id=pk, category=old_name).update(category=name)
 
-        return Response(category)
+        return Response(serialize_category(category))
 
     elif request.method == "DELETE":
-        MOCK_CATEGORIES[pk] = [c for c in categories if c["id"] != cat_id]
+        MenuCategory.objects.get_or_create(restaurant_id=pk, name="General")
+        MenuItem.objects.filter(restaurant_id=pk, category=category.name).update(category="General")
+        category.delete()
         return Response({"success": True})
 
 @api_view(["POST"])
@@ -1004,19 +1090,18 @@ def restaurant_table_orders(request, pk, table_id):
         if quantity <= 0:
             return Response({"detail": "Quantity must be greater than 0"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Lookup in MOCK_MENUS to get authentic name and price
-        menu_items = MOCK_MENUS.get(pk, [])
-        menu_item = next((item for item in menu_items if item["id"] == item_id), None)
+        # Resolve the menu item from the persisted menu table
+        menu_item = MenuItem.objects.filter(restaurant_id=pk, id=item_id).first()
         if not menu_item:
             return Response({"detail": "Menu item not found"}, status=status.HTTP_404_NOT_FOUND)
 
         new_order_item = {
             "id": f"o_{uuid.uuid4().hex[:6]}",
             "item_id": item_id,
-            "item_name": menu_item["name"],
+            "item_name": menu_item.name,
             "quantity": quantity,
             "notes": notes,
-            "price": menu_item.get("discount_price") or menu_item["price"],
+            "price": float(menu_item.discount_price) if menu_item.discount_price is not None else float(menu_item.price),
             "status": "Pending",
         }
         order_items.append(new_order_item)
@@ -1140,8 +1225,6 @@ def restaurant_table_bill(request, pk, table_id):
         "items": order_items
     })
 
-
-# ─── STAFF MANAGEMENT MOCK SERVICES & VIEWS ───
 
 MOCK_SHIFTS = {
     "r1": [

@@ -70,6 +70,8 @@ function normalizeUserForClient(user) {
       user?.email ||
       user?.mobile ||
       "User",
+    restaurant_id: user?.restaurant_id || null,
+    branch_id: user?.branch_id || null,
   };
 }
 
@@ -134,11 +136,29 @@ function extractApiError(error, fallbackMessage) {
   }
 
   if (data && typeof data === "object") {
-    const fieldMessage = Object.values(data)
-      .flat()
-      .find((value) => typeof value === "string");
-    if (fieldMessage) {
-      return fieldMessage;
+    const messages = [];
+
+    const collectMessages = (value) => {
+      if (typeof value === "string") {
+        messages.push(value);
+        return;
+      }
+
+      if (Array.isArray(value)) {
+        value.forEach(collectMessages);
+        return;
+      }
+
+      if (value && typeof value === "object") {
+        Object.values(value).forEach(collectMessages);
+      }
+    };
+
+    Object.values(data).forEach(collectMessages);
+
+    const uniqueMessages = [...new Set(messages.filter(Boolean))];
+    if (uniqueMessages.length > 0) {
+      return uniqueMessages.join(". ");
     }
   }
 
@@ -232,6 +252,13 @@ export const authService = {
 
       return { success: true, data: response.data };
     } catch (error) {
+      if (error?.response?.status === 404) {
+        return {
+          success: false,
+          error: "No restaurant account found with these credentials. Please sign up first.",
+        };
+      }
+
       return {
         success: false,
         error: extractApiError(error, "Restaurant login failed"),
@@ -536,6 +563,13 @@ export const authService = {
   getUserRole: () => {
     if (!isBrowser()) return null;
     return localStorage.getItem(USER_ROLE_KEY);
+  },
+
+  // Get user info
+  getUserInfo: () => {
+    if (!isBrowser()) return null;
+    const userInfo = localStorage.getItem(USER_INFO_KEY);
+    return userInfo ? JSON.parse(userInfo) : null;
   },
 
   // Check if user has specific role

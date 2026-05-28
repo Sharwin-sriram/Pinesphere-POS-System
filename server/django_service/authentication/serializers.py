@@ -16,6 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
     permissions = serializers.SerializerMethodField()
     profile_image = serializers.SerializerMethodField()
     picture = serializers.SerializerMethodField()
+    restaurant = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -27,6 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "role",
             "restaurant_id",
+            "restaurant",
             "branch_id",
             "is_active",
             "is_staff",
@@ -49,6 +51,26 @@ class UserSerializer(serializers.ModelSerializer):
     def get_picture(self, obj):
         return obj.google_picture_url or None
 
+    def get_restaurant(self, obj):
+        if obj.role != User.RoleChoices.ORGANIZATION_OWNER:
+            return None
+
+        restaurant = Restaurant.objects.filter(email__iexact=obj.email or "").first()
+        if restaurant is None:
+            return None
+
+        return {
+            "id": str(restaurant.id),
+            "name": restaurant.name,
+            "address": restaurant.address,
+            "phone": restaurant.phone,
+            "email": restaurant.email,
+            "timezone": restaurant.timezone,
+            "is_active": restaurant.is_active,
+            "created_at": restaurant.created_at.isoformat() if restaurant.created_at else None,
+            "updated_at": restaurant.updated_at.isoformat() if restaurant.updated_at else None,
+        }
+
 
 class RegisterSerializer(serializers.Serializer):
     """Validate user registration requests."""
@@ -59,8 +81,8 @@ class RegisterSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
     last_name = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
     role = serializers.ChoiceField(choices=User.RoleChoices.choices, required=False, default=User.RoleChoices.CUSTOMER)
-    restaurant_id = serializers.IntegerField(required=False, allow_null=True)
-    branch_id = serializers.IntegerField(required=False, allow_null=True)
+    restaurant_id = serializers.CharField(required=False, allow_null=True)
+    branch_id = serializers.CharField(required=False, allow_null=True)
 
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():

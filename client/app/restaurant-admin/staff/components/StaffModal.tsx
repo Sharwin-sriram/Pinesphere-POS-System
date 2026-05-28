@@ -66,6 +66,7 @@ export default function StaffModal({
   const [showAddRoleInput, setShowAddRoleInput] = useState(false);
   const [newRoleName, setNewRoleName] = useState("");
   const [isAddingRole, setIsAddingRole] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -107,6 +108,7 @@ export default function StaffModal({
       setShowDiscardConfirm(false);
       setShowAddRoleInput(false);
       setNewRoleName("");
+      setImageLoadError(false);
     }
   }, [isOpen, editMember, roles, shifts]);
 
@@ -249,6 +251,7 @@ export default function StaffModal({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setImageLoadError(false);
       processAndUploadFile(file);
     }
   };
@@ -412,6 +415,8 @@ export default function StaffModal({
                   src={getFullImageUrl(profilePhoto)}
                   alt="Profile Preview"
                   className="h-full w-full object-cover"
+                  onError={() => setImageLoadError(true)}
+                  onLoad={() => setImageLoadError(false)}
                 />
               ) : (
                 <div className="flex flex-col items-center text-center p-1">

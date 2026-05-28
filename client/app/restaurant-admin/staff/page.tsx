@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   Settings,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import useStaff from "./hooks/useStaff";
 import StaffTable from "./components/StaffTable";
 import StaffGrid from "./components/StaffGrid";
@@ -30,10 +31,25 @@ import EmptyState from "@/components/ui/EmptyState";
 import Modal from "@/components/ui/Modal";
 import { StaffMember } from "./types";
 import { toast } from "react-hot-toast";
+import { authService } from "../../lib/authService";
 
 export default function StaffManagementPage() {
-  const restaurantId = "r1";
-  const restaurantName = "KFC - Kentucky Fried Chicken";
+  const router = useRouter();
+  const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const [restaurantName, setRestaurantName] = useState("Restaurant");
+
+  // Get restaurant ID from authenticated user on mount
+  useEffect(() => {
+    const userInfo = authService.getUserInfo();
+    if (userInfo?.restaurant_id) {
+      setRestaurantId(String(userInfo.restaurant_id));
+      setRestaurantName(userInfo.restaurant_name || "Restaurant");
+    } else {
+      // Fallback to mock data if not authenticated
+      setRestaurantId("r1");
+      setRestaurantName("KFC - Kentucky Fried Chicken");
+    }
+  }, []);
 
   // State Hook orchestrating API queries, local states and URL syncing
   const {
@@ -55,7 +71,7 @@ export default function StaffManagementPage() {
     addRole,
     renameRole,
     deleteRole,
-  } = useStaff(restaurantId);
+  } = useStaff(restaurantId || "");
 
   // View modes: "table" (desktop default) vs "grid" (mobile/tablet default)
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");

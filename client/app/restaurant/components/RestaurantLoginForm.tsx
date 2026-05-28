@@ -27,6 +27,7 @@ const RestaurantLoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<RestaurantLoginErrors>({});
+  const [submitError, setSubmitError] = useState("");
   const { success, error, ToastContainer } = useToast();
   const emailRef = useRef<HTMLInputElement | null>(null);
   const passwordRef = useRef<HTMLInputElement | null>(null);
@@ -42,6 +43,9 @@ const RestaurantLoginForm: React.FC = () => {
       ...prev,
       [name]: value,
     }));
+    if (submitError) {
+      setSubmitError("");
+    }
     if (errors[name as keyof RestaurantLoginFormState]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -87,6 +91,7 @@ const RestaurantLoginForm: React.FC = () => {
       return;
     }
     setIsLoading(true);
+    setSubmitError("");
     try {
       const result = await authService.restaurantLogin({
         email: formData.email,
@@ -101,10 +106,14 @@ const RestaurantLoginForm: React.FC = () => {
           router.replace(safeNext || redirectPath);
         }, 1200);
       } else {
-        error("Sign in failed", result.error || "Invalid email or password");
+        const message = result.error || "Invalid email or password";
+        setSubmitError(message);
+        error("Sign in failed", message);
       }
     } catch {
-      error("Sign in failed", "Network error. Please try again");
+      const message = "Network error. Please try again";
+      setSubmitError(message);
+      error("Sign in failed", message);
     } finally {
       setIsLoading(false);
     }
@@ -179,6 +188,12 @@ const RestaurantLoginForm: React.FC = () => {
               Forgot password?
             </a>
           </div>
+
+          {submitError && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {submitError}
+            </div>
+          )}
 
           <button
             type="submit"
