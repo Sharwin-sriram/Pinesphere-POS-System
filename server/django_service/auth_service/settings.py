@@ -29,12 +29,21 @@ INSTALLED_APPS = [
     "corsheaders",
     "channels",
     "authentication",
-    "apps.orders",
-    "apps.inventory",
     "apps.pos",
     "apps.kitchen_display_system",
     "apps.restaurant_settings",
     "apps.hr",
+    # Pinesphere apps (core backend)
+    "pinesphere.apps.billing",
+    "pinesphere.apps.tables",
+    "pinesphere.apps.kitchen",
+    "pinesphere.apps.analytics",
+    "pinesphere.apps.inventory",
+    "pinesphere.apps.menu",
+    "pinesphere.apps.crm",
+    "pinesphere.apps.orders",
+    "pinesphere.apps.delivery",
+    "pinesphere.apps.payments",
 ]
 
 if USE_CLOUDINARY and not (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):
@@ -164,7 +173,11 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
-    "EXCEPTION_HANDLER": "auth_service.exceptions.custom_exception_handler",
+    # Use the pinesphere global exception handler to enforce the API envelope
+    "EXCEPTION_HANDLER": "pinesphere.core.exceptions.custom_exception_handler",
+    # Default pagination for the API
+    "DEFAULT_PAGINATION_CLASS": "pinesphere.core.pagination.StandardPageNumberPagination",
+    "PAGE_SIZE": 25,
 }
 
 SIMPLE_JWT = {

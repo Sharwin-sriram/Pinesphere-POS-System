@@ -12,6 +12,11 @@ from apps.authentication.views import BranchViewSet
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("auth/", include("authentication.urls")),
+    # Spec-compatible v1 prefix (keep existing /auth/ for backward compatibility).
+    path("api/v1/", include("pinesphere.apps.orders.urls")),
+    path("api/v1/", include("pinesphere.apps.kitchen.urls")),
+    path("api/kds/", include("pinesphere.apps.kitchen.urls")),
+    path("api/", include("pinesphere.apps.inventory.urls")),
     path("api/", include("authentication.urls")),
     path("api/restaurant/register", RestaurantRegisterView.as_view()),
     path(

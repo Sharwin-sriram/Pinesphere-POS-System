@@ -39,6 +39,8 @@ from .serializers import (
 from .services.order_service import KitchenOrderService
 from .services.printer_service import PrinterService
 from .services.alert_service import AlertService
+from .services import auto_generate_kot, reprint_kot, update_kot_status
+from apps.orders.models import Order
 
 
 class KitchenDisplaySystemViewSet(viewsets.ModelViewSet):
@@ -451,6 +453,56 @@ class KitchenDashboardViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 
+class KOTViewSet(viewsets.ViewSet):
+    """Phase-1 KOT API endpoints under /api/v1/kot/."""
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        kitchen_id = request.query_params.get("kitchen_id")
+        status_filter = request.query_params.get("status")
+        queryset = KitchenOrderTicket.objects.all().order_by("-created_at")
+        if kitchen_id:
+            queryset = queryset.filter(kitchen_id=kitchen_id)
+        if status_filter:
+            queryset = queryset.filter(status=status_filter.lower())
+        serializer = KitchenOrderTicketSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        kot = KitchenOrderTicket.objects.filter(id=pk).first()
+        if kot is None:
+            return Response({"message": "KOT not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(KitchenOrderTicketDetailSerializer(kot).data)
+
+    def destroy(self, request, pk=None):
+        kot = KitchenOrderTicket.objects.filter(id=pk).first()
+        if kot is None:
+            return Response({"message": "KOT not found"}, status=status.HTTP_404_NOT_FOUND)
+        kot.status = "cancelled"
+        kot.save(update_fields=["status", "updated_at"])
+        KitchenOrderStatus.objects.filter(order=kot.order, kitchen=kot.kitchen).update(status="cancelled")
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=["post"], url_path="status")
+    def set_status(self, request, pk=None):
+        status_value = request.data.get("status")
+        result = update_kot_status(pk, status_value, request.user)
+        return Response(KitchenOrderStatusSerializer(result).data)
+
+    @action(detail=True, methods=["post"], url_path="reprint")
+    def reprint(self, request, pk=None):
+        payload = reprint_kot(pk)
+        return Response(payload)
+
+    @action(detail=False, methods=["post"], url_path="auto-generate")
+    def auto_generate(self, request):
+        order_id = request.data.get("order_id")
+        order = Order.objects.filter(id=order_id).first()
+        if order is None:
+            return Response({"message": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+        kots = auto_generate_kot(order)
+        return Response(KitchenOrderTicketSerializer(kots, many=True).data, status=status.HTTP_201_CREATED)
 # ─── KDS Ticket ViewSet ────────────────────────────────────────────────────────
 
 class KDSTicketViewSet(viewsets.GenericViewSet):
