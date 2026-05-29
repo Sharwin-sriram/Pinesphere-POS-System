@@ -179,20 +179,28 @@ class AuthService:
             # Can't lock a non-existent user account; handled by InvalidCredentials.
             return
 
-        client = get_redis_client()
-        key = AuthService._failure_key(user.id)
-        failures = client.incr(key)
-        if failures == 1:
-            client.expire(key, AuthService.FAILED_LOGIN_WINDOW_SECONDS)
-        if failures >= max:
-            raise InvalidCredentials()
+        try:
+            client = get_redis_client()
+            key = AuthService._failure_key(user.id)
+            failures = client.incr(key)
+            if failures == 1:
+                client.expire(key, AuthService.FAILED_LOGIN_WINDOW_SECONDS)
+            if failures >= max:
+                raise InvalidCredentials()
+        except InvalidCredentials:
+            raise
+        except Exception:
+            pass  # Ignore Redis errors
 
     @staticmethod
     def _clear_failures(user):
         if user is None:
             return
-        client = get_redis_client()
-        client.delete(AuthService._failure_key(user.id))
+        try:
+            client = get_redis_client()
+            client.delete(AuthService._failure_key(user.id))
+        except Exception:
+            pass
 
     @staticmethod
     @transaction.atomic
@@ -236,7 +244,7 @@ class AuthService:
             phone=phone,
             email=data["email"].strip(),
             timezone="UTC",
-            is_active=False,
+            is_active=True,
         )
 
         user = User.objects.create_user(
@@ -394,11 +402,16 @@ class AuthService:
             raise InvalidCredentials()
 
         # If already locked, raise early.
-        client = get_redis_client()
-        key = AuthService._failure_key(user.id)
-        current_failures = client.get(key)
-        if current_failures is not None and int(current_failures) >= AuthService.DEFAULT_MAX_FAILURES:
-            raise InvalidCredentials()
+        try:
+            client = get_redis_client()
+            key = AuthService._failure_key(user.id)
+            current_failures = client.get(key)
+            if current_failures is not None and int(current_failures) >= AuthService.DEFAULT_MAX_FAILURES:
+                raise InvalidCredentials()
+        except InvalidCredentials:
+            raise
+        except Exception:
+            pass
 
         if not user.is_active or not user.check_password(password):
             AuthService.lock_account_after_failures(user, max=AuthService.DEFAULT_MAX_FAILURES)

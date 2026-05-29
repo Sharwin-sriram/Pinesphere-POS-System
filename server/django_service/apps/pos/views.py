@@ -13,58 +13,24 @@ from decimal import Decimal
 from django.db import transaction
 from django.db.models import Q
 from .models import StaffMember, Role, Shift, MenuItem, MenuCategory
+from authentication.models import Restaurant
 
 
-RESTAURANTS = [
-    {
-        "id": "r1",
-        "name": "KFC - Kentucky Fried Chicken",
-        "cuisine": ["American", "Fast Food", "Burgers"],
-        "rating": 4.1,
-        "delivery_time_min": 35,
-        "location": "MG Road",
-        "min_order_amount": 199,
-        "offer_text": "Flat ₹50 OFF",
-        "is_open": True,
-        "image_url": "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-        "id": "r2",
-        "name": "Domino's Pizza",
-        "cuisine": ["Italian", "Pizzas", "Fast Food"],
-        "rating": 4.3,
-        "delivery_time_min": 28,
-        "location": "Indiranagar",
-        "min_order_amount": 299,
-        "offer_text": "₹100 OFF above ₹499",
-        "is_open": True,
-        "image_url": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-        "id": "r3",
-        "name": "Local Biryani House",
-        "cuisine": ["Mughlai", "Biryani", "North Indian"],
-        "rating": 4.7,
-        "delivery_time_min": 45,
-        "location": "Koramangala",
-        "min_order_amount": 249,
-        "offer_text": "10% OFF up to ₹40",
-        "is_open": False,
-        "image_url": "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-        "id": "r4",
-        "name": "Theobroma",
-        "cuisine": ["Desserts", "Bakery", "Cakes"],
-        "rating": 4.8,
-        "delivery_time_min": 20,
-        "location": "HSR Layout",
-        "min_order_amount": 149,
-        "offer_text": "Free Delivery",
-        "is_open": True,
-        "image_url": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1200&q=80",
-    },
-]
+def _serialize_restaurant(r):
+    return {
+        "id": str(r.id),
+        "name": r.name,
+        "email": r.email,
+        "cuisine": ["Multi-Cuisine"],
+        "rating": 4.5,
+        "delivery_time_min": 30,
+        "location": r.address if r.address else "City Center",
+        "min_order_amount": 100,
+        "offer_text": "Welcome offer",
+        "is_open": r.is_active,
+        "image_url": "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=80",
+    }
+
 
 MOCK_MENUS = {
     "r1": [
@@ -373,7 +339,10 @@ def restaurants_list(request):
                 pass
         return True
 
-    filtered = [r for r in RESTAURANTS if matches(r)]
+    db_restaurants = Restaurant.objects.filter(is_active=True)
+    all_restaurants = [_serialize_restaurant(r) for r in db_restaurants]
+
+    filtered = [r for r in all_restaurants if matches(r)]
 
     if sort == "rating_desc":
         filtered.sort(key=lambda r: r["rating"], reverse=True)
@@ -403,10 +372,11 @@ def restaurant_detail(request, pk):
     """
     Get metadata for a single restaurant.
     """
-    restaurant = next((r for r in RESTAURANTS if r["id"] == pk), None)
-    if not restaurant:
+    try:
+        r = Restaurant.objects.get(id=pk, is_active=True)
+        return Response(_serialize_restaurant(r))
+    except (Restaurant.DoesNotExist, ValueError):
         return Response({"detail": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
-    return Response(restaurant)
 
 
 def serialize_menu_item(item):
@@ -501,8 +471,9 @@ def toggle_favorite(request, pk):
     Simulated restaurant favorite toggle endpoint.
     Accepts {"fail": true} in request body to simulate API failures for rollback testing.
     """
-    restaurant = next((r for r in RESTAURANTS if r["id"] == pk), None)
-    if not restaurant:
+    try:
+        r = Restaurant.objects.get(id=pk, is_active=True)
+    except (Restaurant.DoesNotExist, ValueError):
         return Response({"detail": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
     
     # Check if we should simulate an error

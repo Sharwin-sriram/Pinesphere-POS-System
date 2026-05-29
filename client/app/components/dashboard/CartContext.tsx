@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import toast from "react-hot-toast";
-import { httpClient } from "../../lib/authService";
+import authService, { httpClient } from "../../lib/authService";
 
 export interface CartItem {
   id: string;
@@ -58,9 +58,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addToCart = async (item: Omit<CartItem, "quantity">) => {
+    if (!authService.isAuthenticated()) {
+      toast.error("Login is needed to add to cart!");
+      return;
+    }
+    
     try {
       await httpClient.post("/api/cart/add/", {
-        item_id: item.id,
+        menu_item_id: item.id,
+        name: item.name,
+        price: item.price,
+        image: item.image,
+        restaurant: item.restaurant,
         quantity: 1,
       });
       // refresh cart

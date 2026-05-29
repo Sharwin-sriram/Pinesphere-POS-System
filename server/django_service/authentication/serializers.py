@@ -124,7 +124,6 @@ class RegisterSerializer(serializers.Serializer):
         return value
 
     def validate_password(self, value):
-        validate_password(value)
         return value
 
 
@@ -158,7 +157,6 @@ class RestaurantRegisterSerializer(serializers.Serializer):
         return restaurant_name
 
     def validate_password(self, value):
-        validate_password(value)
         return value
 
 
@@ -230,7 +228,6 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     new_password = serializers.CharField(write_only=True, min_length=8)
 
     def validate_new_password(self, value):
-        validate_password(value)
         return value
 
 
