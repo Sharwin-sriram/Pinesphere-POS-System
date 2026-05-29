@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     "authentication",
     "apps.pos",
     "apps.kitchen_display_system",
+    "apps.orders",
+    "apps.inventory.apps.InventoryConfig",
     "apps.restaurant_settings",
     "apps.hr",
     # Pinesphere apps (core backend)
@@ -41,7 +43,7 @@ INSTALLED_APPS = [
     "pinesphere.apps.inventory",
     "pinesphere.apps.menu",
     "pinesphere.apps.crm",
-    "pinesphere.apps.orders",
+    "pinesphere.apps.orders.apps.PinesphereOrdersConfig",
     "pinesphere.apps.delivery",
     "pinesphere.apps.payments",
 ]
