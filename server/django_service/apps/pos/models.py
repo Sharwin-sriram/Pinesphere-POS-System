@@ -9,6 +9,15 @@ class MenuCategory(models.Model):
     """Menu categories for a restaurant"""
     restaurant_id = models.CharField(max_length=50, db_index=True)
     name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, default="")
+    emoji = models.CharField(max_length=16, blank=True, default="")
+    color = models.CharField(max_length=32, blank=True, default="slate")
+    is_active = models.BooleanField(default=True)
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
+    kds_station_id = models.CharField(max_length=64, blank=True, default="")
+    parent_id = models.CharField(max_length=64, blank=True, default="")
+    sort_order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -64,6 +73,10 @@ class Role(models.Model):
     restaurant_id = models.CharField(max_length=50, db_index=True)
     name = models.CharField(max_length=100)
     color = models.CharField(max_length=50, default="blue")  # For UI badge colors
+    icon = models.CharField(max_length=64, blank=True, default="")
+    is_system = models.BooleanField(default=False)
+    permissions = models.JSONField(default=dict, blank=True)
+    sort_order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -83,6 +96,13 @@ class Shift(models.Model):
     name = models.CharField(max_length=100)
     start_time = models.TimeField()
     end_time = models.TimeField()
+    days_of_week = models.JSONField(default=list, blank=True)
+    role_ids = models.JSONField(default=list, blank=True)
+    min_staff = models.PositiveIntegerField(default=0)
+    staff_assignments = models.JSONField(default=list, blank=True)
+    overtime_threshold_hours = models.PositiveIntegerField(default=40)
+    allow_swaps = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -112,7 +132,7 @@ class StaffMember(models.Model):
     restaurant_id = models.CharField(max_length=50, db_index=True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True, db_index=True)
+    email = models.EmailField(db_index=True)
     phone = models.CharField(max_length=20)
     dob = models.DateField(null=True, blank=True)
     profile_photo = models.URLField(blank=True, default="")
@@ -124,14 +144,17 @@ class StaffMember(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Active')
     
     assigned_shift = models.CharField(max_length=50, blank=True)  # References Shift.id
-    pin = models.CharField(max_length=4, unique=True, null=True, blank=True)
+    pin = models.CharField(max_length=4, null=True, blank=True)
     admin_access = models.BooleanField(default=False)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('restaurant_id', 'email')
+        unique_together = (
+            ('restaurant_id', 'email'),
+            ('restaurant_id', 'pin'),
+        )
         indexes = [
             models.Index(fields=['restaurant_id']),
             models.Index(fields=['restaurant_id', 'status']),

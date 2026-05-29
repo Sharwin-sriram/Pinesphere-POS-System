@@ -1,5 +1,4 @@
 import axios from "axios";
-import { getRoleHomePath } from "./authRoutes";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -241,7 +240,7 @@ export const authService = {
   // Restaurant login (email/password)
   restaurantLogin: async (payload) => {
     try {
-      const response = await api.post("/api/restaurant/login", {
+      const response = await api.post("/auth/login/email/", {
         ...payload,
         device_id: getOrCreateDeviceId(),
         device_type: "WEB",
@@ -252,13 +251,6 @@ export const authService = {
 
       return { success: true, data: response.data };
     } catch (error) {
-      if (error?.response?.status === 404) {
-        return {
-          success: false,
-          error: "No restaurant account found with these credentials. Please sign up first.",
-        };
-      }
-
       return {
         success: false,
         error: extractApiError(error, "Restaurant login failed"),

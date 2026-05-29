@@ -1,14 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import DashboardLanding from "./dashboard/page";
 import Header from "./components/Header";
 import Sidebar from "./components/dashboard/Sidebar";
 import { CartProvider } from "./components/dashboard/CartContext";
 import { Toaster } from "react-hot-toast";
+import authService from "./lib/authService";
+import { getRoleHomePath } from "./lib/authRoutes";
 
 export default function Home() {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+	const router = useRouter();
+
+	useEffect(() => {
+		if (!authService.isAuthenticated()) return;
+
+		const roleHome = getRoleHomePath(authService.getUserRole());
+		if (roleHome && roleHome !== "/") {
+			router.replace(roleHome);
+		}
+	}, [router]);
 
 	return (
 		<CartProvider>

@@ -35,20 +35,12 @@ import { authService } from "../../lib/authService";
 
 export default function StaffManagementPage() {
   const router = useRouter();
-  const [restaurantId, setRestaurantId] = useState<string | null>(null);
-  const [restaurantName, setRestaurantName] = useState("Restaurant");
+  const [currentUser, setCurrentUser] = useState<ReturnType<typeof authService.getCurrentUser>>(null);
+  const restaurantId = currentUser?.restaurant?.id || currentUser?.restaurant_id || "";
+  const restaurantName = currentUser?.restaurant?.name || currentUser?.restaurant_name || "Restaurant";
 
-  // Get restaurant ID from authenticated user on mount
   useEffect(() => {
-    const userInfo = authService.getUserInfo();
-    if (userInfo?.restaurant_id) {
-      setRestaurantId(String(userInfo.restaurant_id));
-      setRestaurantName(userInfo.restaurant_name || "Restaurant");
-    } else {
-      // Fallback to mock data if not authenticated
-      setRestaurantId("r1");
-      setRestaurantName("KFC - Kentucky Fried Chicken");
-    }
+    setCurrentUser(authService.getCurrentUser());
   }, []);
 
   // State Hook orchestrating API queries, local states and URL syncing

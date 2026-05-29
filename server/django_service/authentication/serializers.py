@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from uuid import UUID
+
 from django.contrib.auth.password_validation import validate_password
 from django.db.models import Q
 from rest_framework import serializers
@@ -16,6 +18,7 @@ class UserSerializer(serializers.ModelSerializer):
     permissions = serializers.SerializerMethodField()
     profile_image = serializers.SerializerMethodField()
     picture = serializers.SerializerMethodField()
+    restaurant_id = serializers.SerializerMethodField()
     restaurant = serializers.SerializerMethodField()
 
     class Meta:
@@ -43,6 +46,31 @@ class UserSerializer(serializers.ModelSerializer):
     def get_permissions(self, obj):
         return list(ROLE_PERMISSIONS.get(obj.role, []))
 
+    def _clean_restaurant_id(self, value):
+        if value in (None, "", "null", "undefined"):
+            return None
+
+        restaurant_id = str(value).strip()
+        if not restaurant_id or restaurant_id.lower() in {"null", "undefined"}:
+            return None
+
+        try:
+            return str(UUID(restaurant_id))
+        except (TypeError, ValueError, AttributeError):
+            return None
+
+    def get_restaurant_id(self, obj):
+        restaurant_id = self._clean_restaurant_id(obj.restaurant_id)
+        if restaurant_id:
+            return restaurant_id
+
+        if obj.role == User.RoleChoices.ORGANIZATION_OWNER and obj.email:
+            restaurant = Restaurant.objects.filter(email__iexact=obj.email).only("id").first()
+            if restaurant is not None:
+                return str(restaurant.id)
+
+        return None
+
     def get_profile_image(self, obj):
         if obj.profile_image:
             return obj.profile_image.url
@@ -52,10 +80,11 @@ class UserSerializer(serializers.ModelSerializer):
         return obj.google_picture_url or None
 
     def get_restaurant(self, obj):
-        if obj.role != User.RoleChoices.ORGANIZATION_OWNER:
+        restaurant_id = self.get_restaurant_id(obj)
+        if not restaurant_id:
             return None
 
-        restaurant = Restaurant.objects.filter(email__iexact=obj.email or "").first()
+        restaurant = Restaurant.objects.filter(id=restaurant_id).first()
         if restaurant is None:
             return None
 

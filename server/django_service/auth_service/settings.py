@@ -9,7 +9,8 @@ from decouple import Csv, config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config("SECRET_KEY", default="django-insecure-change-me")
-DEBUG = config("DEBUG", default=False, cast=bool)
+DEBUG_VALUE = str(config("DEBUG", default="False")).strip().lower()
+DEBUG = DEBUG_VALUE in {"1", "true", "yes", "on", "debug", "development", "dev"}
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
 USE_CLOUDINARY = config("USE_CLOUDINARY", default=False, cast=bool)
 CLOUDINARY_CLOUD_NAME = config("CLOUDINARY_CLOUD_NAME", default="")
@@ -32,6 +33,7 @@ INSTALLED_APPS = [
     "apps.inventory",
     "apps.pos",
     "apps.kitchen_display_system",
+    "apps.restaurant_settings",
     "apps.hr",
 ]
 

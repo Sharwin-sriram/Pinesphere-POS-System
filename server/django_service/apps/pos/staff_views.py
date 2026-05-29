@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from datetime import date
 from django.db.models import Q
+from django.utils.dateparse import parse_date
 from .models import StaffMember, Role, Shift
 
 
@@ -133,6 +134,16 @@ def restaurant_staff_list(request, pk):
     
     elif request.method == "POST":
         data = request.data
+
+        def parse_optional_date(value):
+            if not value:
+                return None
+            if hasattr(value, "isoformat"):
+                return value
+            parsed = parse_date(str(value))
+            if parsed is None:
+                raise ValueError("Invalid date format")
+            return parsed
         
         # Validation
         first_name = data.get("first_name", "").strip()
@@ -147,32 +158,35 @@ def restaurant_staff_list(request, pk):
             )
         
         # Check email uniqueness
-        if StaffMember.objects.filter(email=email).exists():
+        if StaffMember.objects.filter(restaurant_id=pk, email__iexact=email).exists():
             return Response(
                 {"detail": "Email already exists"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
         # Check PIN uniqueness if provided
-        pin = data.get("pin")
-        if pin and StaffMember.objects.filter(pin=pin).exists():
+        pin = (data.get("pin") or "").strip() or None
+        if pin and StaffMember.objects.filter(restaurant_id=pk, pin=pin).exists():
             return Response(
                 {"detail": "PIN already assigned to another member"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
         try:
+            dob = parse_optional_date(data.get("dob"))
+            date_joined = parse_optional_date(data.get("date_joined")) or date.today()
+
             staff = StaffMember.objects.create(
                 restaurant_id=pk,
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
                 phone=phone,
-                dob=data.get("dob"),
+                dob=dob,
                 profile_photo=data.get("profile_photo", ""),
                 role=data.get("role", "Waiter"),
                 employment_type=data.get("employment_type", "Full-time"),
-                date_joined=data.get("date_joined", date.today()),
+                date_joined=date_joined,
                 salary_rate=float(data.get("salary_rate", 0)),
                 status=data.get("status", "Active"),
                 assigned_shift=data.get("assigned_shift", ""),
@@ -204,16 +218,24 @@ def restaurant_staff_detail(request, pk, staff_id):
     
     elif request.method == "PUT":
         data = request.data
+
+        def parse_optional_date(value, fallback):
+            if not value:
+                return fallback
+            if hasattr(value, "isoformat"):
+                return value
+            parsed = parse_date(str(value))
+            return parsed or fallback
         
         # Update fields
         staff.first_name = data.get("first_name", staff.first_name).strip()
         staff.last_name = data.get("last_name", staff.last_name).strip()
         staff.phone = data.get("phone", staff.phone).strip()
-        staff.dob = data.get("dob", staff.dob)
+        staff.dob = parse_optional_date(data.get("dob"), staff.dob)
         staff.profile_photo = data.get("profile_photo", staff.profile_photo)
         staff.role = data.get("role", staff.role)
         staff.employment_type = data.get("employment_type", staff.employment_type)
-        staff.date_joined = data.get("date_joined", staff.date_joined)
+        staff.date_joined = parse_optional_date(data.get("date_joined"), staff.date_joined)
         staff.assigned_shift = data.get("assigned_shift", staff.assigned_shift)
         staff.admin_access = bool(data.get("admin_access", staff.admin_access))
         staff.status = data.get("status", staff.status)
@@ -225,8 +247,8 @@ def restaurant_staff_detail(request, pk, staff_id):
                 pass
         
         if "pin" in data:
-            pin = data.get("pin")
-            if pin and StaffMember.objects.filter(pin=pin).exclude(id=staff.id).exists():
+            pin = (data.get("pin") or "").strip() or None
+            if pin and StaffMember.objects.filter(restaurant_id=pk, pin=pin).exclude(id=staff.id).exists():
                 return Response(
                     {"detail": "PIN already assigned to another member"},
                     status=status.HTTP_400_BAD_REQUEST

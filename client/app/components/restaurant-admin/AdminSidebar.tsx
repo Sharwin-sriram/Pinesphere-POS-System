@@ -1,6 +1,6 @@
 "use client";
 
-import { Briefcase, Calendar, Grid, Home, LayoutGrid, LogOut, Monitor, Package, PieChart, ShoppingBag, Users, X } from "lucide-react";
+import { Briefcase, Calendar, Grid, Home, LayoutGrid, LogOut, Package, PieChart, Settings, ShoppingBag, Users, X } from "lucide-react";
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -22,6 +22,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     { name: "Reports", icon: PieChart, path: "/restaurant-admin/reports" },
     { name: "Order/Table", icon: ShoppingBag, path: "/restaurant-admin/orders" },
     { name: "Reservation", icon: Calendar, path: "/restaurant-admin/reservation" },
+    { name: "Settings", icon: Settings, path: "/settings" },
     { name: "Franchise", icon: Briefcase, path: "/restaurant-admin/franschise" },
   ];
 

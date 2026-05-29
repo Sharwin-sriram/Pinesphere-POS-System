@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
+from uuid import UUID
 from urllib.parse import parse_qsl, urlencode, urlsplit
 from urllib.request import Request, urlopen
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 
@@ -27,16 +29,33 @@ class AuthService:
     """Domain service for user registration, login, sessions, and password flows."""
 
     @staticmethod
+    def clean_restaurant_id(value):
+        """Return a UUID restaurant id string, or None for stale/invalid values."""
+
+        if value in (None, "", "null", "undefined"):
+            return None
+
+        restaurant_id = str(value).strip()
+        if not restaurant_id or restaurant_id.lower() in {"null", "undefined"}:
+            return None
+
+        try:
+            return str(UUID(restaurant_id))
+        except (TypeError, ValueError, AttributeError):
+            return None
+
+    @staticmethod
     def resolve_restaurant_for_user(user):
         """Return the restaurant linked to a user, falling back to owner email matching."""
 
         if not user:
             return None
 
-        if user.restaurant_id:
+        restaurant_id = AuthService.clean_restaurant_id(user.restaurant_id)
+        if restaurant_id:
             try:
-                return Restaurant.objects.get(id=user.restaurant_id)
-            except (Restaurant.DoesNotExist, ValueError, TypeError):
+                return Restaurant.objects.get(id=restaurant_id)
+            except (Restaurant.DoesNotExist, ValidationError, ValueError, TypeError):
                 pass
 
         if user.role == User.RoleChoices.ORGANIZATION_OWNER and user.email:
@@ -55,6 +74,7 @@ class AuthService:
         """Serialize a user into the API response shape."""
 
         restaurant = AuthService.resolve_restaurant_for_user(user)
+        restaurant_id = str(restaurant.id) if restaurant is not None else user.restaurant_id
         profile_image = user.profile_image.url if user.profile_image else None
         return {
             "id": user.id,
@@ -63,7 +83,7 @@ class AuthService:
             "first_name": user.first_name,
             "last_name": user.last_name,
             "role": user.role,
-            "restaurant_id": user.restaurant_id,
+            "restaurant_id": restaurant_id,
             "restaurant": None
             if restaurant is None
             else {
@@ -158,7 +178,7 @@ class AuthService:
             phone=phone,
             email=data["email"].strip(),
             timezone="UTC",
-            is_active=True,
+            is_active=False,
         )
 
         user = User.objects.create_user(
