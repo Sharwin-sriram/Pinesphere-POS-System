@@ -1,7 +1,15 @@
 "use client";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
 import { POSProvider } from "./components/shared/POSContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
- return <POSProvider>{children}</POSProvider>;
+ const [queryClient] = useState(() => new QueryClient());
+
+ return (
+  <QueryClientProvider client={queryClient}>
+   <POSProvider>{children}</POSProvider>
+  </QueryClientProvider>
+ );
 }

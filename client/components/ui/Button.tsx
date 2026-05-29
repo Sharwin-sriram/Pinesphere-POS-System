@@ -3,7 +3,7 @@ import React from 'react'
 import { Loader2 } from 'lucide-react'
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline' | 'success' | 'success-outline'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
   leftIcon?: React.ReactNode
@@ -35,6 +35,10 @@ export default function Button({
       'border-0 bg-transparent px-3 text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-text-primary)]',
     danger:
       'border border-[var(--color-danger)] bg-transparent text-[var(--color-danger)] hover:bg-[var(--color-danger-subtle)]',
+    success:
+      'border-0 bg-[var(--color-accent-green)] text-[var(--color-text-inverse)] hover:bg-[var(--color-accent-green-hover)] active:bg-[var(--color-accent-green-active)]',
+    'success-outline':
+      'border border-[var(--color-accent-green)] bg-transparent text-[var(--color-accent-green)] hover:bg-[var(--color-accent-green-subtle)] hover:border-[var(--color-accent-green-hover)]',
   }
   const sizes: Record<NonNullable<ButtonProps['size']>, string> = {
     sm: 'h-8 px-4 text-[length:var(--text-sm)]',

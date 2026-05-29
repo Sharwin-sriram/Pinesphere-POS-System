@@ -1,9 +1,10 @@
 "use client";
 
 import { Star } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { useCart } from "./CartContext";
+import authService from "../../lib/authService";
 
 interface FoodCardProps {
  id: string;
@@ -18,6 +19,12 @@ interface FoodCardProps {
 
 export default function FoodCard({ id, name, restaurant, rating, time, price, tags, imageUrl }: FoodCardProps) {
  const { addToCart } = useCart();
+ const [isRestaurantUser, setIsRestaurantUser] = useState(false);
+
+ useEffect(() => {
+	 const role = authService.getUserRole();
+	 setIsRestaurantUser(["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(role || ""));
+ }, []);
 
  const handleAdd = (e: React.MouseEvent) => {
  e.preventDefault();
@@ -62,12 +69,14 @@ export default function FoodCard({ id, name, restaurant, rating, time, price, ta
  <span className="font-semibold text-[var(--color-text-primary)]">₹{price}</span>
  </div>
  
- <button 
- onClick={handleAdd}
- className="btn-light !px-6 !py-2 !rounded-lg text-sm uppercase tracking-wide z-10"
- >
- Add
- </button>
+ {!isRestaurantUser && (
+	<button 
+		onClick={handleAdd}
+		className="btn-light !px-6 !py-2 !rounded-lg text-sm uppercase tracking-wide z-10"
+	>
+		Add
+	</button>
+)}
  </div>
  </div>
  </div>

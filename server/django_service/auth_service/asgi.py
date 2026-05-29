@@ -11,7 +11,10 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "auth_service.settings")
 
 django_asgi_app = get_asgi_application()
 
-from apps.kitchen_display_system.routing import websocket_urlpatterns
+from apps.kitchen_display_system.routing import websocket_urlpatterns as kds_urlpatterns
+from apps.pos.routing import websocket_urlpatterns as pos_urlpatterns
+
+websocket_urlpatterns = kds_urlpatterns + pos_urlpatterns
 
 application = ProtocolTypeRouter(
     {

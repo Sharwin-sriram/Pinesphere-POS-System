@@ -75,10 +75,9 @@ export default function WaiterDashboard() {
               <div className="flex items-center gap-1 text-xs text-[var(--color-text-secondary)] mt-3 font-medium">
                 <Users className="h-4 w-4" strokeWidth={1.5} /> {table.pax} seated
               </div>
- )}
- </Link>
- );
- })}
+            </Link>
+          );
+        })}
  </div>
  </div>
  );

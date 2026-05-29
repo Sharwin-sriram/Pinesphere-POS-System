@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -20,6 +20,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useCart } from "../../components/dashboard/CartContext";
+import { useRouter } from "next/navigation";
+import authService from "../../lib/authService";
 
 const DELIVERY_FEE = 29;
 const TAX_RATE = 0.05;
@@ -119,6 +121,12 @@ function QuantityStepper({
 function RecommendedCard({ item }: { item: (typeof RECOMMENDED)[number] }) {
   const { cartItems, addToCart, updateQuantity } = useCart();
   const inCart = cartItems.find((c) => c.id === item.id);
+  const [isRestaurantUser, setIsRestaurantUser] = useState(false);
+
+  useEffect(() => {
+    const role = authService.getUserRole();
+    setIsRestaurantUser(["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(role || ""));
+  }, []);
 
   return (
     <div className="group flex flex-col rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden hover:border-[var(--color-border-hover)] transition-smooth">
@@ -145,21 +153,23 @@ function RecommendedCard({ item }: { item: (typeof RECOMMENDED)[number] }) {
             </div>
             <p className="mt-0.5 text-sm font-semibold text-[var(--color-text-primary)]">₹{item.price}</p>
           </div>
-          {inCart ? (
-            <QuantityStepper
-              quantity={inCart.quantity}
-              onDecrement={() => updateQuantity(item.id, inCart.quantity - 1)}
-              onIncrement={() => updateQuantity(item.id, inCart.quantity + 1)}
-            />
-          ) : (
-            <button
-              onClick={() => addToCart({ id: item.id, name: item.name, price: item.price, restaurant: item.restaurant, image: item.imageUrl })}
-              className="flex h-8 items-center gap-1 rounded-lg bg-[var(--color-accent)] px-3 text-xs font-semibold text-white hover:bg-[var(--color-accent-hover)] transition-smooth"
-            >
-              <Plus className="h-3 w-3" strokeWidth={2.5} />
-              Add
-            </button>
-          )}
+          {!isRestaurantUser ? (
+            inCart ? (
+              <QuantityStepper
+                quantity={inCart.quantity}
+                onDecrement={() => updateQuantity(item.id, inCart.quantity - 1)}
+                onIncrement={() => updateQuantity(item.id, inCart.quantity + 1)}
+              />
+            ) : (
+              <button
+                onClick={() => addToCart({ id: item.id, name: item.name, price: item.price, restaurant: item.restaurant, image: item.imageUrl })}
+                className="flex h-8 items-center gap-1 rounded-lg bg-[var(--color-accent)] px-3 text-xs font-semibold text-white hover:bg-[var(--color-accent-hover)] transition-smooth"
+              >
+                <Plus className="h-3 w-3" strokeWidth={2.5} />
+                Add
+              </button>
+            )
+          ) : null}
         </div>
       </div>
     </div>
@@ -235,6 +245,15 @@ function EmptyCart() {
 
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity, clearCart, cartTotal } = useCart();
+  const router = useRouter();
+
+  useEffect(() => {
+    const userRole = authService.getUserRole();
+    const isRestaurantUser = ["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(userRole || "");
+    if (isRestaurantUser) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("delivery");
   const [address, setAddress] = useState("42 Maple Street, Apt 3B, Chennai 600001");
   const [editingAddress, setEditingAddress] = useState(false);

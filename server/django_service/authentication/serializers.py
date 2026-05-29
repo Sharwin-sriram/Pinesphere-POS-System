@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from uuid import UUID
+
 from django.contrib.auth.password_validation import validate_password
 from django.db.models import Q
 from rest_framework import serializers
@@ -16,6 +18,8 @@ class UserSerializer(serializers.ModelSerializer):
     permissions = serializers.SerializerMethodField()
     profile_image = serializers.SerializerMethodField()
     picture = serializers.SerializerMethodField()
+    restaurant_id = serializers.SerializerMethodField()
+    restaurant = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -27,6 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "role",
             "restaurant_id",
+            "restaurant",
             "branch_id",
             "is_active",
             "is_staff",
@@ -41,6 +46,31 @@ class UserSerializer(serializers.ModelSerializer):
     def get_permissions(self, obj):
         return list(ROLE_PERMISSIONS.get(obj.role, []))
 
+    def _clean_restaurant_id(self, value):
+        if value in (None, "", "null", "undefined"):
+            return None
+
+        restaurant_id = str(value).strip()
+        if not restaurant_id or restaurant_id.lower() in {"null", "undefined"}:
+            return None
+
+        try:
+            return str(UUID(restaurant_id))
+        except (TypeError, ValueError, AttributeError):
+            return None
+
+    def get_restaurant_id(self, obj):
+        restaurant_id = self._clean_restaurant_id(obj.restaurant_id)
+        if restaurant_id:
+            return restaurant_id
+
+        if obj.role == User.RoleChoices.ORGANIZATION_OWNER and obj.email:
+            restaurant = Restaurant.objects.filter(email__iexact=obj.email).only("id").first()
+            if restaurant is not None:
+                return str(restaurant.id)
+
+        return None
+
     def get_profile_image(self, obj):
         if obj.profile_image:
             return obj.profile_image.url
@@ -48,6 +78,27 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_picture(self, obj):
         return obj.google_picture_url or None
+
+    def get_restaurant(self, obj):
+        restaurant_id = self.get_restaurant_id(obj)
+        if not restaurant_id:
+            return None
+
+        restaurant = Restaurant.objects.filter(id=restaurant_id).first()
+        if restaurant is None:
+            return None
+
+        return {
+            "id": str(restaurant.id),
+            "name": restaurant.name,
+            "address": restaurant.address,
+            "phone": restaurant.phone,
+            "email": restaurant.email,
+            "timezone": restaurant.timezone,
+            "is_active": restaurant.is_active,
+            "created_at": restaurant.created_at.isoformat() if restaurant.created_at else None,
+            "updated_at": restaurant.updated_at.isoformat() if restaurant.updated_at else None,
+        }
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -59,8 +110,8 @@ class RegisterSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
     last_name = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
     role = serializers.ChoiceField(choices=User.RoleChoices.choices, required=False, default=User.RoleChoices.CUSTOMER)
-    restaurant_id = serializers.IntegerField(required=False, allow_null=True)
-    branch_id = serializers.IntegerField(required=False, allow_null=True)
+    restaurant_id = serializers.CharField(required=False, allow_null=True)
+    branch_id = serializers.CharField(required=False, allow_null=True)
 
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():

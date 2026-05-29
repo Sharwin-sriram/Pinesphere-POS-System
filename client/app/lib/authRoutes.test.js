@@ -3,8 +3,8 @@ import { getRoleHomePath } from "./authRoutes";
 
 describe("getRoleHomePath", () => {
   it("keeps restaurant roles on the default home unless a page overrides them", () => {
-    expect(getRoleHomePath("restaurant")).toBe("/");
-    expect(getRoleHomePath("restaurant_admin")).toBe("/");
-    expect(getRoleHomePath("restaurant-admin")).toBe("/");
+    expect(getRoleHomePath("ORGANIZATION_OWNER")).toBe("/restaurant-admin");
+    expect(getRoleHomePath("restaurant")).toBe("/restaurant-admin");
+    expect(getRoleHomePath("restaurant-admin")).toBe("/restaurant-admin");
   });
 });

@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import json
 import time
+from uuid import UUID
 from urllib.parse import parse_qsl, urlencode, urlsplit
 from urllib.request import Request, urlopen
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 
@@ -32,6 +34,41 @@ class AuthService:
     DEFAULT_MAX_FAILURES = 5
 
     @staticmethod
+    def clean_restaurant_id(value):
+        """Return a UUID restaurant id string, or None for stale/invalid values."""
+
+        if value in (None, "", "null", "undefined"):
+            return None
+
+        restaurant_id = str(value).strip()
+        if not restaurant_id or restaurant_id.lower() in {"null", "undefined"}:
+            return None
+
+        try:
+            return str(UUID(restaurant_id))
+        except (TypeError, ValueError, AttributeError):
+            return None
+
+    @staticmethod
+    def resolve_restaurant_for_user(user):
+        """Return the restaurant linked to a user, falling back to owner email matching."""
+
+        if not user:
+            return None
+
+        restaurant_id = AuthService.clean_restaurant_id(user.restaurant_id)
+        if restaurant_id:
+            try:
+                return Restaurant.objects.get(id=restaurant_id)
+            except (Restaurant.DoesNotExist, ValidationError, ValueError, TypeError):
+                pass
+
+        if user.role == User.RoleChoices.ORGANIZATION_OWNER and user.email:
+            return Restaurant.objects.filter(email__iexact=user.email).first()
+
+        return None
+
+    @staticmethod
     def permissions_for_role(role):
         """Return a copy of the permissions assigned to a role."""
 
@@ -41,6 +78,8 @@ class AuthService:
     def user_payload(user):
         """Serialize a user into the API response shape."""
 
+        restaurant = AuthService.resolve_restaurant_for_user(user)
+        restaurant_id = str(restaurant.id) if restaurant is not None else user.restaurant_id
         profile_image = user.profile_image.url if user.profile_image else None
         return {
             "id": user.id,
@@ -49,7 +88,20 @@ class AuthService:
             "first_name": user.first_name,
             "last_name": user.last_name,
             "role": user.role,
-            "restaurant_id": user.restaurant_id,
+            "restaurant_id": restaurant_id,
+            "restaurant": None
+            if restaurant is None
+            else {
+                "id": str(restaurant.id),
+                "name": restaurant.name,
+                "address": restaurant.address,
+                "phone": restaurant.phone,
+                "email": restaurant.email,
+                "timezone": restaurant.timezone,
+                "is_active": restaurant.is_active,
+                "created_at": restaurant.created_at.isoformat() if restaurant.created_at else None,
+                "updated_at": restaurant.updated_at.isoformat() if restaurant.updated_at else None,
+            },
             "branch_id": user.branch_id,
             "is_active": user.is_active,
             "is_staff": user.is_staff,
@@ -64,7 +116,13 @@ class AuthService:
     def issue_tokens(user, device_id=None):
         """Create a refresh/access token pair with the custom claim set."""
 
-        refresh_token = CustomRefreshToken.for_user(user, device_id=device_id)
+        restaurant = AuthService.resolve_restaurant_for_user(user)
+        restaurant_id = str(restaurant.id) if restaurant is not None else user.restaurant_id
+        refresh_token = CustomRefreshToken.for_user(
+            user,
+            device_id=device_id,
+            restaurant_id=restaurant_id,
+        )
         return str(refresh_token.access_token), str(refresh_token)
 
     @staticmethod
@@ -178,7 +236,7 @@ class AuthService:
             phone=phone,
             email=data["email"].strip(),
             timezone="UTC",
-            is_active=True,
+            is_active=False,
         )
 
         user = User.objects.create_user(

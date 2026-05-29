@@ -14,6 +14,7 @@ class JWTAuthenticationMiddleware:
 
     public_paths = {
         "/auth/register/",
+        "/auth/check-email/",
         "/auth/login/email/",
         "/auth/login/mobile/",
         "/auth/oauth/google/start/",

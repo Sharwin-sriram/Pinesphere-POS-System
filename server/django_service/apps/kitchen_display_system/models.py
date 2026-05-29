@@ -156,6 +156,10 @@ class KitchenOrderTicket(models.Model):
         ('printed', 'Printed'),
         ('reprinted', 'Reprinted'),
         ('cancelled', 'Cancelled'),
+        # KDS lifecycle statuses
+        ('bumped', 'Bumped'),
+        ('recalled', 'Recalled'),
+        ('held', 'Held'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -188,6 +192,37 @@ class KitchenOrderTicket(models.Model):
     print_count = models.IntegerField(default=0)
     last_printed_at = models.DateTimeField(null=True, blank=True)
     special_instructions = models.TextField(blank=True, null=True)
+    # KDS operational fields
+    bumped_at = models.DateTimeField(null=True, blank=True)
+    bumped_by = models.ForeignKey(
+        'authentication.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='bumped_kots',
+    )
+    recalled_at = models.DateTimeField(null=True, blank=True)
+    hold = models.BooleanField(default=False)
+    allergy_flags = models.JSONField(default=list, blank=True)
+    order_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('dine_in', 'Dine In'),
+            ('takeaway', 'Takeaway'),
+            ('delivery', 'Delivery'),
+        ],
+        default='dine_in',
+    )
+    course = models.CharField(
+        max_length=20,
+        choices=[
+            ('starter', 'Starter'),
+            ('main', 'Main'),
+            ('side', 'Side'),
+            ('dessert', 'Dessert'),
+        ],
+        default='main',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -281,6 +316,7 @@ class PrinterConfiguration(models.Model):
         blank=True
     )
     name = models.CharField(max_length=100)
+    label = models.CharField(max_length=120, blank=True, default="")
     printer_type = models.CharField(
         max_length=20,
         choices=PRINTER_TYPE_CHOICES,
@@ -296,6 +332,11 @@ class PrinterConfiguration(models.Model):
     is_active = models.BooleanField(default=True)
     is_default = models.BooleanField(default=False)
     paper_width = models.IntegerField(default=80, help_text="Paper width in mm")
+    paper_size = models.CharField(max_length=20, blank=True, default="80mm")
+    encoding = models.CharField(max_length=32, blank=True, default="UTF-8")
+    auto_cut = models.BooleanField(default=True)
+    cash_drawer_enabled = models.BooleanField(default=False)
+    assigned_order_types = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -306,6 +347,59 @@ class PrinterConfiguration(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.get_printer_type_display()})"
+
+
+class KdsStation(models.Model):
+    """Kitchen display station definitions."""
+
+    STATION_TYPE_CHOICES = [
+        ('PREP', 'Prep'),
+        ('EXPO', 'Expo'),
+        ('BAR', 'Bar'),
+        ('PASS', 'Pass'),
+    ]
+
+    LAYOUT_CHOICES = [
+        ('grid', 'Grid'),
+        ('list', 'List'),
+        ('ticket', 'Ticket'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    restaurant = models.ForeignKey(
+        'authentication.Restaurant',
+        on_delete=models.CASCADE,
+        related_name='kds_stations'
+    )
+    name = models.CharField(max_length=100)
+    label = models.CharField(max_length=120, blank=True, default="")
+    color = models.CharField(max_length=32, blank=True, default="slate")
+    type = models.CharField(max_length=8, choices=STATION_TYPE_CHOICES, default='PREP')
+    printer = models.ForeignKey(
+        PrinterConfiguration,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='stations'
+    )
+    alert_seconds = models.PositiveIntegerField(default=300)
+    critical_seconds = models.PositiveIntegerField(default=600)
+    sound_enabled = models.BooleanField(default=True)
+    layout = models.CharField(max_length=16, choices=LAYOUT_CHOICES, default='grid')
+    menu_category_ids = models.JSONField(default=list, blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'kds_station'
+        verbose_name = 'KDS Station'
+        verbose_name_plural = 'KDS Stations'
+        unique_together = ('restaurant', 'name')
+
+    def __str__(self):
+        return f"{self.restaurant.name} - {self.name}"
 
 
 class KOTPrintLog(models.Model):

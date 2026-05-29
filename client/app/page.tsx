@@ -3,25 +3,23 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import DashboardLanding from "./dashboard/page";
-import { authService } from "./lib/authService";
-import { getRoleHomePath } from "./lib/authRoutes";
-import Topbar from "./components/dashboard/Topbar";
+import Header from "./components/Header";
 import Sidebar from "./components/dashboard/Sidebar";
 import { CartProvider } from "./components/dashboard/CartContext";
 import { Toaster } from "react-hot-toast";
+import authService from "./lib/authService";
+import { getRoleHomePath } from "./lib/authRoutes";
 
 export default function Home() {
-	const router = useRouter();
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+	const router = useRouter();
 
 	useEffect(() => {
-		if (!authService.isAuthenticated()) {
-			return;
-		}
+		if (!authService.isAuthenticated()) return;
 
-		const roleHomePath = getRoleHomePath(authService.getUserRole());
-		if (roleHomePath !== "/") {
-			router.push(roleHomePath);
+		const roleHome = getRoleHomePath(authService.getUserRole());
+		if (roleHome && roleHome !== "/") {
+			router.replace(roleHome);
 		}
 	}, [router]);
 
@@ -42,7 +40,7 @@ export default function Home() {
 					}}
 				/>
 				<Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-				<Topbar onMenuClick={() => setIsSidebarOpen(true)} />
+				<Header onMenuClick={() => setIsSidebarOpen(true)} />
 				<main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 					<DashboardLanding />
 				</main>
