@@ -12,6 +12,7 @@ type Props = {
   onAction?: () => void
   previewSrc?: string
   previewAlt?: string
+  buttonVariant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline' | 'success' | 'success-outline'
 }
 
 export default function EmptyState({
@@ -22,6 +23,7 @@ export default function EmptyState({
   onAction,
   previewSrc,
   previewAlt = 'Empty state illustration',
+  buttonVariant = 'primary',
 }: Props) {
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">
@@ -34,7 +36,7 @@ export default function EmptyState({
           {description}
         </p>
       </div>
-      {actionLabel && onAction ? <Button onClick={onAction}>{actionLabel}</Button> : null}
+      {actionLabel && onAction ? <Button variant={buttonVariant} onClick={onAction}>{actionLabel}</Button> : null}
       {previewSrc ? (
         <div className="relative mt-4 h-40 w-full max-w-[320px] overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-tertiary)]">
           <ImageWithFallback

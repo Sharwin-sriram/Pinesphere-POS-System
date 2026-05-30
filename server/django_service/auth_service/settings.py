@@ -1,6 +1,7 @@
 """Project settings for the authentication service."""
 
 from datetime import timedelta
+import hashlib
 from pathlib import Path
 
 from decouple import Csv, config
@@ -9,7 +10,8 @@ from decouple import Csv, config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config("SECRET_KEY", default="django-insecure-change-me")
-DEBUG = config("DEBUG", default=False, cast=bool)
+DEBUG_VALUE = str(config("DEBUG", default="False")).strip().lower()
+DEBUG = DEBUG_VALUE in {"1", "true", "yes", "on", "debug", "development", "dev"}
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
 USE_CLOUDINARY = config("USE_CLOUDINARY", default=False, cast=bool)
 CLOUDINARY_CLOUD_NAME = config("CLOUDINARY_CLOUD_NAME", default="")
@@ -30,6 +32,9 @@ INSTALLED_APPS = [
     "authentication",
     "apps.pos",
     "apps.kitchen_display_system",
+    "apps.orders",
+    "apps.inventory.apps.InventoryConfig",
+    "apps.restaurant_settings",
     "apps.hr",
     # Pinesphere apps (core backend)
     "pinesphere.apps.billing",
@@ -39,7 +44,7 @@ INSTALLED_APPS = [
     "pinesphere.apps.inventory",
     "pinesphere.apps.menu",
     "pinesphere.apps.crm",
-    "pinesphere.apps.orders",
+    "pinesphere.apps.orders.apps.PinesphereOrdersConfig",
     "pinesphere.apps.delivery",
     "pinesphere.apps.payments",
 ]
@@ -139,7 +144,17 @@ CORS_ALLOWED_ORIGINS = config(
 )
 
 REDIS_URL = config("REDIS_URL", default="redis://localhost:6379/0")
-JWT_SECRET = config("JWT_SECRET", default=SECRET_KEY)
+
+
+def _normalize_signing_key(raw_value: str, fallback_value: str) -> str:
+    candidate = (raw_value or "").strip() or (fallback_value or "").strip()
+    if len(candidate) >= 32:
+        return candidate
+    digest_source = candidate or fallback_value or SECRET_KEY
+    return hashlib.sha256(digest_source.encode("utf-8")).hexdigest()
+
+
+JWT_SECRET = _normalize_signing_key(config("JWT_SECRET", default=""), SECRET_KEY)
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
 FRONTEND_OAUTH_CALLBACK_URL = config(
     "FRONTEND_OAUTH_CALLBACK_URL",

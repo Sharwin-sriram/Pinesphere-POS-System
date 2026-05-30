@@ -64,9 +64,6 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        db_table = 'orders_order'
-
     def __str__(self):
         return f"Order {self.id} ({self.status})"
 
@@ -85,9 +82,6 @@ class OrderItem(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        db_table = 'orders_orderitem'
-
     def __str__(self):
         return f"{self.name} x{self.quantity}"
 
@@ -100,9 +94,6 @@ class DeliveryDetail(models.Model):
     eta = models.DateTimeField(null=True, blank=True)
     picked_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        db_table = 'orders_deliverydetail'
 
 
 class PaymentReference(models.Model):
@@ -126,5 +117,3 @@ class PaymentReference(models.Model):
     metadata = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        db_table = 'orders_paymentreference'

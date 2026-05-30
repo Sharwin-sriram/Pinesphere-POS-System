@@ -3,6 +3,7 @@ import { httpClient } from "../../lib/authService";
 export type Restaurant = {
   id: string;
   name: string;
+  email?: string;
   cuisine: string[];
   rating: number;
   delivery_time_min: number;

@@ -312,7 +312,7 @@ const RestaurantSignupForm: React.FC = () => {
     const next = searchParams.get("next");
     const safeNext = next && next.startsWith("/") ? next : null;
     const role = authService.getUserRole();
-    const fallback = role ? getRoleHomePath(role) : "/restaurant/dashboard";
+    const fallback = role ? getRoleHomePath(role) : "/restaurant-admin";
     router.replace(safeNext || fallback);
   };
 
@@ -356,13 +356,29 @@ const RestaurantSignupForm: React.FC = () => {
         success("Account created", "Welcome to your restaurant");
         redirectAfterAuth();
       } else {
-        // Best-effort step routing based on likely duplicate-email errors.
-        if (String(result.error || "").toLowerCase().includes("email")) {
-          error("Create account failed", result.error || "Email already registered");
-          setErrors((prev) => ({ ...prev, email: "Email already registered" }));
+        // Extract detailed error message from backend
+        const errorMessage = result.error || "Unable to create account";
+        const errorLower = String(errorMessage).toLowerCase();
+
+        // Display detailed error in toast
+        if (errorLower.includes("email")) {
+          error("Email Error", errorMessage);
+          setErrors((prev) => ({ ...prev, email: errorMessage }));
+          setStep(1);
+        } else if (errorLower.includes("phone")) {
+          error("Phone Error", errorMessage);
+          setErrors((prev) => ({ ...prev, phone: errorMessage }));
+          setStep(2);
+        } else if (errorLower.includes("restaurant")) {
+          error("Restaurant Name Error", errorMessage);
+          setErrors((prev) => ({ ...prev, restaurantName: errorMessage }));
+          setStep(2);
+        } else if (errorLower.includes("password")) {
+          error("Password Error", errorMessage);
+          setErrors((prev) => ({ ...prev, password: errorMessage }));
           setStep(1);
         } else {
-          error("Create account failed", result.error || "Unable to create account");
+          error("Account Creation Failed", errorMessage);
         }
       }
     } catch {

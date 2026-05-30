@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useEffect, useState, useMemo, useRef } from "react";
+
 import { ArrowLeft, Clock, MapPin, Star, AlertCircle, RefreshCw, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";

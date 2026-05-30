@@ -11,10 +11,13 @@ interface SuperAdminHeaderProps {
 
 export default function SuperAdminHeader({ onMenuClick }: SuperAdminHeaderProps) {
  const pathname = usePathname();
- 
- const title = pathname === "/super-admin" 
- ? "Platform Dashboard" 
- : pathname.split("/").pop()?.charAt(0).toUpperCase() + pathname.split("/").pop()?.slice(1)!;
+
+ const pageKey = pathname.split("/").pop() ?? "";
+ const title =
+   pathname === "/super-admin"
+     ? "Subscription & Billing"
+     : pageKey.charAt(0).toUpperCase() + pageKey.slice(1);
+ const subtitle = pathname === "/super-admin" ? "SaaS Revenue Console" : "Global Overview";
 
  return (
  <header className="sticky top-0 z-30 w-full glass-light border-b border-white/40 h-20 flex items-center justify-between px-6">
@@ -27,7 +30,7 @@ export default function SuperAdminHeader({ onMenuClick }: SuperAdminHeaderProps)
  </button>
  <div>
  <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] tracking-wide">{title}</h1>
- <p className="text-sm text-gray-500">Global Overview</p>
+ <p className="text-sm text-gray-500">{subtitle}</p>
  </div>
  </div>
 

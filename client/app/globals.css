@@ -29,6 +29,10 @@
 
   --color-success: #10b981;
   --color-success-subtle: rgba(16, 185, 129, 0.12);
+  --color-accent-green: #10b981;
+  --color-accent-green-hover: #059669;
+  --color-accent-green-active: #047857;
+  --color-accent-green-subtle: rgba(16, 185, 129, 0.12);
   --color-warning: #f59e0b;
   --color-warning-subtle: rgba(245, 158, 11, 0.12);
   --color-danger: #ef4444;
@@ -130,6 +134,10 @@
   --color-success: var(--color-success);
   --color-warning: var(--color-warning);
   --color-danger: var(--color-danger);
+  --color-accent-green: var(--color-accent-green);
+  --color-accent-green-hover: var(--color-accent-green-hover);
+  --color-accent-green-active: var(--color-accent-green-active);
+  --color-accent-green-subtle: var(--color-accent-green-subtle);
   --font-sans: var(--font-ui);
   --font-mono: var(--font-mono);
 }

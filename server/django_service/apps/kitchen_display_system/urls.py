@@ -12,6 +12,7 @@ from .views import (
     OrderPriorityViewSet,
     KitchenAlertViewSet,
     KitchenDashboardViewSet,
+    KDSTicketViewSet,
 )
 
 # Create router and register viewsets
@@ -27,6 +28,7 @@ router.register(r'priorities', OrderPriorityViewSet, basename='order-priority')
 router.register(r'alerts', KitchenAlertViewSet, basename='kitchen-alert')
 router.register(r'dashboard', KitchenDashboardViewSet, basename='kitchen-dashboard')
 router.register(r'kot', KOTViewSet, basename='phase1-kot')
+router.register(r'tickets', KDSTicketViewSet, basename='kds-ticket')
 
 app_name = 'kitchen_display_system'
 

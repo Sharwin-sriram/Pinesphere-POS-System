@@ -178,3 +178,59 @@ class KitchenDashboardSerializer(serializers.Serializer):
     preparing_orders = KitchenOrderTicketSerializer(many=True)
     ready_orders = KitchenOrderTicketSerializer(many=True)
     delayed_orders = KitchenOrderTicketSerializer(many=True)
+
+
+class KDSTicketSerializer(serializers.ModelSerializer):
+    """Serializer for the KDS board — extends KOT with operational fields."""
+    elapsed_seconds = serializers.SerializerMethodField()
+    order_number = serializers.SerializerMethodField()
+    table_number = serializers.SerializerMethodField()
+    bumped_by_name = serializers.SerializerMethodField()
+    item_details = serializers.SerializerMethodField()
+
+    class Meta:
+        model = KitchenOrderTicket
+        fields = [
+            'id', 'kot_number', 'order', 'order_number', 'table_number',
+            'kitchen', 'department', 'status', 'course', 'order_type',
+            'items', 'item_details', 'special_instructions',
+            'allergy_flags', 'hold',
+            'bumped_at', 'bumped_by', 'bumped_by_name',
+            'recalled_at', 'created_at', 'updated_at',
+            'elapsed_seconds',
+        ]
+
+    def get_elapsed_seconds(self, obj):
+        from django.utils import timezone
+        delta = timezone.now() - obj.created_at
+        return int(delta.total_seconds())
+
+    def get_order_number(self, obj):
+        return getattr(obj.order, 'order_number', None)
+
+    def get_table_number(self, obj):
+        return getattr(obj.order, 'table_number', None)
+
+    def get_bumped_by_name(self, obj):
+        if obj.bumped_by:
+            return f"{obj.bumped_by.first_name} {obj.bumped_by.last_name}".strip()
+        return None
+
+    def get_item_details(self, obj):
+        return [
+            {
+                'id': str(item.id),
+                'name': item.item_name,
+                'quantity': item.quantity,
+                'special_instructions': item.special_instructions,
+            }
+            for item in obj.items.all()
+        ]
+
+
+class KDSStatsSerializer(serializers.Serializer):
+    """Serializer for KDS aggregate statistics."""
+    active_count = serializers.IntegerField()
+    overdue_count = serializers.IntegerField()
+    bumped_today = serializers.IntegerField()
+    avg_prep_seconds = serializers.FloatField()
