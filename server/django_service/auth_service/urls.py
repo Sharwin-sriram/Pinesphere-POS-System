@@ -44,6 +44,7 @@ urlpatterns = [
     path("api/", include("apps.inventory.urls")),
     path("api/hr/", include("apps.hr.urls")),
     path("api/", include("apps.pos.urls")),
+    path("api/waiter/", include("apps.waiter.urls")),
 ]
 
 if settings.DEBUG:
