@@ -36,7 +36,7 @@ export default function HRLayout({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 overflow-y-auto py-4 custom-scrollbar-light">
           <ul className="space-y-1 px-3">
             {navigation.map((item) => {
-              const isActive = pathname === item.href || (item.href !== '/hr' && pathname.startsWith(item.href));
+              const isActive = pathname === item.href || (item.href !== '/hr' && pathname?.startsWith(item.href));
               return (
                 <li key={item.name}>
                   <Link

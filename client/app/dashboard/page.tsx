@@ -20,12 +20,12 @@ function DashboardLandingContent() {
   const pathname = usePathname();
 
   // Local state for immediate search typing, initialized from query params
-  const [searchVal, setSearchVal] = useState(() => searchParams.get("q") || "");
+  const [searchVal, setSearchVal] = useState(() => searchParams?.get("q") || "");
 
   // Read search params directly for state selection
-  const cuisine = searchParams.get("cuisine") || "All";
-  const minRating = Number(searchParams.get("min_rating")) || 0;
-  const sort = (searchParams.get("sort") as any) || "rating_desc";
+  const cuisine = searchParams?.get("cuisine") || "All";
+  const minRating = Number(searchParams?.get("min_rating")) || 0;
+  const sort = (searchParams?.get("sort") as any) || "rating_desc";
 
   // Debounced URL search updates
   const debouncedUpdateUrl = useMemo(
@@ -37,7 +37,7 @@ function DashboardLandingContent() {
         } else {
           params.delete("q");
         }
-        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+        router.replace(`${pathname || ""}?${params.toString()}`, { scroll: false });
       }, 300),
     [pathname, router]
   );
@@ -49,7 +49,7 @@ function DashboardLandingContent() {
   }, [debouncedUpdateUrl]);
 
   // If URL changes from outside (e.g. back button), sync the local input state
-  const qParam = searchParams.get("q") || "";
+  const qParam = searchParams?.get("q") || "";
   useEffect(() => {
     setSearchVal(qParam);
   }, [qParam]);
@@ -83,13 +83,13 @@ function DashboardLandingContent() {
     } else {
       params.set("cuisine", val);
     }
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    router.replace(`${pathname || ""}?${params.toString()}`, { scroll: false });
   };
 
   const handleSortChange = (val: string) => {
     const params = new URLSearchParams(window.location.search);
     params.set("sort", val);
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    router.replace(`${pathname || ""}?${params.toString()}`, { scroll: false });
   };
 
   const handleRatingChange = (val: number) => {
@@ -99,12 +99,12 @@ function DashboardLandingContent() {
     } else {
       params.set("min_rating", String(val));
     }
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    router.replace(`${pathname || ""}?${params.toString()}`, { scroll: false });
   };
 
   const clearFilters = () => {
     setSearchVal("");
-    router.replace(pathname, { scroll: false });
+    router.replace(pathname || "", { scroll: false });
   };
 
   return (

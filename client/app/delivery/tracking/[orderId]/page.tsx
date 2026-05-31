@@ -24,7 +24,7 @@ export default function OrderTrackingDetailsPage() {
               </h1>
 
               <p className="text-gray-500 mt-2">
-                Tracking ID: {params.orderId}
+                Tracking ID: {params?.orderId}
               </p>
             </div>
 

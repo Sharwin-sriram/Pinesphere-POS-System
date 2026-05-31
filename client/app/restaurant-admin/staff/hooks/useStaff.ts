@@ -30,13 +30,13 @@ export function useStaff(restaurantId: string) {
 
   // Read initial filters from search parameters
   const [filters, setFilters] = useState<StaffFilters>({
-    search: searchParams.get("search") || "",
-    role: searchParams.get("role") || "",
-    status: searchParams.get("status") || "",
-    shift: searchParams.get("shift") || "",
-    sort: searchParams.get("sort") || "name_asc",
-    page: parseInt(searchParams.get("page") || "1", 10),
-    page_size: parseInt(searchParams.get("page_size") || "10", 10),
+    search: searchParams?.get("search") || "",
+    role: searchParams?.get("role") || "",
+    status: searchParams?.get("status") || "",
+    shift: searchParams?.get("shift") || "",
+    sort: searchParams?.get("sort") || "name_asc",
+    page: parseInt(searchParams?.get("page") || "1", 10),
+    page_size: parseInt(searchParams?.get("page_size") || "10", 10),
   });
 
   // Sync state filter updates to browser URL query parameters
@@ -56,9 +56,9 @@ export function useStaff(restaurantId: string) {
       }
 
       const nextQuery = params.toString();
-      const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-      const currentQuery = searchParams.toString();
-      const currentUrl = currentQuery ? `${pathname}?${currentQuery}` : pathname;
+      const nextUrl = nextQuery ? `${pathname || ""}?${nextQuery}` : (pathname || "");
+      const currentQuery = searchParams?.toString() || "";
+      const currentUrl = currentQuery ? `${pathname || ""}?${currentQuery}` : (pathname || "");
 
       if (nextUrl !== currentUrl) {
         router.replace(nextUrl);
@@ -95,16 +95,15 @@ export function useStaff(restaurantId: string) {
     setFilters(cleared);
   }, []);
 
-  // Synchronize browser backward/forward navigation changes with local React state
   useEffect(() => {
     setFilters({
-      search: searchParams.get("search") || "",
-      role: searchParams.get("role") || "",
-      status: searchParams.get("status") || "",
-      shift: searchParams.get("shift") || "",
-      sort: searchParams.get("sort") || "name_asc",
-      page: parseInt(searchParams.get("page") || "1", 10),
-      page_size: parseInt(searchParams.get("page_size") || "10", 10),
+      search: searchParams?.get("search") || "",
+      role: searchParams?.get("role") || "",
+      status: searchParams?.get("status") || "",
+      shift: searchParams?.get("shift") || "",
+      sort: searchParams?.get("sort") || "name_asc",
+      page: parseInt(searchParams?.get("page") || "1", 10),
+      page_size: parseInt(searchParams?.get("page_size") || "10", 10),
     });
   }, [searchParams]);
 

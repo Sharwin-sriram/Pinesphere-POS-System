@@ -103,10 +103,58 @@ def create_order(payload: dict, user=None) -> models.Order:
 
 
 def update_order_status(order: models.Order, new_status: str, changed_by=None) -> models.Order:
+    old_status = order.status
     order.status = new_status
     order.updated_at = timezone.now()
     order.save(update_fields=['status', 'updated_at'])
+
+    # Deduct menu item stock when order is accepted (→ preparing)
+    if new_status == 'preparing' and old_status in ('pending', 'confirmed'):
+        _deduct_menu_item_quantities(order)
+
     return order
+
+
+def _deduct_menu_item_quantities(order: models.Order) -> None:
+    """Atomically deduct ordered quantities from MenuItem stock on acceptance.
+
+    - Uses select_for_update() to prevent race conditions on concurrent orders.
+    - Floors at 0 to avoid negative stock.
+    - Automatically marks a MenuItem 'Out of Stock' when quantity reaches 0.
+    - Fails silently per item so one bad item never blocks the whole order.
+    """
+    try:
+        from apps.pos.models import MenuItem
+    except ImportError:
+        return  # POS app not available
+
+    with transaction.atomic():
+        for item in order.items.select_related():
+            if not item.menu_item_id:
+                continue
+            try:
+                menu_item = (
+                    MenuItem.objects
+                    .select_for_update()
+                    .get(id=int(item.menu_item_id))
+                )
+                ordered_qty  = int(item.quantity or 1)
+                new_qty      = max(0, menu_item.quantity - ordered_qty)
+                menu_item.quantity = new_qty
+
+                if new_qty == 0:
+                    menu_item.status = 'Out of Stock'
+                elif menu_item.status == 'Out of Stock' and new_qty > 0:
+                    # Was out of stock but got restocked externally — keep active
+                    menu_item.status = 'Active'
+
+                menu_item.save(update_fields=['quantity', 'status', 'updated_at'])
+            except (MenuItem.DoesNotExist, ValueError, TypeError):
+                # Menu item deleted or ID invalid — skip gracefully
+                continue
+            except Exception:
+                # Never let stock deduction crash an accepted order
+                continue
 
 
 def add_order_item(order: models.Order, item_payload: dict) -> models.OrderItem:

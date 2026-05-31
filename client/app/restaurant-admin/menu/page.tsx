@@ -193,6 +193,10 @@ export default function MenuManagementPage() {
   };
 
   const handleFormSubmit = async (payload: Partial<MenuItem>) => {
+    if (!restaurantId) {
+      toast.error("Restaurant context not resolved.");
+      return;
+    }
     const isEdit = !!activeEditItem;
     const toastId = toast.loading(isEdit ? "Updating item..." : "Creating item...");
 

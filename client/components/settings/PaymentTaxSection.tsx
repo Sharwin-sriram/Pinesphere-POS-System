@@ -122,16 +122,16 @@ export default function PaymentTaxSection() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <Select label="Rounding rule" {...form.register("rounding_rule") as never}>
+            <Select label="Rounding rule" {...form.register("rounding_rule") as any}>
               <option value="0.01">Nearest 0.01</option>
               <option value="0.05">Nearest 0.05</option>
               <option value="0.10">Nearest 0.10</option>
             </Select>
-            <Input label="Stripe terminal ID" {...form.register("terminal_ids.stripe") as never} />
+            <Input label="Stripe terminal ID" {...form.register("terminal_ids.stripe") as any} />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            <Input label="Square device ID" {...form.register("terminal_ids.square") as never} />
-            <Input label="Tip presets" {...form.register("tip_presets.0" as never)} />
+            <Input label="Square device ID" {...form.register("terminal_ids.square") as any} />
+            <Input label="Tip presets" {...form.register("tip_presets.0" as any)} />
           </div>
         </form>
       )}

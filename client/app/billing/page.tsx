@@ -106,7 +106,7 @@ export default function BillingPage() {
   }, []);
 
   const selectedPlan = useMemo(() => {
-    const planFromQuery = searchParams.get("plan");
+    const planFromQuery = searchParams?.get("plan");
     return getPlanByName(planFromQuery ?? currentPlanName);
   }, [currentPlanName, searchParams]);
 

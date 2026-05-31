@@ -12,16 +12,16 @@ interface WaiterHeaderProps {
 export default function WaiterHeader({ onMenuClick }: WaiterHeaderProps) {
  const pathname = usePathname();
  
- let title = "Waiter Dashboard";
- if (pathname.includes("/waiter/table/")) {
- title = `Table ${pathname.split("/").pop()}`;
- } else if (pathname === "/waiter/orders") {
- title = "Current Orders";
- } else if (pathname === "/waiter/account") {
- title = "My Account";
- } else if (pathname === "/waiter") {
- title = "Select Table";
- }
+  let title = "Waiter Dashboard";
+  if (pathname?.includes("/waiter/table/")) {
+    title = `Table ${pathname.split("/").pop()}`;
+  } else if (pathname === "/waiter/orders") {
+    title = "Current Orders";
+  } else if (pathname === "/waiter/account") {
+    title = "My Account";
+  } else if (pathname === "/waiter") {
+    title = "Select Table";
+  }
 
   return (
     <header className="sticky top-0 z-30 w-full bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] h-20 flex items-center justify-between px-6">

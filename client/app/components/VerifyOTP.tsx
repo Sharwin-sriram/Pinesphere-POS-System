@@ -26,7 +26,7 @@ const VerifyOTP = () => {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const phoneNumber = searchParams.get("phone") || "";
+  const phoneNumber = searchParams?.get("phone") || "";
 
   useEffect(() => {
     if (countdown > 0) {

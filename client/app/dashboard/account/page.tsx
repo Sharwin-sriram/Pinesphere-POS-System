@@ -117,7 +117,7 @@ export default function AccountProfilePage() {
 	confirm_password: "",
  });
 
- const isRestaurantRole = userRole && ["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(userRole);
+ const isRestaurantRole = !!(userRole && ["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(userRole));
 
  useEffect(() => {
 	let cancelled = false;
