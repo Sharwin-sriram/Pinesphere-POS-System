@@ -15,6 +15,7 @@ urlpatterns = [
     # Spec-compatible v1 prefix (keep existing /auth/ for backward compatibility).
     path("api/v1/", include("pinesphere.apps.orders.urls")),
     path("api/v1/", include("pinesphere.apps.kitchen.urls")),
+    path("api/v1/payments/", include("pinesphere.apps.payments.urls")),
     path("api/kds/", include("pinesphere.apps.kitchen.urls")),
     path("api/", include("pinesphere.apps.inventory.urls")),
     path("api/", include("authentication.urls")),

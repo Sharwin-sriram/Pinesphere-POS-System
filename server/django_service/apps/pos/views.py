@@ -16,7 +16,25 @@ from .models import StaffMember, Role, Shift, MenuItem, MenuCategory
 from authentication.models import Restaurant
 
 
-def _serialize_restaurant(r):
+def _serialize_restaurant(r, request=None):
+    # Prefer restaurant settings media (cover photo > logo) when available
+    image_url = None
+    try:
+        settings_profile = getattr(r, "settings_profile", None)
+        if settings_profile is not None:
+            # cover_photo is the banner; prefer it
+            if getattr(settings_profile, "cover_photo", None):
+                url = getattr(settings_profile.cover_photo, "url", None)
+                if url:
+                    image_url = request.build_absolute_uri(url) if request is not None else url
+            # fallback to logo
+            if not image_url and getattr(settings_profile, "logo", None):
+                url = getattr(settings_profile.logo, "url", None)
+                if url:
+                    image_url = request.build_absolute_uri(url) if request is not None else url
+    except Exception:
+        image_url = None
+
     return {
         "id": str(r.id),
         "name": r.name,
@@ -28,7 +46,7 @@ def _serialize_restaurant(r):
         "min_order_amount": 100,
         "offer_text": "Welcome offer",
         "is_open": r.is_active,
-        "image_url": "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=80",
+        "image_url": image_url or "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=80",
     }
 
 
@@ -340,7 +358,7 @@ def restaurants_list(request):
         return True
 
     db_restaurants = Restaurant.objects.all()
-    all_restaurants = [_serialize_restaurant(r) for r in db_restaurants]
+    all_restaurants = [_serialize_restaurant(r, request) for r in db_restaurants]
 
     filtered = [r for r in all_restaurants if matches(r)]
 
@@ -376,12 +394,28 @@ def restaurant_detail(request, pk):
     """
     try:
         r = Restaurant.objects.get(id=pk)
-        return Response(_serialize_restaurant(r))
+        return Response(_serialize_restaurant(r, request))
     except (Restaurant.DoesNotExist, ValueError):
         return Response({"detail": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
-def serialize_menu_item(item):
+def serialize_menu_item(item, request=None):
+    # Resolve stored media references to the actual storage URL.
+    image_url = None
+    try:
+        if item.image_url:
+            if item.image_url.startswith(("http://", "https://")):
+                image_url = item.image_url
+            else:
+                media_name = item.image_url.lstrip("/")
+                if media_name.startswith("media/"):
+                    media_name = media_name[len("media/") :]
+                image_url = default_storage.url(media_name)
+                if request is not None and image_url.startswith("/"):
+                    image_url = request.build_absolute_uri(image_url)
+    except Exception:
+        image_url = item.image_url
+
     return {
         "id": str(item.id),
         "name": item.name,
@@ -389,7 +423,7 @@ def serialize_menu_item(item):
         "price": float(item.price),
         "discount_price": float(item.discount_price) if item.discount_price is not None else None,
         "is_veg": item.is_veg,
-        "image_url": item.image_url,
+        "image_url": image_url,
         "category": item.category or "General",
         "tags": item.tags or [],
         "quantity": item.quantity,
@@ -464,7 +498,7 @@ def restaurant_menu(request, pk):
     """
     seed_menu_data_if_needed(pk)
     menu = MenuItem.objects.filter(restaurant_id=pk).order_by("id")
-    return Response([serialize_menu_item(item) for item in menu])
+    return Response([serialize_menu_item(item, request) for item in menu])
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -524,7 +558,7 @@ def restaurant_menu_list(request, pk):
 
         filtered = []
         for item in menu_queryset:
-            item_data = serialize_menu_item(item)
+            item_data = serialize_menu_item(item, request)
 
             # Search filter
             if q:
@@ -781,8 +815,9 @@ def upload_image(request):
     filename = f"{uuid.uuid4().hex[:12]}_{uploaded_file.name}"
     filepath = os.path.join("menu", filename)
     saved_path = default_storage.save(filepath, ContentFile(uploaded_file.read()))
-
-    url_path = f"/media/{saved_path}"
+    url_path = default_storage.url(saved_path)
+    if url_path.startswith("/"):
+        url_path = request.build_absolute_uri(url_path)
     return Response({"url": url_path}, status=status.HTTP_201_CREATED)
 
 # --- TABLE MANAGEMENT MOCK SERVICES & VIEWS ---

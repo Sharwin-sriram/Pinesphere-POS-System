@@ -35,10 +35,11 @@ class JWTAuthenticationMiddleware:
         if not request.path.startswith(self.protected_prefix):
             return self.get_response(request)
 
+        if request.path in self.public_paths:
+            return self.get_response(request)
+
         authorization = request.META.get("HTTP_AUTHORIZATION", "")
         if not authorization:
-            if request.path in self.public_paths:
-                return self.get_response(request)
             return JsonResponse({"message": "Unauthorized"}, status=401)
 
         try:

@@ -396,24 +396,42 @@ class AuthService:
 
     @staticmethod
     def _authenticate_user(user, password):
-        """Validate credentials for an existing user."""
+        """Validate credentials for an existing user.
+
+        Raises:
+            InvalidCredentials: If credentials are wrong, user is inactive,
+                or the account is temporarily locked after too many failures.
+        """
 
         if user is None:
             raise InvalidCredentials()
 
-        # If already locked, raise early.
+        # Check account lockout BEFORE touching the password — avoids unnecessary hashing.
         try:
             client = get_redis_client()
             key = AuthService._failure_key(user.id)
             current_failures = client.get(key)
             if current_failures is not None and int(current_failures) >= AuthService.DEFAULT_MAX_FAILURES:
-                raise InvalidCredentials()
+                import logging
+                logging.getLogger(__name__).warning(
+                    "Login blocked: account %s is locked after %s failures.",
+                    user.id,
+                    current_failures,
+                )
+                raise InvalidCredentials(
+                    "Account temporarily locked due to too many failed login attempts. "
+                    "Please wait 15 minutes or contact support."
+                )
         except InvalidCredentials:
             raise
         except Exception:
+            # Redis unavailable — degrade gracefully, do not block login.
             pass
 
-        if not user.is_active or not user.check_password(password):
+        if not user.is_active:
+            raise InvalidCredentials("This account is inactive.")
+
+        if not user.check_password(password):
             AuthService.lock_account_after_failures(user, max=AuthService.DEFAULT_MAX_FAILURES)
             raise InvalidCredentials()
 
