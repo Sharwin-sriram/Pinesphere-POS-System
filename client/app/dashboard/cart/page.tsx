@@ -17,72 +17,16 @@ import {
   Clock,
   CheckCircle2,
   Star,
-  Sparkles,
+  LogIn,
 } from "lucide-react";
 import { useCart } from "../../components/dashboard/CartContext";
+import authService from "../../lib/authService";
 
 const DELIVERY_FEE = 29;
 const TAX_RATE = 0.05;
 const FREE_DELIVERY_THRESHOLD = 499;
 
 type DeliveryMode = "delivery" | "pickup";
-
-const RECOMMENDED = [
-  {
-    id: "rec-1",
-    name: "Classic Cheeseburger",
-    restaurant: "Burger King",
-    rating: 4.5,
-    price: 199,
-    tag: "Bestseller",
-    imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: "rec-2",
-    name: "Margherita Pizza",
-    restaurant: "Domino's Pizza",
-    rating: 4.2,
-    price: 249,
-    tag: "Popular",
-    imageUrl: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: "rec-3",
-    name: "Chicken Biryani",
-    restaurant: "Behrouz Biryani",
-    rating: 4.8,
-    price: 349,
-    tag: "Top rated",
-    imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: "rec-4",
-    name: "Chocolate Truffle Cake",
-    restaurant: "Theobroma",
-    rating: 4.7,
-    price: 550,
-    tag: "Must try",
-    imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: "rec-5",
-    name: "Paneer Tikka",
-    restaurant: "Punjab Grill",
-    rating: 4.4,
-    price: 279,
-    tag: "Trending",
-    imageUrl: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: "rec-6",
-    name: "Masala Dosa",
-    restaurant: "Saravana Bhavan",
-    rating: 4.6,
-    price: 129,
-    tag: "Value pick",
-    imageUrl: "https://images.unsplash.com/photo-1630383249896-424e482df921?auto=format&fit=crop&w=400&q=80",
-  },
-];
 
 function QuantityStepper({
   quantity,
@@ -112,56 +56,6 @@ function QuantityStepper({
       >
         <Plus className="h-3 w-3" strokeWidth={2} />
       </button>
-    </div>
-  );
-}
-
-function RecommendedCard({ item }: { item: (typeof RECOMMENDED)[number] }) {
-  const { cartItems, addToCart, updateQuantity } = useCart();
-  const inCart = cartItems.find((c) => c.id === item.id);
-
-  return (
-    <div className="group flex flex-col rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden hover:border-[var(--color-border-hover)] transition-smooth">
-      <div className="relative h-36 w-full overflow-hidden bg-[var(--color-bg-tertiary)]">
-        <Image
-          src={item.imageUrl}
-          alt={item.name}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-        />
-        <span className="absolute left-2 top-2 rounded-md bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-[var(--color-text-primary)] backdrop-blur-sm">
-          {item.tag}
-        </span>
-      </div>
-      <div className="flex flex-1 flex-col p-3">
-        <p className="text-sm font-semibold text-[var(--color-text-primary)] line-clamp-1">{item.name}</p>
-        <p className="mt-0.5 text-xs text-[var(--color-text-muted)] line-clamp-1">{item.restaurant}</p>
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <div>
-            <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" strokeWidth={0} />
-              <span className="text-xs font-medium text-[var(--color-text-secondary)]">{item.rating}</span>
-            </div>
-            <p className="mt-0.5 text-sm font-semibold text-[var(--color-text-primary)]">₹{item.price}</p>
-          </div>
-          {inCart ? (
-            <QuantityStepper
-              quantity={inCart.quantity}
-              onDecrement={() => updateQuantity(item.id, inCart.quantity - 1)}
-              onIncrement={() => updateQuantity(item.id, inCart.quantity + 1)}
-            />
-          ) : (
-            <button
-              onClick={() => addToCart({ id: item.id, name: item.name, price: item.price, restaurant: item.restaurant, image: item.imageUrl })}
-              className="flex h-8 items-center gap-1 rounded-lg bg-[var(--color-accent)] px-3 text-xs font-semibold text-white hover:bg-[var(--color-accent-hover)] transition-smooth"
-            >
-              <Plus className="h-3 w-3" strokeWidth={2.5} />
-              Add
-            </button>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
@@ -214,19 +108,27 @@ function CouponInput() {
   );
 }
 
-function EmptyCart() {
+function EmptyCart({ isAuthenticated }: { isAuthenticated: boolean }) {
+  const title = isAuthenticated ? "Your cart is empty" : "Login to access the cart";
+  const description = isAuthenticated
+    ? "Add items from a restaurant to get started."
+    : "Sign in to view your cart, update items, and place an order.";
+  const ctaLabel = isAuthenticated ? "Browse restaurants" : "Login";
+  const ctaHref = isAuthenticated ? "/dashboard" : "/login?next=%2Fdashboard%2Fcart";
+  const Icon = isAuthenticated ? ShoppingBag : LogIn;
+
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] py-16 text-center">
+    <div className="flex min-h-[55vh] flex-col items-center justify-center py-12 text-center">
       <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-bg-tertiary)]">
-        <ShoppingBag className="h-7 w-7 text-[var(--color-text-muted)]" strokeWidth={1.25} />
+        <Icon className="h-7 w-7 text-[var(--color-text-muted)]" strokeWidth={1.75} />
       </div>
-      <p className="text-base font-semibold text-[var(--color-text-primary)]">Your cart is empty</p>
-      <p className="mt-1 text-sm text-[var(--color-text-muted)]">Add items from a restaurant to get started.</p>
+      <p className="text-lg font-semibold text-[var(--color-text-primary)]">{title}</p>
+      <p className="mt-1 text-sm text-[var(--color-text-muted)]">{description}</p>
       <Link
-        href="/dashboard"
-        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[var(--color-accent)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-accent-hover)] transition-smooth"
+        href={ctaHref}
+        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[var(--color-accent)] px-6 py-3 text-sm font-semibold text-white hover:bg-[var(--color-accent-hover)] transition-smooth"
       >
-        Browse restaurants
+        {ctaLabel}
         <ChevronRight className="h-4 w-4" strokeWidth={2} />
       </Link>
     </div>
@@ -239,15 +141,45 @@ export default function CartPage() {
   const [address, setAddress] = useState("42 Maple Street, Apt 3B, Chennai 600001");
   const [editingAddress, setEditingAddress] = useState(false);
   const [instructions, setInstructions] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return <div className="min-h-[65vh]" aria-hidden="true" />;
+  }
+
+  const isAuthenticated = authService.isAuthenticated() || !!authService.getCurrentUser();
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-[65vh] items-center justify-center py-10 animate-fade-in-up">
+        <div className="flex flex-col items-center justify-center text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-bg-tertiary)]">
+            <ShoppingBag className="h-7 w-7 text-[var(--color-text-muted)]" strokeWidth={1.25} />
+          </div>
+          <p className="text-base font-semibold text-[var(--color-text-primary)]">Login required</p>
+          <p className="mt-1 text-sm text-[var(--color-text-muted)] max-w-md">
+            You need to be signed in to view your cart, update items, and place an order.
+          </p>
+          <Link
+            href="/login?next=%2Fdashboard%2Fcart"
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[var(--color-accent)] px-6 py-3 text-sm font-semibold text-white hover:bg-[var(--color-accent-hover)] transition-smooth"
+          >
+            Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const subtotal = cartTotal;
   const deliveryFee = deliveryMode === "pickup" ? 0 : subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
   const tax = Math.round(subtotal * TAX_RATE * 100) / 100;
   const total = subtotal + deliveryFee + tax;
   const savings = deliveryMode === "delivery" && subtotal >= FREE_DELIVERY_THRESHOLD ? DELIVERY_FEE : 0;
-  const cartIds = new Set(cartItems.map((i) => i.id));
-  const suggestions = RECOMMENDED.filter((r) => !cartIds.has(r.id));
-
   return (
     <div className="animate-fade-in-up space-y-6">
 
@@ -279,11 +211,10 @@ export default function CartPage() {
         )}
       </div>
 
-      {/* Empty state */}
-      {cartItems.length === 0 && <EmptyCart />}
-
-      {/* Cart + summary grid */}
-      {cartItems.length > 0 && (
+      {/* Cart content */}
+      {cartItems.length === 0 ? (
+        <EmptyCart isAuthenticated={isAuthenticated} />
+      ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
 
           {/* Left column */}
@@ -465,30 +396,6 @@ export default function CartPage() {
         </div>
       )}
 
-      {/* Recommended dishes */}
-      <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-5">
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-[var(--color-accent)]" strokeWidth={1.75} />
-            <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">
-              {cartItems.length === 0 ? "Popular dishes to get you started" : "You might also like"}
-            </h2>
-          </div>
-          <Link href="/dashboard" className="text-xs font-medium text-[var(--color-blue)] hover:underline">
-            See all
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {(cartItems.length === 0 ? RECOMMENDED : suggestions.slice(0, 6)).map((item) => (
-            <RecommendedCard key={item.id} item={item} />
-          ))}
-          {cartItems.length > 0 && suggestions.length === 0 && (
-            <div className="col-span-full py-6 text-center text-sm text-[var(--color-text-muted)]">
-              You&apos;ve added all our top picks — nice taste!
-            </div>
-          )}
-        </div>
-      </section>
     </div>
   );
 }

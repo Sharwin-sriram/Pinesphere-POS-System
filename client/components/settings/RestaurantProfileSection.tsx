@@ -48,6 +48,8 @@ export default function RestaurantProfileSection() {
   const uploadCoverMutation = useUploadSettingsRestaurantCoverPhoto();
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [coverPhotoFile, setCoverPhotoFile] = useState<File | null>(null);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
   const [isClosingRestaurant, setIsClosingRestaurant] = useState(false);
   const isRestaurantActive = Boolean(data?.is_active ?? true);
 
@@ -80,6 +82,27 @@ export default function RestaurantProfileSection() {
     }
   }, [data, defaults, form]);
 
+  // Create object URLs for immediate preview when a file is selected
+  useEffect(() => {
+    if (logoFile) {
+      const url = URL.createObjectURL(logoFile);
+      setLogoPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setLogoPreviewUrl(null);
+    return;
+  }, [logoFile]);
+
+  useEffect(() => {
+    if (coverPhotoFile) {
+      const url = URL.createObjectURL(coverPhotoFile);
+      setCoverPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setCoverPreviewUrl(null);
+    return;
+  }, [coverPhotoFile]);
+
   const onSubmit = form.handleSubmit(async (values) => {
     try {
       const payload = {
@@ -94,6 +117,12 @@ export default function RestaurantProfileSection() {
       if (coverPhotoFile && updated?.id) {
         await uploadCoverMutation.mutateAsync({ restaurantId: updated.id, file: coverPhotoFile });
         setCoverPhotoFile(null);
+      }
+      // refetch settings so the newly uploaded media URLs are visible
+      try {
+        await refetch();
+      } catch (e) {
+        // ignore
       }
       toast.success("Restaurant profile saved");
       form.reset(values);
@@ -244,7 +273,16 @@ export default function RestaurantProfileSection() {
             <p className="text-sm text-[var(--color-text-secondary)]">Upload a new restaurant logo. The file is sent separately so profile edits stay lightweight.</p>
           </div>
           <Input type="file" accept="image/*" onChange={(event) => setLogoFile(event.target.files?.[0] || null)} />
-          {data?.logo ? <p className="text-xs text-[var(--color-text-muted)]">Current logo: {data.logo}</p> : null}
+          <div className="mt-2 flex items-center gap-3">
+            {logoPreviewUrl ? (
+              <img src={logoPreviewUrl} alt="Logo preview" className="h-16 w-16 rounded-md object-cover border" />
+            ) : data?.logo ? (
+              <img src={data.logo} alt="Current logo" className="h-16 w-16 rounded-md object-cover border" />
+            ) : (
+              <div className="h-16 w-16 rounded-md border bg-[var(--color-bg-tertiary)] flex items-center justify-center text-xs text-[var(--color-text-muted)]">No logo</div>
+            )}
+            {data?.logo ? <p className="text-xs text-[var(--color-text-muted)]">Current logo: {data.logo}</p> : null}
+          </div>
         </div>
 
         <div className="space-y-3">
@@ -253,7 +291,16 @@ export default function RestaurantProfileSection() {
             <p className="text-sm text-[var(--color-text-secondary)]">Upload a wide banner image for the restaurant profile header.</p>
           </div>
           <Input type="file" accept="image/*" onChange={(event) => setCoverPhotoFile(event.target.files?.[0] || null)} />
-          {data?.cover_photo ? <p className="text-xs text-[var(--color-text-muted)]">Current cover photo: {data.cover_photo}</p> : null}
+          <div className="mt-2">
+            {coverPreviewUrl ? (
+              <img src={coverPreviewUrl} alt="Cover preview" className="h-32 w-full rounded-md object-cover border" />
+            ) : data?.cover_photo ? (
+              <img src={data.cover_photo} alt="Current cover" className="h-32 w-full rounded-md object-cover border" />
+            ) : (
+              <div className="h-32 w-full rounded-md border bg-[var(--color-bg-tertiary)] flex items-center justify-center text-sm text-[var(--color-text-muted)]">No cover photo</div>
+            )}
+            {data?.cover_photo ? <p className="text-xs text-[var(--color-text-muted)]">Current cover photo: {data.cover_photo}</p> : null}
+          </div>
         </div>
 
         <div className="flex justify-end gap-3 border-t border-[var(--color-border)] pt-4">
