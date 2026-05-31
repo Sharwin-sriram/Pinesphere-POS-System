@@ -45,6 +45,26 @@ def custom_exception_handler(exc, context):
         }
         return Response(envelope, status=exc.status_code)
 
+    # Handle custom payment exceptions
+    if getattr(exc, "is_payment_exception", False):
+        envelope = {
+            "success": False,
+            "code": getattr(exc, "code", "PAYMENT_ERROR"),
+            "message": str(exc.detail) if hasattr(exc, "detail") else str(exc),
+        }
+        status_code = getattr(exc, "status_code", status.HTTP_400_BAD_REQUEST)
+        return Response(envelope, status=status_code)
+
+    # Handle django-ratelimit Ratelimited exceptions
+    from django_ratelimit.exceptions import Ratelimited
+    if isinstance(exc, Ratelimited):
+        envelope = {
+            "success": False,
+            "code": "RATE_LIMIT_EXCEEDED",
+            "message": "Rate limit exceeded. Max 10 requests per minute.",
+        }
+        return Response(envelope, status=status.HTTP_429_TOO_MANY_REQUESTS)
+
     # Fallback - unhandled exception
     envelope = {
         "success": False,
