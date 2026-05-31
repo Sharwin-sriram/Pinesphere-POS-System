@@ -2,23 +2,20 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
- BadgeCheck,
- Bell,
  Camera,
  KeyRound,
  Mail,
- Moon,
  Phone,
  ShieldCheck,
- Sun,
  User,
  Users,
  MapPin,
  Clock,
+ Trash2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
-import { authService, getMediaUrl, getUserAvatarUrl } from "../../lib/authService";
+import { authService, getUserAvatarUrl } from "../../lib/authService";
 import { restaurantService, Restaurant } from "../../lib/restaurantService";
 
 type ProfileForm = {
@@ -32,12 +29,8 @@ type ProfileForm = {
  current_password: string;
  new_password: string;
  confirm_password: string;
- dark_mode: boolean;
- notifications: boolean;
- language: string;
 };
 
-const preferenceStorageKey = "pos_profile_preferences";
 const iconClass = "h-4 w-4";
 const fieldShellClass =
 	"field-shell flex items-center gap-2 rounded-ds-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2 transition-smooth focus-within:border-[var(--color-border-focus)] focus-within:shadow-none focus-within:ring-0";
@@ -75,6 +68,7 @@ export default function AccountProfilePage() {
  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
  const [removeProfileImage, setRemoveProfileImage] = useState(false);
  const [googlePictureUrl, setGooglePictureUrl] = useState<string | null>(null);
+	 const [isDeleting, setIsDeleting] = useState(false);
  const [userRole, setUserRole] = useState<string | null>(null);
  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
  const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -89,9 +83,6 @@ export default function AccountProfilePage() {
 	current_password: "",
 	new_password: "",
 	confirm_password: "",
-	dark_mode: false,
-	notifications: true,
-	language: "English",
  });
 
  const isRestaurantRole = userRole && ["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(userRole);
@@ -113,15 +104,6 @@ export default function AccountProfilePage() {
 	 }
 
 	 const user = profileResult.data;
-	 const storedPreferences = (() => {
-		if (typeof window === "undefined") return null;
-		try {
-		 const raw = window.localStorage.getItem(preferenceStorageKey);
-		 return raw ? JSON.parse(raw) : null;
-		} catch {
-		 return null;
-		}
-	 })();
 
 	 const firstName = user?.first_name || "";
 	 const lastName = user?.last_name || "";
@@ -136,9 +118,6 @@ export default function AccountProfilePage() {
 		phone: user?.mobile || "",
 		username: user?.email?.split("@")[0] || user?.mobile || "",
 		profile_image: user?.profile_image || null,
-		dark_mode: storedPreferences?.dark_mode ?? false,
-		notifications: storedPreferences?.notifications ?? true,
-		language: storedPreferences?.language || "English",
 	 }));
 
 	 setGooglePictureUrl(user?.picture || null);
@@ -258,17 +237,6 @@ export default function AccountProfilePage() {
 	 return;
 	}
 
-	if (typeof window !== "undefined") {
-	 window.localStorage.setItem(
-		preferenceStorageKey,
-		JSON.stringify({
-		 dark_mode: profile.dark_mode,
-		 notifications: profile.notifications,
-		 language: profile.language,
-		}),
-	 );
-	}
-
 	setGooglePictureUrl(result.data?.picture || null);
 	setProfileImagePreview(getUserAvatarUrl(result.data));
 
@@ -291,6 +259,23 @@ export default function AccountProfilePage() {
 	setIsSaving(false);
 	toast.success("Profile saved");
  };
+
+ const handleDeleteAccount = async () => {
+	const confirmed = window.confirm(
+		"Delete your account? This will deactivate access and remove your saved profile data.",
+	);
+	if (!confirmed) {
+		return;
+	}
+
+	setIsDeleting(true);
+	const result = await authService.deleteAccount();
+	if (!result.success) {
+		setIsDeleting(false);
+		toast.error(result.error || "Unable to delete account");
+		return;
+	}
+	};
 
  if (isLoading) {
 	return (
@@ -382,7 +367,7 @@ export default function AccountProfilePage() {
 					 onClick={() => {
 						setProfileImageFile(null);
 						setRemoveProfileImage(true);
-						setProfileImagePreview(googlePictureUrl ? getMediaUrl(googlePictureUrl) : null);
+						setProfileImagePreview(googlePictureUrl || null);
 						updateField("profile_image", null);
 						setIsEditing(true);
 					 }}
@@ -690,87 +675,35 @@ export default function AccountProfilePage() {
 		</section>
 	 </div>
 
-	 {!isRestaurantRole && (
-	 <section className="glass-card p-6">
+	 <section className="glass-card border border-red-200/60 p-6">
 		<div className="flex items-center gap-3">
-		 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)]">
-			<BadgeCheck className={iconClass} strokeWidth={1.5} />
+		 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600">
+			<Trash2 className={iconClass} strokeWidth={1.5} />
 		 </div>
 		 <div>
 			<h2 className="text-base font-semibold text-[var(--color-text-primary)]">
-			 Preferences
+			 Delete account
 			</h2>
 			<p className="text-sm text-[var(--color-text-secondary)]">
-			 Personalize your daily POS experience.
+			 Permanently remove access to this account and clear profile data.
 			</p>
 		 </div>
 		</div>
 
-		<div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-		 <div className="flex items-center justify-between rounded-ds-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3">
-			<div className="flex items-center gap-2">
-			 <Moon className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
-			 <span className="text-sm text-[var(--color-text-primary)]">
-				Dark mode
-			 </span>
-			</div>
-			<label className="relative inline-flex cursor-pointer items-center">
-			 <input
-				type="checkbox"
-				checked={profile.dark_mode}
-				onChange={(e) => updateField("dark_mode", e.target.checked)}
-				disabled={!isEditing}
-				className="peer sr-only"
-			 />
-			 <div className="h-6 w-11 rounded-full bg-[var(--color-bg-tertiary)] peer-checked:bg-[var(--color-blue)] transition-smooth" />
-			 <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-smooth peer-checked:translate-x-5" />
-			</label>
-		 </div>
-
-		 <div className="flex items-center justify-between rounded-ds-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3">
-			<div className="flex items-center gap-2">
-			 <Bell className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
-			 <span className="text-sm text-[var(--color-text-primary)]">
-				Notifications
-			 </span>
-			</div>
-			<label className="relative inline-flex cursor-pointer items-center">
-			 <input
-				type="checkbox"
-				checked={profile.notifications}
-				onChange={(e) => updateField("notifications", e.target.checked)}
-				disabled={!isEditing}
-				className="peer sr-only"
-			 />
-			 <div className="h-6 w-11 rounded-full bg-[var(--color-bg-tertiary)] peer-checked:bg-[var(--color-blue)] transition-smooth" />
-			 <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-smooth peer-checked:translate-x-5" />
-			</label>
-		 </div>
-
-		 <div className="flex items-center justify-between rounded-ds-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3">
-			<div className="flex items-center gap-2">
-			 <Sun className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
-			 <span className="text-sm text-[var(--color-text-primary)]">
-				Language
-			 </span>
-			</div>
-			 <div className={fieldShellClass}>
-				<select
-				 value={profile.language}
-				 onChange={(e) => updateField("language", e.target.value)}
-				 disabled={!isEditing}
-				 className={fieldSelectClass}
-				>
-			 <option>English</option>
-			 <option>Hindi</option>
-			 <option>Tamil</option>
-			 <option>Telugu</option>
-				</select>
-			 </div>
-		 </div>
+		<div className="mt-5 flex flex-col gap-3 rounded-ds-md border border-red-100 bg-red-50/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+		 <p className="text-sm text-red-800">
+			This action deactivates your login immediately.
+		 </p>
+		 <button
+			type="button"
+			onClick={handleDeleteAccount}
+			disabled={isDeleting}
+			className="rounded-ds-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-smooth hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+		 >
+			{isDeleting ? "Deleting..." : "Delete account"}
+		 </button>
 		</div>
 	 </section>
-	 )}
 
 	 <div className="sticky bottom-4 z-[var(--z-sticky)] mt-6">
 		<div className="flex flex-col gap-3 rounded-ds-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)]/95 p-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between">

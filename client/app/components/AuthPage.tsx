@@ -37,6 +37,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ defaultMode }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState("");
 
   const { success, error, ToastContainer } = useToast();
   const errorRef = React.useRef(error);
@@ -114,6 +115,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ defaultMode }) => {
     e.preventDefault();
     if (!validateLogin()) return;
     setIsLoading(true);
+    setFormError("");
     try {
       const result = await authService.loginWithEmail(formData.email, formData.password);
       if (result.success) {
@@ -125,10 +127,14 @@ const AuthPage: React.FC<AuthPageProps> = ({ defaultMode }) => {
             next && next.startsWith("/") ? next : getRoleHomePath(authService.getUserRole());
         }, 900);
       } else {
-        error("Sign in failed", result.error || "Invalid email or password");
+        const message = result.error || "Invalid email or password";
+        setFormError(message);
+        error("Sign in failed", message);
       }
-    } catch {
-      error("Sign in failed", "Something went wrong. Please try again");
+    } catch (caughtError) {
+      const message = caughtError instanceof Error ? caughtError.message : "Something went wrong. Please try again";
+      setFormError(message);
+      error("Sign in failed", message);
     } finally {
       setIsLoading(false);
     }
@@ -219,6 +225,12 @@ const AuthPage: React.FC<AuthPageProps> = ({ defaultMode }) => {
                 {isLogin ? "Sign in" : "Create account"}
               </h1>
             </div>
+
+            {formError ? (
+              <div role="alert" className="mb-5 rounded-md border border-[var(--color-danger)] bg-[var(--color-danger-subtle)] px-4 py-3 text-[length:var(--text-sm)] text-[var(--color-danger)]">
+                {formError}
+              </div>
+            ) : null}
 
             <AnimatePresence mode="wait">
 

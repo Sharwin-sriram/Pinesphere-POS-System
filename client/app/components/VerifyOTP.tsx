@@ -18,6 +18,7 @@ const VerifyOTP = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState("");
+  const [formError, setFormError] = useState("");
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [rememberDevice, setRememberDevice] = useState(false);
@@ -50,6 +51,7 @@ const VerifyOTP = () => {
   const verifyOTP = async (otpValue: string) => {
     setIsLoading(true);
     setError("");
+    setFormError("");
     try {
       const result = await authService.verifyOTP(phoneNumber, otpValue, rememberDevice);
       if (result.success) {
@@ -57,11 +59,14 @@ const VerifyOTP = () => {
         toast.success("OTP verified", authToastSuccess);
         setTimeout(() => router.push(getRoleHomePath(authService.getUserRole())), 1500);
       } else {
-        setError(result.error || "Invalid code. Check the message and try again");
-        toast.error(result.error || "Invalid code", authToastError);
+        const message = result.error || "Invalid code. Check the message and try again";
+        setFormError(message);
+        setError(message);
+        toast.error(message, authToastError);
       }
-    } catch {
-      const message = "Verification failed. Try again in a moment";
+    } catch (caughtError) {
+      const message = caughtError instanceof Error ? caughtError.message : "Verification failed. Try again in a moment";
+      setFormError(message);
       setError(message);
       toast.error(message, authToastError);
     } finally {
@@ -77,6 +82,7 @@ const VerifyOTP = () => {
   const handleResendOTP = async () => {
     setIsResending(true);
     setError("");
+    setFormError("");
     try {
       const result = await authService.sendOTP(phoneNumber);
       if (result.success) {
@@ -84,10 +90,14 @@ const VerifyOTP = () => {
         setCanResend(false);
         toast.success("New code sent", authToastSuccess);
       } else {
-        toast.error(result.error || "Could not resend code", authToastError);
+        const message = result.error || "Could not resend code";
+        setFormError(message);
+        toast.error(message, authToastError);
       }
-    } catch {
-      toast.error("Could not resend code", authToastError);
+    } catch (caughtError) {
+      const message = caughtError instanceof Error ? caughtError.message : "Could not resend code";
+      setFormError(message);
+      toast.error(message, authToastError);
     } finally {
       setIsResending(false);
     }
@@ -101,6 +111,12 @@ const VerifyOTP = () => {
         subtitle={`Enter the 6-digit code sent to +91 ${formatPhoneNumber(phoneNumber)}`}
       >
         <div className="space-y-5">
+          {formError ? (
+            <div role="alert" className="rounded-lg border border-[var(--color-danger)] bg-[var(--color-danger-subtle)] px-4 py-3 text-[length:var(--text-sm)] text-[var(--color-danger)]">
+              {formError}
+            </div>
+          ) : null}
+
           <div className="flex items-center justify-center gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] p-4">
             <div
               className={`flex h-10 w-10 items-center justify-center rounded-md ${

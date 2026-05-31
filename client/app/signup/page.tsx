@@ -1,7 +1,7 @@
 "use client";
 
-import AuthPage from "../components/AuthPage";
+import SignupForm from "../components/SignupForm";
 
 export default function SignupPage() {
-  return <AuthPage defaultMode="signup" />;
+  return <SignupForm />;
 }

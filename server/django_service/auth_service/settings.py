@@ -198,6 +198,10 @@ GOOGLE_OAUTH_USERINFO_URL = config(
     default="https://openidconnect.googleapis.com/v1/userinfo",
 )
 
+FAST2SMS_API_KEY = config("FAST2SMS_API_KEY", default="")
+FAST2SMS_DLT_SENDER_ID = config("FAST2SMS_DLT_SENDER_ID", default="")
+FAST2SMS_DLT_MESSAGE_ID = config("FAST2SMS_DLT_MESSAGE_ID", default="")
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -278,7 +282,7 @@ RAZORPAY_WEBHOOK_SECRET = env.str("RAZORPAY_WEBHOOK_SECRET")
 # Email configuration (optional)
 # ------------------------
 EMAIL_HOST = config("EMAIL_HOST", default="localhost")
-EMAIL_PORT = config("EMAIL_PORT", default=25, cast=int)
+EMAIL_PORT = int(config("EMAIL_PORT", default="25") or 25)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=False, cast=bool)
