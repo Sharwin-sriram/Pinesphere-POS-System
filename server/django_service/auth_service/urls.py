@@ -19,6 +19,8 @@ urlpatterns = [
     path("api/kds/", include("pinesphere.apps.kitchen.urls")),
     path("api/", include("pinesphere.apps.inventory.urls")),
     path("api/", include("authentication.urls")),
+    # Compatibility mount for frontend expecting /api/inventory/
+    path("api/inventory/", include("apps.inventory.urls")),
     path("api/restaurant/register", RestaurantRegisterView.as_view()),
     path(
         "api/restaurant/<uuid:restaurant_id>/branches/",

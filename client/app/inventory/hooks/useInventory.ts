@@ -9,36 +9,38 @@ import {
 } from "../services/inventoryApi";
 
 export default function useInventory() {
- const [items, setItems] =
- useState<InventoryItem[]>([]);
+ const [items, setItems] = useState<InventoryItem[]>([]);
 
- const [loading, setLoading] =
- useState(true);
+ const [loading, setLoading] = useState(true);
 
- const [error, setError] =
- useState("");
+ const [error, setError] = useState("");
 
  useEffect(() => {
+ let isMounted = true;
+
  const fetchItems = async () => {
  try {
- const data =
- await getInventoryItems();
-
+ const data = await getInventoryItems();
+ if (isMounted) {
  setItems(data);
- const timeoutId = window.setTimeout(() => {
- void fetchItems();
- }, 0);
-
- return () => window.clearTimeout(timeoutId);
- setError(
- "Failed to fetch inventory items"
- );
+ setError("");
+ }
+ } catch {
+ if (isMounted) {
+ setError("Failed to fetch inventory items");
+ }
  } finally {
+ if (isMounted) {
  setLoading(false);
+ }
  }
  };
 
- fetchItems();
+ void fetchItems();
+
+ return () => {
+ isMounted = false;
+ };
  }, []);
 
  return {
