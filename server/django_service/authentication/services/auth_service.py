@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import logging
+import uuid
 import time
 from uuid import UUID
 from urllib.parse import parse_qsl, urlencode, urlsplit
@@ -20,10 +22,12 @@ from auth_service.exceptions import InvalidCredentials, InvalidOTP, OAuthError, 
 from ..models import Restaurant, UserSession
 from ..permissions import ROLE_PERMISSIONS
 from ..tokens import CustomRefreshToken
+from ..utils import send_otp as send_login_otp, verify_otp as verify_login_otp
 from .otp_service import delete_otp, fetch_otp, generate_otp, store_otp, get_redis_client
 
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class AuthService:
@@ -396,24 +400,42 @@ class AuthService:
 
     @staticmethod
     def _authenticate_user(user, password):
-        """Validate credentials for an existing user."""
+        """Validate credentials for an existing user.
+
+        Raises:
+            InvalidCredentials: If credentials are wrong, user is inactive,
+                or the account is temporarily locked after too many failures.
+        """
 
         if user is None:
             raise InvalidCredentials()
 
-        # If already locked, raise early.
+        # Check account lockout BEFORE touching the password — avoids unnecessary hashing.
         try:
             client = get_redis_client()
             key = AuthService._failure_key(user.id)
             current_failures = client.get(key)
             if current_failures is not None and int(current_failures) >= AuthService.DEFAULT_MAX_FAILURES:
-                raise InvalidCredentials()
+                import logging
+                logging.getLogger(__name__).warning(
+                    "Login blocked: account %s is locked after %s failures.",
+                    user.id,
+                    current_failures,
+                )
+                raise InvalidCredentials(
+                    "Account temporarily locked due to too many failed login attempts. "
+                    "Please wait 15 minutes or contact support."
+                )
         except InvalidCredentials:
             raise
         except Exception:
+            # Redis unavailable — degrade gracefully, do not block login.
             pass
 
-        if not user.is_active or not user.check_password(password):
+        if not user.is_active:
+            raise InvalidCredentials("This account is inactive.")
+
+        if not user.check_password(password):
             AuthService.lock_account_after_failures(user, max=AuthService.DEFAULT_MAX_FAILURES)
             raise InvalidCredentials()
 
@@ -444,23 +466,18 @@ class AuthService:
     def send_otp(mobile):
         """Generate and store a login OTP for a mobile number."""
 
-        otp = generate_otp()
-        store_otp(mobile, otp, prefix="otp")
-        print(f"OTP for {mobile}: {otp}")
-        return otp
+        return send_login_otp(mobile)
 
     @staticmethod
     @transaction.atomic
     def verify_otp(mobile, otp, device_id, device_type, ip_address):
         """Verify a mobile OTP and authenticate or create the user."""
 
-        stored_otp = fetch_otp(mobile, prefix="otp")
-        if stored_otp is None:
+        verification_result = verify_login_otp(mobile, otp)
+        if verification_result == "expired":
             raise OTPExpired()
-        if stored_otp != otp:
+        if verification_result == "wrong":
             raise InvalidOTP()
-
-        delete_otp(mobile, prefix="otp")
 
         user = AuthService._get_user_by_mobile(mobile)
         if user is None:
@@ -504,6 +521,47 @@ class AuthService:
         device_id = token.get("device_id")
         UserSession.objects.filter(user=user, device_id=device_id, is_active=True).update(is_active=False)
         token.blacklist()
+
+    @staticmethod
+    @transaction.atomic
+    def delete_account(user, refresh_token):
+        """Deactivate a user account, clear profile data, and blacklist the refresh token."""
+
+        try:
+            token = CustomRefreshToken(refresh_token)
+        except Exception as exc:
+            raise TokenExpired() from exc
+
+        UserSession.objects.filter(user=user, is_active=True).update(is_active=False)
+        token.blacklist()
+
+        if user.profile_image:
+            user.profile_image.delete(save=False)
+
+        suffix = uuid.uuid4().hex[:8]
+        user.email = f"deleted-{user.id}-{suffix}@invalid.local"
+        user.mobile = f"del-{user.id}-{suffix}"
+        user.first_name = ""
+        user.last_name = ""
+        user.restaurant_id = None
+        user.branch_id = None
+        user.google_picture_url = ""
+        user.is_active = False
+        user.set_unusable_password()
+        user.save(
+            update_fields=[
+                "email",
+                "mobile",
+                "first_name",
+                "last_name",
+                "restaurant_id",
+                "branch_id",
+                "google_picture_url",
+                "password",
+                "is_active",
+                "updated_at",
+            ]
+        )
 
     @staticmethod
     def request_password_reset(identifier):

@@ -3,86 +3,37 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import Button from "@/components/ui/Button";
+import toast from "react-hot-toast";
 import {
   ArrowLeft,
   Minus,
   Plus,
   Trash2,
   ShoppingBag,
-  Tag,
   ChevronRight,
   MapPin,
   CreditCard,
   Bike,
   Clock,
-  CheckCircle2,
-  Star,
-  Sparkles,
+  LogIn,
 } from "lucide-react";
 import { useCart } from "../../components/dashboard/CartContext";
+import { settingsApi } from "@/lib/settingsApi";
+import authService, { httpClient } from "../../lib/authService";
 
 const DELIVERY_FEE = 29;
-const TAX_RATE = 0.05;
 const FREE_DELIVERY_THRESHOLD = 499;
 
 type DeliveryMode = "delivery" | "pickup";
 
-const RECOMMENDED = [
-  {
-    id: "rec-1",
-    name: "Classic Cheeseburger",
-    restaurant: "Burger King",
-    rating: 4.5,
-    price: 199,
-    tag: "Bestseller",
-    imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: "rec-2",
-    name: "Margherita Pizza",
-    restaurant: "Domino's Pizza",
-    rating: 4.2,
-    price: 249,
-    tag: "Popular",
-    imageUrl: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: "rec-3",
-    name: "Chicken Biryani",
-    restaurant: "Behrouz Biryani",
-    rating: 4.8,
-    price: 349,
-    tag: "Top rated",
-    imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: "rec-4",
-    name: "Chocolate Truffle Cake",
-    restaurant: "Theobroma",
-    rating: 4.7,
-    price: 550,
-    tag: "Must try",
-    imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: "rec-5",
-    name: "Paneer Tikka",
-    restaurant: "Punjab Grill",
-    rating: 4.4,
-    price: 279,
-    tag: "Trending",
-    imageUrl: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: "rec-6",
-    name: "Masala Dosa",
-    restaurant: "Saravana Bhavan",
-    rating: 4.6,
-    price: 129,
-    tag: "Value pick",
-    imageUrl: "https://images.unsplash.com/photo-1630383249896-424e482df921?auto=format&fit=crop&w=400&q=80",
-  },
-];
+interface TaxRate {
+  id: string;
+  name: string;
+  percentage: number;
+  applies_to: string;
+  compound?: boolean;
+}
 
 function QuantityStepper({
   quantity,
@@ -116,117 +67,27 @@ function QuantityStepper({
   );
 }
 
-function RecommendedCard({ item }: { item: (typeof RECOMMENDED)[number] }) {
-  const { cartItems, addToCart, updateQuantity } = useCart();
-  const inCart = cartItems.find((c) => c.id === item.id);
+function EmptyCart({ isAuthenticated }: { isAuthenticated: boolean }) {
+  const title = isAuthenticated ? "Your cart is empty" : "Login to access the cart";
+  const description = isAuthenticated
+    ? "Add items from a restaurant to get started."
+    : "Sign in to view your cart, update items, and place an order.";
+  const ctaLabel = isAuthenticated ? "Browse restaurants" : "Login";
+  const ctaHref = isAuthenticated ? "/dashboard" : "/login?next=%2Fdashboard%2Fcart";
+  const Icon = isAuthenticated ? ShoppingBag : LogIn;
 
   return (
-    <div className="group flex flex-col rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden hover:border-[var(--color-border-hover)] transition-smooth">
-      <div className="relative h-36 w-full overflow-hidden bg-[var(--color-bg-tertiary)]">
-        <Image
-          src={item.imageUrl}
-          alt={item.name}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-        />
-        <span className="absolute left-2 top-2 rounded-md bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-[var(--color-text-primary)] backdrop-blur-sm">
-          {item.tag}
-        </span>
-      </div>
-      <div className="flex flex-1 flex-col p-3">
-        <p className="text-sm font-semibold text-[var(--color-text-primary)] line-clamp-1">{item.name}</p>
-        <p className="mt-0.5 text-xs text-[var(--color-text-muted)] line-clamp-1">{item.restaurant}</p>
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <div>
-            <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" strokeWidth={0} />
-              <span className="text-xs font-medium text-[var(--color-text-secondary)]">{item.rating}</span>
-            </div>
-            <p className="mt-0.5 text-sm font-semibold text-[var(--color-text-primary)]">₹{item.price}</p>
-          </div>
-          {inCart ? (
-            <QuantityStepper
-              quantity={inCart.quantity}
-              onDecrement={() => updateQuantity(item.id, inCart.quantity - 1)}
-              onIncrement={() => updateQuantity(item.id, inCart.quantity + 1)}
-            />
-          ) : (
-            <button
-              onClick={() => addToCart({ id: item.id, name: item.name, price: item.price, restaurant: item.restaurant, image: item.imageUrl })}
-              className="flex h-8 items-center gap-1 rounded-lg bg-[var(--color-accent)] px-3 text-xs font-semibold text-white hover:bg-[var(--color-accent-hover)] transition-smooth"
-            >
-              <Plus className="h-3 w-3" strokeWidth={2.5} />
-              Add
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CouponInput() {
-  const [code, setCode] = useState("");
-  const [applied, setApplied] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleApply = () => {
-    if (!code.trim()) return;
-    if (code.toUpperCase() === "SAVE10") {
-      setApplied(true);
-      setError("");
-    } else {
-      setError("Invalid coupon code");
-      setApplied(false);
-    }
-  };
-
-  return (
-    <div>
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Tag className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--color-text-muted)]" strokeWidth={1.5} />
-          <input
-            value={code}
-            onChange={(e) => { setCode(e.target.value); setError(""); setApplied(false); }}
-            placeholder="Enter coupon code"
-            className="field-shell h-10 w-full pl-9 pr-3 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none"
-            aria-label="Coupon code"
-          />
-        </div>
-        <button
-          onClick={handleApply}
-          disabled={applied}
-          className="h-10 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 text-sm font-semibold text-[var(--color-text-primary)] hover:border-[var(--color-border-hover)] transition-smooth disabled:opacity-50"
-        >
-          {applied ? "Applied" : "Apply"}
-        </button>
-      </div>
-      {applied && (
-        <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-[var(--color-success)]">
-          <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2} />
-          SAVE10 applied — 10% off your order
-        </p>
-      )}
-      {error && <p className="mt-1.5 text-xs text-[var(--color-danger)]">{error}</p>}
-    </div>
-  );
-}
-
-function EmptyCart() {
-  return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] py-16 text-center">
+    <div className="flex min-h-[55vh] flex-col items-center justify-center py-12 text-center">
       <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-bg-tertiary)]">
-        <ShoppingBag className="h-7 w-7 text-[var(--color-text-muted)]" strokeWidth={1.25} />
+        <Icon className="h-7 w-7 text-[var(--color-text-muted)]" strokeWidth={1.75} />
       </div>
-      <p className="text-base font-semibold text-[var(--color-text-primary)]">Your cart is empty</p>
-      <p className="mt-1 text-sm text-[var(--color-text-muted)]">Add items from a restaurant to get started.</p>
+      <p className="text-lg font-semibold text-[var(--color-text-primary)]">{title}</p>
+      <p className="mt-1 text-sm text-[var(--color-text-muted)]">{description}</p>
       <Link
-        href="/dashboard"
-        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[var(--color-accent)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-accent-hover)] transition-smooth"
+        href={ctaHref}
+        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[var(--color-accent)] px-6 py-3 text-sm font-semibold text-white hover:bg-[var(--color-accent-hover)] transition-smooth"
       >
-        Browse restaurants
+        {ctaLabel}
         <ChevronRight className="h-4 w-4" strokeWidth={2} />
       </Link>
     </div>
@@ -234,20 +95,321 @@ function EmptyCart() {
 }
 
 export default function CartPage() {
-  const { cartItems, removeFromCart, updateQuantity, clearCart, cartTotal } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, clearCart, restaurantId: cartRestaurantId } = useCart();
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("delivery");
-  const [address, setAddress] = useState("42 Maple Street, Apt 3B, Chennai 600001");
+  const [address, setAddress] = useState("");
   const [editingAddress, setEditingAddress] = useState(false);
   const [instructions, setInstructions] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [taxRates, setTaxRates] = useState<TaxRate[]>([]);
+  const [loadingTaxes, setLoadingTaxes] = useState(true);
 
-  const subtotal = cartTotal;
-  const deliveryFee = deliveryMode === "pickup" ? 0 : subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
-  const tax = Math.round(subtotal * TAX_RATE * 100) / 100;
-  const total = subtotal + deliveryFee + tax;
-  const savings = deliveryMode === "delivery" && subtotal >= FREE_DELIVERY_THRESHOLD ? DELIVERY_FEE : 0;
-  const cartIds = new Set(cartItems.map((i) => i.id));
-  const suggestions = RECOMMENDED.filter((r) => !cartIds.has(r.id));
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
+  useEffect(() => {
+    const loadSavedAddress = async () => {
+      try {
+        const response = await httpClient.get("/api/addresses/");
+        const responseData = response?.data?.results ?? response?.data?.data ?? response?.data ?? [];
+        const addresses = Array.isArray(responseData) ? responseData : [];
+        const preferredAddress = addresses.find((item) => item.is_default) ?? addresses[0];
+
+        if (!preferredAddress) {
+          setAddress("");
+          return;
+        }
+
+        setAddress(
+          preferredAddress.full_address ||
+            [
+              preferredAddress.street_address,
+              preferredAddress.apartment_suite,
+              preferredAddress.city,
+              preferredAddress.state,
+              preferredAddress.postal_code,
+            ]
+              .filter(Boolean)
+              .join(", ")
+        );
+      } catch (error) {
+        console.error("Failed to load saved address:", error);
+        setAddress("");
+      }
+    };
+
+    if (isMounted) {
+      loadSavedAddress();
+    }
+  }, [isMounted]);
+
+  useEffect(() => {
+    const fetchTaxRates = async () => {
+      try {
+        setLoadingTaxes(true);
+        const restaurantId = cartRestaurantId || cartItems[0]?.restaurant;
+        if (!restaurantId) {
+          setTaxRates([]);
+          setLoadingTaxes(false);
+          return;
+        }
+
+        const rates = await settingsApi.getTaxRates(restaurantId);
+        setTaxRates(Array.isArray(rates) ? rates : []);
+      } catch (error) {
+        console.error("Failed to fetch tax rates:", error);
+        setTaxRates([]);
+      } finally {
+        setLoadingTaxes(false);
+      }
+    };
+
+    if (isMounted && cartItems.length > 0) {
+      fetchTaxRates();
+    }
+  }, [cartItems, isMounted]);
+
+  const getOriginalUnitPrice = (item: { original_price?: number; price: number }) => item.original_price ?? item.price;
+  const getEffectiveUnitPrice = (item: { discounted_price?: number | null; effective_price?: number; price: number }) =>
+    item.discounted_price ?? item.effective_price ?? item.price;
+
+  if (!isMounted) {
+    return <div className="min-h-[65vh]" aria-hidden="true" />;
+  }
+
+  const isAuthenticated = authService.isAuthenticated() || !!authService.getCurrentUser();
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-[65vh] items-center justify-center py-10 animate-fade-in-up">
+        <div className="flex flex-col items-center justify-center text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-bg-tertiary)]">
+            <ShoppingBag className="h-7 w-7 text-[var(--color-text-muted)]" strokeWidth={1.25} />
+          </div>
+          <p className="text-base font-semibold text-[var(--color-text-primary)]">Login required</p>
+          <p className="mt-1 text-sm text-[var(--color-text-muted)] max-w-md">
+            You need to be signed in to view your cart, update items, and place an order.
+          </p>
+          <Link
+            href="/login?next=%2Fdashboard%2Fcart"
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[var(--color-accent)] px-6 py-3 text-sm font-semibold text-white hover:bg-[var(--color-accent-hover)] transition-smooth"
+          >
+            Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate tax based on restaurant settings
+  const calculateTax = (subtotal: number): number => {
+    if (taxRates.length === 0) return 0;
+
+    const effectiveOrderType = deliveryMode === "pickup" ? "takeout" : "delivery";
+    let totalTax = 0;
+    let taxBase = subtotal;
+
+    for (const rate of taxRates) {
+      if (rate.applies_to !== "all" && rate.applies_to !== effectiveOrderType) {
+        continue;
+      }
+
+      const rateTax = (taxBase * rate.percentage) / 100;
+      totalTax += rateTax;
+
+      if (rate.compound) {
+        taxBase += rateTax;
+      }
+    }
+
+    return Math.round(totalTax * 100) / 100;
+  };
+
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + getOriginalUnitPrice(item) * item.quantity,
+    0
+  );
+  const discountedSubtotal = cartItems.reduce(
+    (sum, item) => sum + getEffectiveUnitPrice(item) * item.quantity,
+    0
+  );
+  const discount = Math.max(subtotal - discountedSubtotal, 0);
+  const deliveryFee = deliveryMode === "pickup" ? 0 : discountedSubtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
+  const tax = calculateTax(discountedSubtotal);
+  const total = discountedSubtotal + deliveryFee + tax;
+  const savings = (deliveryMode === "delivery" && discountedSubtotal >= FREE_DELIVERY_THRESHOLD ? DELIVERY_FEE : 0) + discount;
+  const canPlaceOrder = deliveryMode !== "delivery" || Boolean(address.trim());
+
+  const handlePlaceOrder = async () => {
+    if (isPlacingOrder || cartItems.length === 0) {
+      return;
+    }
+
+    if (deliveryMode === "delivery" && !address.trim()) {
+      toast.error("Add a delivery address before placing the order.");
+      return;
+    }
+
+    setIsPlacingOrder(true);
+
+    try {
+      const currentUser = authService.getCurrentUser();
+      const restaurantId = currentUser?.restaurant_id || cartRestaurantId || cartItems[0]?.restaurantId || cartItems[0]?.restaurant || null;
+      const branchId = currentUser?.branch_id || null;
+      const orderPayload = {
+        restaurant_id: restaurantId,
+        branch_id: branchId,
+        source: "web",
+        delivery_type: deliveryMode,
+        customer_id: currentUser?.id || null,
+        external_id: `razorpay_${Date.now()}`,
+        customer_name:
+          currentUser?.name || [currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(" "),
+        customer_phone: currentUser?.mobile || "",
+        delivery_address: deliveryMode === "delivery" ? address : null,
+        metadata: {
+          order_type: deliveryMode,
+          delivery_address: deliveryMode === "delivery" ? address : null,
+          customer_name: currentUser?.name || [currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(" "),
+        },
+        notes: [
+          deliveryMode === "delivery" ? `Delivery address: ${address}` : "Pickup order",
+          instructions.trim() ? `Instructions: ${instructions.trim()}` : "",
+        ]
+          .filter(Boolean)
+          .join(" | "),
+        items: cartItems.map((item) => ({
+          menu_item_id: item.menu_item_id ?? item.id,
+          name: item.name,
+          quantity: item.quantity,
+          unit_price: getEffectiveUnitPrice(item),
+        })),
+      };
+
+      // Import Razorpay service
+      const { razorpayService } = await import("../../../lib/razorpayService");
+
+      // Create Razorpay order
+      const razorpayOrder = await razorpayService.createOrder({
+        amount: total,
+        currency: "INR",
+        receipt: `order_${Date.now()}`,
+        customer_name: orderPayload.customer_name,
+        customer_email: currentUser?.email || "",
+        customer_phone: orderPayload.customer_phone,
+        notes: {
+          order_type: deliveryMode,
+          delivery_address: address,
+          customer_name: orderPayload.customer_name,
+        },
+      });
+
+      // Open Razorpay payment modal
+      await razorpayService.openPaymentModal(razorpayOrder, {
+        onSuccess: async (paymentResponse) => {
+          try {
+            // Process payment and create order
+            const result = await razorpayService.processPayment(paymentResponse, orderPayload);
+            
+            try {
+              await clearCart();
+            } catch (clearError) {
+              console.error("Order created but cart could not be cleared", clearError);
+            }
+
+            toast.success(`Payment successful! Order placed.`);
+            // Redirect to order confirmation page
+            window.location.href = `/dashboard/orders/${result.order_id}`;
+          } catch (error: any) {
+            const message = error?.message || "Failed to process payment";
+            toast.error(message);
+            setIsPlacingOrder(false);
+          }
+        },
+        onError: (error) => {
+          toast.error("Payment failed. Please try again.");
+          setIsPlacingOrder(false);
+        },
+        onDismiss: () => {
+          setIsPlacingOrder(false);
+        },
+      });
+    } catch (error: any) {
+      const message = error?.message || "Failed to initiate payment";
+      toast.error(message);
+      setIsPlacingOrder(false);
+    }
+  };
+
+  const buildOrderPayload = () => {
+    const currentUser = authService.getCurrentUser();
+    const restaurantId = currentUser?.restaurant_id || cartRestaurantId || cartItems[0]?.restaurantId || cartItems[0]?.restaurant || null;
+    const branchId = currentUser?.branch_id || null;
+
+    return {
+      restaurant_id: restaurantId,
+      branch_id: branchId,
+      source: "web",
+      delivery_type: deliveryMode,
+      customer_id: currentUser?.id || null,
+      external_id: `razorpay_${Date.now()}`,
+      customer_name:
+        currentUser?.name || [currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(" "),
+      customer_phone: currentUser?.mobile || "",
+      delivery_address: deliveryMode === "delivery" ? address : null,
+      metadata: {
+        order_type: deliveryMode,
+        delivery_address: deliveryMode === "delivery" ? address : null,
+        customer_name: currentUser?.name || [currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(" "),
+      },
+      notes: [
+        deliveryMode === "delivery" ? `Delivery address: ${address}` : "Pickup order",
+        instructions.trim() ? `Instructions: ${instructions.trim()}` : "",
+      ]
+        .filter(Boolean)
+        .join(" | "),
+      items: cartItems.map((item) => ({
+        menu_item_id: item.menu_item_id ?? item.id,
+        name: item.name,
+        quantity: item.quantity,
+        unit_price: getEffectiveUnitPrice(item),
+      })),
+    };
+  };
+
+  const simulateSuccessfulOrderPlacement = async () => {
+    if (isPlacingOrder || cartItems.length === 0) {
+      return;
+    }
+
+    if (deliveryMode === "delivery" && !address.trim()) {
+      toast.error("Add a delivery address before placing the order.");
+      return;
+    }
+
+    setIsPlacingOrder(true);
+
+    try {
+      const orderPayload = buildOrderPayload();
+      const response = await httpClient.post("/api/v1/orders/", orderPayload);
+      const orderId = response.data?.data?.id || response.data?.id;
+
+      try {
+        await clearCart();
+      } catch (clearError) {
+        console.error("Order created but cart could not be cleared", clearError);
+      }
+
+      toast.success("Test order placed successfully.");
+      window.location.href = `/dashboard/orders/${orderId}`;
+    } catch (error: any) {
+      const message = error?.response?.data?.detail || error?.message || "Failed to simulate order placement";
+      toast.error(message);
+      setIsPlacingOrder(false);
+    }
+  };
   return (
     <div className="animate-fade-in-up space-y-6">
 
@@ -279,11 +441,10 @@ export default function CartPage() {
         )}
       </div>
 
-      {/* Empty state */}
-      {cartItems.length === 0 && <EmptyCart />}
-
-      {/* Cart + summary grid */}
-      {cartItems.length > 0 && (
+      {/* Cart content */}
+      {cartItems.length === 0 ? (
+        <EmptyCart isAuthenticated={isAuthenticated} />
+      ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
 
           {/* Left column */}
@@ -323,16 +484,18 @@ export default function CartPage() {
                           className="w-full bg-transparent text-sm text-[var(--color-text-primary)] outline-none"
                         />
                       ) : (
-                        <p className="text-sm text-[var(--color-text-primary)] truncate">{address}</p>
+                        <p className={`text-sm truncate ${address ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)]"}`}>
+                          {address || "Add an address"}
+                        </p>
                       )}
                     </div>
-                    <button onClick={() => setEditingAddress(true)} className="shrink-0 text-xs font-medium text-[var(--color-blue)] hover:underline">
-                      Change
-                    </button>
+                    <Link href="/dashboard/account" className="shrink-0 text-xs font-medium text-[var(--color-blue)] hover:underline">
+                      {address ? "Change" : "Add address"}
+                    </Link>
                   </div>
                   <div className="mt-2 flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
                     <Clock className="h-3 w-3" strokeWidth={1.75} />
-                    Estimated delivery: 25–35 min
+                    {address ? "Estimated delivery: 25–35 min" : "Add an address to continue with delivery"}
                   </div>
                 </div>
               )}
@@ -356,7 +519,14 @@ export default function CartPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{item.name}</p>
                       {item.restaurant && <p className="text-xs text-[var(--color-text-muted)] truncate">{item.restaurant}</p>}
-                      <p className="mt-0.5 text-sm font-medium text-[var(--color-text-secondary)]">₹{item.price.toFixed(2)}</p>
+                      {getEffectiveUnitPrice(item) < getOriginalUnitPrice(item) ? (
+                        <div className="mt-0.5 flex flex-col gap-0.5">
+                          <p className="text-sm font-medium text-[var(--color-accent)]">₹{getEffectiveUnitPrice(item).toFixed(2)}</p>
+                          <p className="text-xs font-medium text-[var(--color-text-muted)] line-through">₹{getOriginalUnitPrice(item).toFixed(2)}</p>
+                        </div>
+                      ) : (
+                        <p className="mt-0.5 text-sm font-medium text-[var(--color-text-secondary)]">₹{getOriginalUnitPrice(item).toFixed(2)}</p>
+                      )}
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <QuantityStepper
@@ -365,7 +535,7 @@ export default function CartPage() {
                         onIncrement={() => updateQuantity(item.id, item.quantity + 1)}
                       />
                       <p className="w-16 text-right text-sm font-semibold text-[var(--color-text-primary)]">
-                        ₹{(item.price * item.quantity).toFixed(2)}
+                        ₹{(getEffectiveUnitPrice(item) * item.quantity).toFixed(2)}
                       </p>
                       <button
                         onClick={() => removeFromCart(item.id)}
@@ -396,22 +566,26 @@ export default function CartPage() {
             </div>
           </div>
 
-          {/* Right column: order summary */}
+            {/* Right column: order summary */}
           <div className="space-y-4">
             <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-5 lg:sticky lg:top-24">
               <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">Order summary</p>
 
-              <CouponInput />
+              {discount > 0 && (
+                <div className="flex justify-between text-sm font-medium text-[var(--color-success)]">
+                  <span>Item discount</span><span>−₹{discount.toFixed(2)}</span>
+                </div>
+              )}
 
-              {deliveryMode === "delivery" && subtotal < FREE_DELIVERY_THRESHOLD && (
+              {deliveryMode === "delivery" && discountedSubtotal < FREE_DELIVERY_THRESHOLD && (
                 <div className="mt-4 rounded-lg bg-amber-50 border border-amber-100 px-3 py-2.5">
                   <p className="text-xs font-medium text-amber-700">
-                    Add ₹{(FREE_DELIVERY_THRESHOLD - subtotal).toFixed(0)} more for free delivery
+                    Add ₹{(FREE_DELIVERY_THRESHOLD - discountedSubtotal).toFixed(0)} more for free delivery
                   </p>
                   <div className="mt-1.5 h-1.5 w-full rounded-full bg-amber-100 overflow-hidden">
                     <div
                       className="h-full rounded-full bg-amber-400 transition-all duration-500"
-                      style={{ width: `${Math.min((subtotal / FREE_DELIVERY_THRESHOLD) * 100, 100)}%` }}
+                      style={{ width: `${Math.min((discountedSubtotal / FREE_DELIVERY_THRESHOLD) * 100, 100)}%` }}
                     />
                   </div>
                 </div>
@@ -427,9 +601,11 @@ export default function CartPage() {
                     {deliveryFee === 0 ? (deliveryMode === "pickup" ? "Free (Pickup)" : "Free") : `₹${deliveryFee.toFixed(2)}`}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm text-[var(--color-text-secondary)]">
-                  <span>Tax (5%)</span><span>₹{tax.toFixed(2)}</span>
-                </div>
+                {taxRates.length > 0 && (
+                  <div className="flex justify-between text-sm text-[var(--color-text-secondary)]">
+                    <span>Tax ({taxRates.map(r => r.percentage).join('% + ')}%)</span><span>₹{tax.toFixed(2)}</span>
+                  </div>
+                )}
                 {savings > 0 && (
                   <div className="flex justify-between text-sm font-medium text-[var(--color-success)]">
                     <span>You save</span><span>−₹{savings.toFixed(2)}</span>
@@ -445,13 +621,26 @@ export default function CartPage() {
                 <p className="text-xs text-[var(--color-text-secondary)]">Payment collected at checkout</p>
               </div>
 
-              <Link
-                href="/dashboard/orders"
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--color-accent)] py-3 text-sm font-semibold text-white hover:bg-[var(--color-accent-hover)] transition-smooth"
+              <Button
+                onClick={handlePlaceOrder}
+                loading={isPlacingOrder}
+                className="mt-4 w-full"
+                variant="success"
+                size="lg"
+                disabled={!canPlaceOrder}
               >
-                Place order · ₹{total.toFixed(2)}
-                <ChevronRight className="h-4 w-4" strokeWidth={2} />
-              </Link>
+                <span className="block w-full text-center text-sm md:text-base font-semibold">
+                  Place order · ₹{total.toFixed(2)}
+                </span>
+              </Button>
+
+              <button
+                onClick={simulateSuccessfulOrderPlacement}
+                disabled={isPlacingOrder}
+                className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-[var(--color-blue)] bg-blue-50 py-2.5 text-sm font-semibold text-[var(--color-blue)] hover:bg-blue-100 transition-smooth disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Simulate successful order placement
+              </button>
 
               <Link
                 href="/dashboard"
@@ -465,30 +654,6 @@ export default function CartPage() {
         </div>
       )}
 
-      {/* Recommended dishes */}
-      <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-5">
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-[var(--color-accent)]" strokeWidth={1.75} />
-            <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">
-              {cartItems.length === 0 ? "Popular dishes to get you started" : "You might also like"}
-            </h2>
-          </div>
-          <Link href="/dashboard" className="text-xs font-medium text-[var(--color-blue)] hover:underline">
-            See all
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {(cartItems.length === 0 ? RECOMMENDED : suggestions.slice(0, 6)).map((item) => (
-            <RecommendedCard key={item.id} item={item} />
-          ))}
-          {cartItems.length > 0 && suggestions.length === 0 && (
-            <div className="col-span-full py-6 text-center text-sm text-[var(--color-text-muted)]">
-              You&apos;ve added all our top picks — nice taste!
-            </div>
-          )}
-        </div>
-      </section>
     </div>
   );
 }

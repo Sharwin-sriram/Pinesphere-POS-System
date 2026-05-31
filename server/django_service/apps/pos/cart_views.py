@@ -7,16 +7,23 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from decimal import Decimal
-from .models import Cart, CartItem
+from .models import Cart, CartItem, MenuItem
 
 
 def serialize_cart_item(item):
     """Convert CartItem model to API response format"""
+    menu_item = MenuItem.objects.filter(id=item.menu_item_id, restaurant_id=item.restaurant).first()
+    original_price = float(menu_item.price) if menu_item else float(item.price)
+    discounted_price = float(menu_item.discount_price) if menu_item and menu_item.discount_price is not None else None
+    effective_price = discounted_price if discounted_price is not None else float(item.price)
     return {
         "id": str(item.id),
         "menu_item_id": item.menu_item_id,
         "name": item.name,
         "price": float(item.price),
+        "original_price": original_price,
+        "discounted_price": discounted_price,
+        "effective_price": effective_price,
         "quantity": item.quantity,
         "image": item.image,
         "restaurant": item.restaurant,
@@ -47,6 +54,22 @@ def get_cart(request):
     except Cart.DoesNotExist:
         # Create a new cart if it doesn't exist
         cart = Cart.objects.create(user=request.user)
+    
+    # Fallback/healing: if cart has items but no restaurant_id, try to populate it
+    if not cart.restaurant_id and cart.items.exists():
+        first_item = cart.items.exclude(restaurant="").first()
+        if first_item:
+            cart.restaurant_id = first_item.restaurant
+            cart.save()
+        else:
+            first_item = cart.items.first()
+            if first_item:
+                menu_item = MenuItem.objects.filter(id=first_item.menu_item_id).first()
+                if menu_item:
+                    cart.restaurant_id = menu_item.restaurant_id
+                    first_item.restaurant = menu_item.restaurant_id
+                    first_item.save()
+                    cart.save()
     
     return Response(serialize_cart(cart))
 
@@ -80,8 +103,9 @@ def add_to_cart(request):
     cart, _ = Cart.objects.get_or_create(user=request.user)
     
     # Update restaurant_id if provided
-    if data.get("restaurant"):
-        cart.restaurant_id = data.get("restaurant")
+    restaurant_id = data.get("restaurant_id") or data.get("restaurant")
+    if restaurant_id:
+        cart.restaurant_id = restaurant_id
         cart.save()
     
     # Add or update item in cart
@@ -97,13 +121,15 @@ def add_to_cart(request):
             "price": price,
             "quantity": quantity,
             "image": data.get("image", ""),
-            "restaurant": data.get("restaurant", ""),
+            "restaurant": restaurant_id or "",
         }
     )
     
     if not created:
         # Item already exists, increment quantity
         cart_item.quantity += quantity
+        if restaurant_id and not cart_item.restaurant:
+            cart_item.restaurant = restaurant_id
         cart_item.save()
     
     return Response(serialize_cart(cart), status=status.HTTP_201_CREATED)
@@ -162,6 +188,9 @@ def remove_from_cart(request, item_id):
         )
     
     item.delete()
+    if not cart.items.exists():
+        cart.restaurant_id = None
+        cart.save()
     return Response(serialize_cart(cart))
 
 
@@ -172,6 +201,8 @@ def clear_cart(request):
     try:
         cart = Cart.objects.get(user=request.user)
         cart.items.all().delete()
+        cart.restaurant_id = None
+        cart.save()
     except Cart.DoesNotExist:
         pass
     

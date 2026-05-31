@@ -34,7 +34,7 @@ const RestaurantLoginForm: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next");
+  const nextPath = searchParams?.get("next");
   const isRestaurantLoginPage = pathname === "/restaurant/login";
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

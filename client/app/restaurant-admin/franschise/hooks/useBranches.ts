@@ -9,13 +9,41 @@ export default function useBranches(restaurantId: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const normalizeBranches = (data: unknown): Branch[] => {
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    if (data && typeof data === "object") {
+      const payload = data as {
+        results?: unknown;
+        branches?: unknown;
+        data?: unknown;
+      };
+
+      if (Array.isArray(payload.results)) {
+        return payload.results as Branch[];
+      }
+
+      if (Array.isArray(payload.branches)) {
+        return payload.branches as Branch[];
+      }
+
+      if (Array.isArray(payload.data)) {
+        return payload.data as Branch[];
+      }
+    }
+
+    return [];
+  };
+
   // Fetch branches
   const fetchBranches = useCallback(async () => {
     if (!restaurantId) return;
     setLoading(true);
     try {
       const data = await branchApi.getBranches(restaurantId);
-      setBranches(data);
+      setBranches(normalizeBranches(data));
       setError("");
     } catch (err: any) {
       console.error("Error fetching branches:", err);

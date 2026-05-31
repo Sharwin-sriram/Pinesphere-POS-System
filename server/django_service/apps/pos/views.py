@@ -16,7 +16,25 @@ from .models import StaffMember, Role, Shift, MenuItem, MenuCategory
 from authentication.models import Restaurant
 
 
-def _serialize_restaurant(r):
+def _serialize_restaurant(r, request=None):
+    # Prefer restaurant settings media (cover photo > logo) when available
+    image_url = None
+    try:
+        settings_profile = getattr(r, "settings_profile", None)
+        if settings_profile is not None:
+            # cover_photo is the banner; prefer it
+            if getattr(settings_profile, "cover_photo", None):
+                url = getattr(settings_profile.cover_photo, "url", None)
+                if url:
+                    image_url = request.build_absolute_uri(url) if request is not None else url
+            # fallback to logo
+            if not image_url and getattr(settings_profile, "logo", None):
+                url = getattr(settings_profile.logo, "url", None)
+                if url:
+                    image_url = request.build_absolute_uri(url) if request is not None else url
+    except Exception:
+        image_url = None
+
     return {
         "id": str(r.id),
         "name": r.name,
@@ -28,7 +46,7 @@ def _serialize_restaurant(r):
         "min_order_amount": 100,
         "offer_text": "Welcome offer",
         "is_open": r.is_active,
-        "image_url": "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=80",
+        "image_url": image_url or "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=80",
     }
 
 
@@ -339,8 +357,8 @@ def restaurants_list(request):
                 pass
         return True
 
-    db_restaurants = Restaurant.objects.filter(is_active=True)
-    all_restaurants = [_serialize_restaurant(r) for r in db_restaurants]
+    db_restaurants = Restaurant.objects.all()
+    all_restaurants = [_serialize_restaurant(r, request) for r in db_restaurants]
 
     filtered = [r for r in all_restaurants if matches(r)]
 
@@ -350,6 +368,8 @@ def restaurants_list(request):
         filtered.sort(key=lambda r: r["delivery_time_min"])
     elif sort == "name_asc":
         filtered.sort(key=lambda r: r["name"].lower())
+
+    filtered.sort(key=lambda r: not r["is_open"])
 
     total = len(filtered)
     start = (page - 1) * page_size
@@ -373,13 +393,29 @@ def restaurant_detail(request, pk):
     Get metadata for a single restaurant.
     """
     try:
-        r = Restaurant.objects.get(id=pk, is_active=True)
-        return Response(_serialize_restaurant(r))
+        r = Restaurant.objects.get(id=pk)
+        return Response(_serialize_restaurant(r, request))
     except (Restaurant.DoesNotExist, ValueError):
         return Response({"detail": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
-def serialize_menu_item(item):
+def serialize_menu_item(item, request=None):
+    # Resolve stored media references to the actual storage URL.
+    image_url = None
+    try:
+        if item.image_url:
+            if item.image_url.startswith(("http://", "https://")):
+                image_url = item.image_url
+            else:
+                media_name = item.image_url.lstrip("/")
+                if media_name.startswith("media/"):
+                    media_name = media_name[len("media/") :]
+                image_url = default_storage.url(media_name)
+                if request is not None and image_url.startswith("/"):
+                    image_url = request.build_absolute_uri(image_url)
+    except Exception:
+        image_url = item.image_url
+
     return {
         "id": str(item.id),
         "name": item.name,
@@ -387,7 +423,7 @@ def serialize_menu_item(item):
         "price": float(item.price),
         "discount_price": float(item.discount_price) if item.discount_price is not None else None,
         "is_veg": item.is_veg,
-        "image_url": item.image_url,
+        "image_url": image_url,
         "category": item.category or "General",
         "tags": item.tags or [],
         "quantity": item.quantity,
@@ -462,7 +498,7 @@ def restaurant_menu(request, pk):
     """
     seed_menu_data_if_needed(pk)
     menu = MenuItem.objects.filter(restaurant_id=pk).order_by("id")
-    return Response([serialize_menu_item(item) for item in menu])
+    return Response([serialize_menu_item(item, request) for item in menu])
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -472,7 +508,7 @@ def toggle_favorite(request, pk):
     Accepts {"fail": true} in request body to simulate API failures for rollback testing.
     """
     try:
-        r = Restaurant.objects.get(id=pk, is_active=True)
+        r = Restaurant.objects.get(id=pk)
     except (Restaurant.DoesNotExist, ValueError):
         return Response({"detail": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
     
@@ -522,7 +558,7 @@ def restaurant_menu_list(request, pk):
 
         filtered = []
         for item in menu_queryset:
-            item_data = serialize_menu_item(item)
+            item_data = serialize_menu_item(item, request)
 
             # Search filter
             if q:
@@ -779,8 +815,9 @@ def upload_image(request):
     filename = f"{uuid.uuid4().hex[:12]}_{uploaded_file.name}"
     filepath = os.path.join("menu", filename)
     saved_path = default_storage.save(filepath, ContentFile(uploaded_file.read()))
-
-    url_path = f"/media/{saved_path}"
+    url_path = default_storage.url(saved_path)
+    if url_path.startswith("/"):
+        url_path = request.build_absolute_uri(url_path)
     return Response({"url": url_path}, status=status.HTTP_201_CREATED)
 
 # --- TABLE MANAGEMENT MOCK SERVICES & VIEWS ---
@@ -881,8 +918,75 @@ def restaurant_tables_list(request, pk):
     """
     List tables for a restaurant, or create a new table.
     """
-    if pk not in MOCK_TABLES:
-        MOCK_TABLES[pk] = []
+    if pk not in MOCK_TABLES or not MOCK_TABLES[pk]:
+        MOCK_TABLES[pk] = [
+            {
+                "id": f"t_{pk}_1",
+                "number": 1,
+                "capacity": 4,
+                "section": "Indoor",
+                "notes": "Near window",
+                "status": "Available",
+                "waiter": "",
+                "seated_at": "",
+            },
+            {
+                "id": f"t_{pk}_2",
+                "number": 2,
+                "capacity": 2,
+                "section": "Outdoor",
+                "notes": "Cozy corner",
+                "status": "Occupied",
+                "waiter": "Sarah Jenkins",
+                "seated_at": "2026-05-31T05:00:00Z",
+            },
+            {
+                "id": f"t_{pk}_3",
+                "number": 3,
+                "capacity": 6,
+                "section": "Indoor",
+                "notes": "Large family table",
+                "status": "Reserved",
+                "waiter": "Michael Chang",
+                "seated_at": "",
+                "reserved_at": "2026-05-31T19:30:00Z",
+            },
+            {
+                "id": f"t_{pk}_4",
+                "number": 4,
+                "capacity": 4,
+                "section": "Bar",
+                "notes": "High chairs",
+                "status": "Cleaning",
+                "waiter": "",
+                "seated_at": "",
+            },
+        ]
+        
+        # Seed default order details for Table 2
+        if pk not in MOCK_TABLE_ORDERS:
+            MOCK_TABLE_ORDERS[pk] = {}
+        t2_id = f"t_{pk}_2"
+        MOCK_TABLE_ORDERS[pk][t2_id] = [
+            {
+                "id": "o_init_1",
+                "item_id": "m1_1",
+                "item_name": "Zinger Burger",
+                "quantity": 2,
+                "notes": "Extra crispy, no mayo",
+                "price": 189.0,
+                "status": "Served",
+            },
+            {
+                "id": "o_init_2",
+                "item_id": "m1_2",
+                "item_name": "Veg Zinger",
+                "quantity": 1,
+                "notes": "",
+                "price": 149.0,
+                "status": "Preparing",
+            }
+        ]
     
     tables = MOCK_TABLES[pk]
 

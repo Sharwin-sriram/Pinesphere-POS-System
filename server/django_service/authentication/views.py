@@ -264,6 +264,19 @@ class MeView(APIView):
             raise NotAuthenticated()
         return Response({"user": UserSerializer(user).data})
 
+    def delete(self, request):
+        serializer = LogoutSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = getattr(request, "jwt_user", None) or request.user
+        if user is None or not getattr(user, "is_authenticated", False):
+            from rest_framework.exceptions import NotAuthenticated
+
+            raise NotAuthenticated()
+
+        AuthService.delete_account(user, serializer.validated_data["refresh_token"])
+        return Response({"message": "Account deleted successfully"})
+
 
 class MeUpdateView(APIView):
     """Update editable fields on the authenticated user profile."""

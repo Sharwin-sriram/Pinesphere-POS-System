@@ -2,23 +2,23 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
- BadgeCheck,
- Bell,
  Camera,
  KeyRound,
  Mail,
- Moon,
  Phone,
  ShieldCheck,
- Sun,
  User,
  Users,
  MapPin,
  Clock,
+ Trash2,
+ Plus,
+ Edit2,
+ X,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
-import { authService, getMediaUrl, getUserAvatarUrl } from "../../lib/authService";
+import { authService, getUserAvatarUrl, httpClient } from "../../lib/authService";
 import { restaurantService, Restaurant } from "../../lib/restaurantService";
 
 type ProfileForm = {
@@ -32,12 +32,22 @@ type ProfileForm = {
  current_password: string;
  new_password: string;
  confirm_password: string;
- dark_mode: boolean;
- notifications: boolean;
- language: string;
 };
 
-const preferenceStorageKey = "pos_profile_preferences";
+type Address = {
+ id: string;
+ address_type: "home" | "work" | "other";
+ street_address: string;
+ apartment_suite: string;
+ city: string;
+ state: string;
+ postal_code: string;
+ country: string;
+ phone: string;
+ is_default: boolean;
+ full_address: string;
+};
+
 const iconClass = "h-4 w-4";
 const fieldShellClass =
 	"field-shell flex items-center gap-2 rounded-ds-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2 transition-smooth focus-within:border-[var(--color-border-focus)] focus-within:shadow-none focus-within:ring-0";
@@ -75,8 +85,24 @@ export default function AccountProfilePage() {
  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
  const [removeProfileImage, setRemoveProfileImage] = useState(false);
  const [googlePictureUrl, setGooglePictureUrl] = useState<string | null>(null);
+ const [isDeleting, setIsDeleting] = useState(false);
  const [userRole, setUserRole] = useState<string | null>(null);
  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+ const [addresses, setAddresses] = useState<Address[]>([]);
+ const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
+ const [showAddressForm, setShowAddressForm] = useState(false);
+ const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+ const [newAddress, setNewAddress] = useState<Partial<Address>>({
+	address_type: "home",
+	street_address: "",
+	apartment_suite: "",
+	city: "",
+	state: "",
+	postal_code: "",
+	country: "India",
+	phone: "",
+	is_default: false,
+ });
  const imageInputRef = useRef<HTMLInputElement | null>(null);
  const [profile, setProfile] = useState<ProfileForm>({
 	full_name: "",
@@ -85,16 +111,13 @@ export default function AccountProfilePage() {
 	email: "",
 	phone: "",
 	username: "",
-	 profile_image: null,
+	profile_image: null,
 	current_password: "",
 	new_password: "",
 	confirm_password: "",
-	dark_mode: false,
-	notifications: true,
-	language: "English",
  });
 
- const isRestaurantRole = userRole && ["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(userRole);
+ const isRestaurantRole = !!(userRole && ["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(userRole));
 
  useEffect(() => {
 	let cancelled = false;
@@ -113,15 +136,6 @@ export default function AccountProfilePage() {
 	 }
 
 	 const user = profileResult.data;
-	 const storedPreferences = (() => {
-		if (typeof window === "undefined") return null;
-		try {
-		 const raw = window.localStorage.getItem(preferenceStorageKey);
-		 return raw ? JSON.parse(raw) : null;
-		} catch {
-		 return null;
-		}
-	 })();
 
 	 const firstName = user?.first_name || "";
 	 const lastName = user?.last_name || "";
@@ -136,9 +150,6 @@ export default function AccountProfilePage() {
 		phone: user?.mobile || "",
 		username: user?.email?.split("@")[0] || user?.mobile || "",
 		profile_image: user?.profile_image || null,
-		dark_mode: storedPreferences?.dark_mode ?? false,
-		notifications: storedPreferences?.notifications ?? true,
-		language: storedPreferences?.language || "English",
 	 }));
 
 	 setGooglePictureUrl(user?.picture || null);
@@ -162,6 +173,121 @@ export default function AccountProfilePage() {
 	 cancelled = true;
 	};
  }, []);
+
+ // Load addresses
+ useEffect(() => {
+	let cancelled = false;
+
+	async function loadAddresses() {
+	 try {
+		setIsLoadingAddresses(true);
+		const response = await httpClient.get("/api/addresses/");
+		if (!cancelled) {
+		 const addressData = response?.data?.results || [];
+		 setAddresses(addressData);
+		}
+	 } catch (error) {
+		console.error("Failed to load addresses:", error);
+	 } finally {
+		if (!cancelled) {
+		 setIsLoadingAddresses(false);
+		}
+	 }
+	}
+
+	loadAddresses();
+
+	return () => {
+	 cancelled = true;
+	};
+ }, []);
+
+ const handleAddAddress = async () => {
+	if (!newAddress.street_address || !newAddress.city || !newAddress.state || !newAddress.postal_code) {
+	 toast.error("Please fill in all required fields");
+	 return;
+	}
+
+	try {
+	 const response = await httpClient.post("/api/addresses/", newAddress);
+	 const createdAddress = response?.data?.data || response?.data;
+	 setAddresses([...addresses, createdAddress]);
+	 setNewAddress({
+		address_type: "home",
+		street_address: "",
+		apartment_suite: "",
+		city: "",
+		state: "",
+		postal_code: "",
+		country: "India",
+		phone: "",
+		is_default: false,
+	 });
+	 setShowAddressForm(false);
+	 toast.success("Address added successfully");
+	} catch (error: any) {
+	 toast.error(error?.response?.data?.detail || "Failed to add address");
+	}
+ };
+
+ const handleUpdateAddress = async (addressId: string) => {
+	try {
+	 const response = await httpClient.put(`/api/addresses/${addressId}/`, newAddress);
+	 const updatedAddress = response?.data?.data || response?.data;
+	 setAddresses(addresses.map(addr => addr.id === addressId ? updatedAddress : addr));
+	 setNewAddress({
+		address_type: "home",
+		street_address: "",
+		apartment_suite: "",
+		city: "",
+		state: "",
+		postal_code: "",
+		country: "India",
+		phone: "",
+		is_default: false,
+	 });
+	 setEditingAddressId(null);
+	 toast.success("Address updated successfully");
+	} catch (error: any) {
+	 toast.error(error?.response?.data?.detail || "Failed to update address");
+	}
+ };
+
+ const handleDeleteAddress = async (addressId: string) => {
+	if (!window.confirm("Are you sure you want to delete this address?")) {
+	 return;
+	}
+
+	try {
+	 await httpClient.delete(`/api/addresses/${addressId}/`);
+	 setAddresses(addresses.filter(addr => addr.id !== addressId));
+	 toast.success("Address deleted successfully");
+	} catch (error: any) {
+	 toast.error(error?.response?.data?.detail || "Failed to delete address");
+	}
+ };
+
+ const handleEditAddress = (address: Address) => {
+	setNewAddress(address);
+	setEditingAddressId(address.id);
+	setShowAddressForm(true);
+ };
+
+ const handleCancelAddressForm = () => {
+	setNewAddress({
+	 address_type: "home",
+	 street_address: "",
+	 apartment_suite: "",
+	 city: "",
+	 state: "",
+	 postal_code: "",
+	 country: "India",
+	 phone: "",
+	 is_default: false,
+	});
+	setEditingAddressId(null);
+	setShowAddressForm(false);
+ };
 
  const initials = useMemo(() => getInitials(profile.full_name || profile.email || profile.phone), [profile.full_name, profile.email, profile.phone]);
 
@@ -258,17 +384,6 @@ export default function AccountProfilePage() {
 	 return;
 	}
 
-	if (typeof window !== "undefined") {
-	 window.localStorage.setItem(
-		preferenceStorageKey,
-		JSON.stringify({
-		 dark_mode: profile.dark_mode,
-		 notifications: profile.notifications,
-		 language: profile.language,
-		}),
-	 );
-	}
-
 	setGooglePictureUrl(result.data?.picture || null);
 	setProfileImagePreview(getUserAvatarUrl(result.data));
 
@@ -291,6 +406,23 @@ export default function AccountProfilePage() {
 	setIsSaving(false);
 	toast.success("Profile saved");
  };
+
+ const handleDeleteAccount = async () => {
+	const confirmed = window.confirm(
+		"Delete your account? This will deactivate access and remove your saved profile data.",
+	);
+	if (!confirmed) {
+		return;
+	}
+
+	setIsDeleting(true);
+	const result = await authService.deleteAccount();
+	if (!result.success) {
+		setIsDeleting(false);
+		toast.error(result.error || "Unable to delete account");
+		return;
+	}
+	};
 
  if (isLoading) {
 	return (
@@ -382,7 +514,7 @@ export default function AccountProfilePage() {
 					 onClick={() => {
 						setProfileImageFile(null);
 						setRemoveProfileImage(true);
-						setProfileImagePreview(googlePictureUrl ? getMediaUrl(googlePictureUrl) : null);
+						setProfileImagePreview(googlePictureUrl || null);
 						updateField("profile_image", null);
 						setIsEditing(true);
 					 }}
@@ -587,6 +719,236 @@ export default function AccountProfilePage() {
 		</section>
 	 </div>
 
+	 {/* Address Management Section */}
+	 <section className="glass-card p-6">
+		<div className="flex items-center justify-between gap-3 mb-6">
+		 <div className="flex items-center gap-3">
+			<div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-accent-subtle)] text-[var(--color-accent)]">
+			 <MapPin className={iconClass} strokeWidth={1.5} />
+			</div>
+			<div>
+			 <h2 className="text-base font-semibold text-[var(--color-text-primary)]">
+				Delivery addresses
+			 </h2>
+			 <p className="text-sm text-[var(--color-text-secondary)]">
+				Manage your saved delivery addresses.
+			 </p>
+			</div>
+		 </div>
+		 {!showAddressForm && (
+			<button
+			 onClick={() => setShowAddressForm(true)}
+			 className="flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2 text-xs font-medium text-[var(--color-text-primary)] hover:border-[var(--color-border-hover)] transition-smooth"
+			>
+			 <Plus className="h-3.5 w-3.5" strokeWidth={1.75} />
+			 Add address
+			</button>
+		 )}
+		</div>
+
+		{/* Address Form */}
+		{showAddressForm && (
+		 <div className="mb-6 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] p-4">
+			<h3 className="mb-4 text-sm font-semibold text-[var(--color-text-primary)]">
+			 {editingAddressId ? "Edit address" : "Add new address"}
+			</h3>
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+			 <div className="flex flex-col gap-2">
+				<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+				 Address type
+				</label>
+				<select
+				 value={newAddress.address_type || "home"}
+				 onChange={(e) => setNewAddress({ ...newAddress, address_type: e.target.value as "home" | "work" | "other" })}
+				 className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:border-[var(--color-border-focus)] outline-none"
+				>
+				 <option value="home">Home</option>
+				 <option value="work">Work</option>
+				 <option value="other">Other</option>
+				</select>
+			 </div>
+			 <div className="flex flex-col gap-2">
+				<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+				 Phone number
+				</label>
+				<input
+				 type="tel"
+				 value={newAddress.phone || ""}
+				 onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
+				 placeholder="Enter phone number"
+				 className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-border-focus)] outline-none"
+				/>
+			 </div>
+			</div>
+			<div className="mt-4 flex flex-col gap-2">
+			 <label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+				Street address *
+			 </label>
+			 <input
+				type="text"
+				value={newAddress.street_address || ""}
+				onChange={(e) => setNewAddress({ ...newAddress, street_address: e.target.value })}
+				placeholder="Enter street address"
+				className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-border-focus)] outline-none"
+			 />
+			</div>
+			<div className="mt-4 flex flex-col gap-2">
+			 <label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+				Apartment, suite, etc. (optional)
+			 </label>
+			 <input
+				type="text"
+				value={newAddress.apartment_suite || ""}
+				onChange={(e) => setNewAddress({ ...newAddress, apartment_suite: e.target.value })}
+				placeholder="Apartment, suite, floor, etc."
+				className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-border-focus)] outline-none"
+			 />
+			</div>
+			<div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+			 <div className="flex flex-col gap-2">
+				<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+				 City *
+				</label>
+				<input
+				 type="text"
+				 value={newAddress.city || ""}
+				 onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+				 placeholder="City"
+				 className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-border-focus)] outline-none"
+				/>
+			 </div>
+			 <div className="flex flex-col gap-2">
+				<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+				 State *
+				</label>
+				<input
+				 type="text"
+				 value={newAddress.state || ""}
+				 onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
+				 placeholder="State"
+				 className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-border-focus)] outline-none"
+				/>
+			 </div>
+			 <div className="flex flex-col gap-2">
+				<label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+				 Postal code *
+				</label>
+				<input
+				 type="text"
+				 value={newAddress.postal_code || ""}
+				 onChange={(e) => setNewAddress({ ...newAddress, postal_code: e.target.value })}
+				 placeholder="Postal code"
+				 className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-border-focus)] outline-none"
+				/>
+			 </div>
+			</div>
+			<div className="mt-4 flex flex-col gap-2">
+			 <label className="text-xs uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+				Country
+			 </label>
+			 <input
+				type="text"
+				value={newAddress.country || "India"}
+				onChange={(e) => setNewAddress({ ...newAddress, country: e.target.value })}
+				placeholder="Country"
+				className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-border-focus)] outline-none"
+			 />
+			</div>
+			<div className="mt-4 flex items-center gap-2">
+			 <input
+				type="checkbox"
+				id="is_default"
+				checked={newAddress.is_default || false}
+				onChange={(e) => setNewAddress({ ...newAddress, is_default: e.target.checked })}
+				className="h-4 w-4 rounded border-[var(--color-border)] text-[var(--color-blue)] focus:ring-0"
+			 />
+			 <label htmlFor="is_default" className="text-sm text-[var(--color-text-secondary)]">
+				Set as default address
+			 </label>
+			</div>
+			<div className="mt-4 flex gap-2">
+			 <button
+				onClick={() => editingAddressId ? handleUpdateAddress(editingAddressId) : handleAddAddress()}
+				className="flex-1 rounded-lg bg-[var(--color-blue)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-blue-hover)] transition-smooth"
+			 >
+				{editingAddressId ? "Update address" : "Add address"}
+			 </button>
+			 <button
+				onClick={handleCancelAddressForm}
+				className="flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] hover:border-[var(--color-border-hover)] transition-smooth"
+			 >
+				Cancel
+			 </button>
+			</div>
+		 </div>
+		)}
+
+		{/* Addresses List */}
+		{isLoadingAddresses ? (
+		 <div className="text-center py-8 text-sm text-[var(--color-text-muted)]">
+			Loading addresses...
+		 </div>
+		) : addresses.length === 0 ? (
+		 <div className="text-center py-8">
+			<MapPin className="mx-auto h-8 w-8 text-[var(--color-text-muted)] mb-2" strokeWidth={1.5} />
+			<p className="text-sm text-[var(--color-text-muted)]">No addresses saved yet</p>
+		 </div>
+		) : (
+		 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+			{addresses.map((address) => (
+			 <div
+				key={address.id}
+				className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] p-4 hover:border-[var(--color-border-hover)] transition-smooth"
+			 >
+				<div className="flex items-start justify-between gap-2 mb-2">
+				 <div className="flex items-center gap-2">
+					<span className="inline-flex items-center justify-center rounded-full bg-[var(--color-accent-subtle)] text-[var(--color-accent)] text-xs font-semibold h-6 w-6">
+					 {address.address_type === "home" ? "H" : address.address_type === "work" ? "W" : "O"}
+					</span>
+					<div>
+					 <p className="text-sm font-semibold text-[var(--color-text-primary)] capitalize">
+						{address.address_type}
+					 </p>
+					 {address.is_default && (
+						<span className="text-xs text-[var(--color-success)] font-medium">Default</span>
+					 )}
+					</div>
+				 </div>
+				 <div className="flex gap-1">
+					<button
+					 onClick={() => handleEditAddress(address)}
+					 className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--color-text-muted)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-blue)] transition-smooth"
+					 aria-label="Edit address"
+					>
+					 <Edit2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+					</button>
+					<button
+					 onClick={() => handleDeleteAddress(address.id)}
+					 className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--color-text-muted)] hover:bg-red-50 hover:text-[var(--color-danger)] transition-smooth"
+					 aria-label="Delete address"
+					>
+					 <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+					</button>
+				 </div>
+				</div>
+				<p className="text-sm text-[var(--color-text-secondary)] line-clamp-2">
+				 {address.street_address}
+				 {address.apartment_suite && `, ${address.apartment_suite}`}
+				</p>
+				<p className="text-xs text-[var(--color-text-muted)] mt-1">
+				 {address.city}, {address.state} {address.postal_code}
+				</p>
+				{address.phone && (
+				 <p className="text-xs text-[var(--color-text-muted)] mt-1">
+					📞 {address.phone}
+				 </p>
+				)}
+			 </div>
+			))}
+		 </div>
+		)}
+	 </section>
+
 	 <div className="grid grid-cols-1 gap-6">
 		<section className="glass-card p-6">
 		 <div className="flex items-center gap-3">
@@ -690,87 +1052,35 @@ export default function AccountProfilePage() {
 		</section>
 	 </div>
 
-	 {!isRestaurantRole && (
-	 <section className="glass-card p-6">
+	 <section className="glass-card border border-red-200/60 p-6">
 		<div className="flex items-center gap-3">
-		 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)]">
-			<BadgeCheck className={iconClass} strokeWidth={1.5} />
+		 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600">
+			<Trash2 className={iconClass} strokeWidth={1.5} />
 		 </div>
 		 <div>
 			<h2 className="text-base font-semibold text-[var(--color-text-primary)]">
-			 Preferences
+			 Delete account
 			</h2>
 			<p className="text-sm text-[var(--color-text-secondary)]">
-			 Personalize your daily POS experience.
+			 Permanently remove access to this account and clear profile data.
 			</p>
 		 </div>
 		</div>
 
-		<div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-		 <div className="flex items-center justify-between rounded-ds-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3">
-			<div className="flex items-center gap-2">
-			 <Moon className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
-			 <span className="text-sm text-[var(--color-text-primary)]">
-				Dark mode
-			 </span>
-			</div>
-			<label className="relative inline-flex cursor-pointer items-center">
-			 <input
-				type="checkbox"
-				checked={profile.dark_mode}
-				onChange={(e) => updateField("dark_mode", e.target.checked)}
-				disabled={!isEditing}
-				className="peer sr-only"
-			 />
-			 <div className="h-6 w-11 rounded-full bg-[var(--color-bg-tertiary)] peer-checked:bg-[var(--color-blue)] transition-smooth" />
-			 <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-smooth peer-checked:translate-x-5" />
-			</label>
-		 </div>
-
-		 <div className="flex items-center justify-between rounded-ds-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3">
-			<div className="flex items-center gap-2">
-			 <Bell className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
-			 <span className="text-sm text-[var(--color-text-primary)]">
-				Notifications
-			 </span>
-			</div>
-			<label className="relative inline-flex cursor-pointer items-center">
-			 <input
-				type="checkbox"
-				checked={profile.notifications}
-				onChange={(e) => updateField("notifications", e.target.checked)}
-				disabled={!isEditing}
-				className="peer sr-only"
-			 />
-			 <div className="h-6 w-11 rounded-full bg-[var(--color-bg-tertiary)] peer-checked:bg-[var(--color-blue)] transition-smooth" />
-			 <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-smooth peer-checked:translate-x-5" />
-			</label>
-		 </div>
-
-		 <div className="flex items-center justify-between rounded-ds-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3">
-			<div className="flex items-center gap-2">
-			 <Sun className="h-4 w-4 text-[var(--color-text-muted)]" strokeWidth={1.5} />
-			 <span className="text-sm text-[var(--color-text-primary)]">
-				Language
-			 </span>
-			</div>
-			 <div className={fieldShellClass}>
-				<select
-				 value={profile.language}
-				 onChange={(e) => updateField("language", e.target.value)}
-				 disabled={!isEditing}
-				 className={fieldSelectClass}
-				>
-			 <option>English</option>
-			 <option>Hindi</option>
-			 <option>Tamil</option>
-			 <option>Telugu</option>
-				</select>
-			 </div>
-		 </div>
+		<div className="mt-5 flex flex-col gap-3 rounded-ds-md border border-red-100 bg-red-50/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+		 <p className="text-sm text-red-800">
+			This action deactivates your login immediately.
+		 </p>
+		 <button
+			type="button"
+			onClick={handleDeleteAccount}
+			disabled={isDeleting}
+			className="rounded-ds-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-smooth hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+		 >
+			{isDeleting ? "Deleting..." : "Delete account"}
+		 </button>
 		</div>
 	 </section>
-	 )}
 
 	 <div className="sticky bottom-4 z-[var(--z-sticky)] mt-6">
 		<div className="flex flex-col gap-3 rounded-ds-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)]/95 p-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between">

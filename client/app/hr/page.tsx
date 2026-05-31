@@ -14,16 +14,8 @@ type DashboardData = {
  recent_leaves?: any[];
 };
 
-
-type PredictionData = {
- day: string;
- ai_recommendation: string;
- confidence_score: number;
-};
-
 export default function HRDashboard() {
  const [data, setData] = useState<DashboardData | null>(null);
- const [aiData, setAiData] = useState<PredictionData | null>(null);
  const [loading, setLoading] = useState(true);
 
  // In a real app, this would use an environment variable for the API base URL
@@ -34,19 +26,11 @@ export default function HRDashboard() {
 
  const fetchData = async () => {
  try {
- const [dashRes, aiRes] = await Promise.all([
- fetch(`${API_BASE}/dashboard/`),
- fetch(`${API_BASE}/ai/predict-scheduling/`)
- ]);
+ const dashRes = await fetch(`${API_BASE}/dashboard/`);
 
  if (dashRes.ok) {
  const dashJson = await dashRes.json();
  if (isMounted) setData(dashJson);
- }
- 
- if (aiRes.ok) {
- const aiJson = await aiRes.json();
- if (isMounted) setAiData(aiJson);
  }
  } catch (e) {
  if (isMounted) {
@@ -153,20 +137,10 @@ export default function HRDashboard() {
                   <span>➔</span>
                 </a>
               </div>
- </div>
- </div>
- 
- </div>
- )}
- </div>
- );
-}
-
-function MetricCard({ title, value, color }: { title: string; value: any; color: string }) {
-  return (
-    <div className={`p-4 rounded-xl ${color}`}>
-      <h3 className="text-sm font-medium text-[var(--color-text-secondary)]">{title}</h3>
-      <p className="text-2xl font-semibold text-[var(--color-text-primary)] mt-2">{value}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

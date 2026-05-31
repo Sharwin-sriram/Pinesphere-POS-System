@@ -36,6 +36,7 @@ export type MenuItem = {
   name: string;
   description: string;
   price: number;
+  discount_price?: number | null;
   is_veg: boolean;
   image_url?: string | null;
   category: string;

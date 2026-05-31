@@ -1,8 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
 
+interface MenuItem {
+  id: string | number;
+  name: string;
+  price: number | string;
+  quantity: number;
+}
+
 export default function WaiterPortal() {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const token = typeof window !== "undefined" ? localStorage.getItem("waiter_token") : null;
@@ -16,7 +23,7 @@ export default function WaiterPortal() {
       .finally(() => setLoading(false));
   }, [token]);
 
-  const take = async (it) => {
+  const take = async (it: MenuItem) => {
     const token = localStorage.getItem("waiter_token");
     const res = await fetch("/api/waiter/orders/", {
       method: "POST",

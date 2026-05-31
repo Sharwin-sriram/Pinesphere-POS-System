@@ -1,6 +1,7 @@
 "use client"
 import React, { useState } from 'react'
 import Image, { ImageProps } from 'next/image'
+import { resolveMediaUrl } from './mediaUrl'
 
 type Props = Omit<ImageProps, 'src'> & {
   src?: string
@@ -32,7 +33,8 @@ export default function ImageWithFallback({
   ...rest
 }: Props) {
   const resolvedFallback = resolveFallback(src, fallbackSrc)
-  const [imgSrc, setImgSrc] = useState(src || resolvedFallback)
+  const initialSrc = resolveMediaUrl(src) || resolvedFallback
+  const [imgSrc, setImgSrc] = useState(initialSrc)
   const [isLoaded, setIsLoaded] = useState(false)
   const [isFallback, setIsFallback] = useState(!src)
 
@@ -60,7 +62,7 @@ export default function ImageWithFallback({
         }}
         onError={(event) => {
           if (imgSrc !== resolvedFallback) {
-            setImgSrc(resolvedFallback)
+            setImgSrc(resolveMediaUrl(resolvedFallback) || resolvedFallback)
             setIsLoaded(false)
             setIsFallback(true)
           } else {

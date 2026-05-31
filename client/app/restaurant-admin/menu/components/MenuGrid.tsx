@@ -5,6 +5,7 @@ import { MoreVertical, Edit2, Trash2, Minus, Plus } from "lucide-react";
 import Badge from "@/components/ui/Badge";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
 import { MenuItem } from "../types";
+import { resolveMediaUrl } from "@/components/ui/mediaUrl";
 
 interface MenuGridProps {
   items: MenuItem[];
@@ -42,15 +43,6 @@ export default function MenuGrid({
     }).format(price);
   };
 
-  const getFullImageUrl = (url?: string | null) => {
-    if (!url) return "";
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-      return url;
-    }
-    const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
-    return `${backendUrl}${url.startsWith("/") ? "" : "/"}${url}`;
-  };
-
   const handleMenuClick = (e: React.MouseEvent, itemId: string) => {
     e.stopPropagation();
     setActiveMenuId((prev) => (prev === itemId ? null : itemId));
@@ -70,7 +62,7 @@ export default function MenuGrid({
             {/* Card Header Media (16:9 aspect ratio) */}
             <div className="relative aspect-[16/9] w-full bg-[var(--color-bg-tertiary)] overflow-hidden shrink-0 flex items-center justify-center">
               <ImageWithFallback
-                src={getFullImageUrl(item.image_url)}
+                src={resolveMediaUrl(item.image_url)}
                 alt={item.name}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"

@@ -19,7 +19,6 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     { name: "Tables", icon: Grid, path: "/restaurant-admin/table" },
     { name: "Staff", icon: Users, path: "/restaurant-admin/staff" },
     { name: "Inventory", icon: Package, path: "/restaurant-admin/inventory" },
-    { name: "Reports", icon: PieChart, path: "/restaurant-admin/reports" },
     { name: "Order/Table", icon: ShoppingBag, path: "/restaurant-admin/orders" },
     { name: "Reservation", icon: Calendar, path: "/restaurant-admin/reservation" },
     { name: "Settings", icon: Settings, path: "/settings" },
@@ -61,7 +60,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         <nav className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
           {menuItems.map((item) => {
             // Check if active route (exact match or prefix)
-            const isActive = pathname === item.path || (item.path !== "/restaurant-admin" && pathname.startsWith(item.path));
+            const isActive = pathname === item.path || (item.path !== "/restaurant-admin" && pathname?.startsWith(item.path));
             return (
               <Link
                 key={item.name}

@@ -38,6 +38,13 @@ from .cart_views import (
     checkout_cart,
 )
 
+# Import address views from address_views module
+from .address_views import (
+    address_list,
+    address_detail,
+    get_default_address,
+)
+
 
 urlpatterns = [
     # Customer ordering endpoints
@@ -53,6 +60,11 @@ urlpatterns = [
     path("cart/items/<int:item_id>/remove/", remove_from_cart, name="remove_from_cart"),
     path("cart/clear/", clear_cart, name="clear_cart"),
     path("cart/checkout/", checkout_cart, name="checkout_cart"),
+    
+    # Address endpoints
+    path("addresses/", address_list, name="address_list"),
+    path("addresses/<str:address_id>/", address_detail, name="address_detail"),
+    path("addresses/default/", get_default_address, name="get_default_address"),
     
     # Restaurant admin endpoints
     path("restaurant/<str:pk>/menu/", restaurant_menu_list, name="restaurant_menu_list"),

@@ -17,6 +17,7 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState("");
   const { success, error, ToastContainer } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -42,18 +43,21 @@ const LoginForm = () => {
     e.preventDefault();
     if (!validateForm()) return;
     setIsLoading(true);
+    setFormError("");
     try {
       const result = await authService.loginWithEmail(formData.email, formData.password);
       if (result.success) {
         success("Signed in", "Welcome to Pinesphere POS");
-        setTimeout(() => {
-          window.location.href = getRoleHomePath(authService.getUserRole());
-        }, 1500);
+        window.location.href = getRoleHomePath(authService.getUserRole());
       } else {
-        error("Sign in failed", result.error || "Check your email and password, then try again");
+        const message = result.error || "Check your email and password, then try again";
+        setFormError(message);
+        error("Sign in failed", message);
       }
-    } catch {
-      error("Sign in failed", "Something went wrong. Please try again");
+    } catch (caughtError) {
+      const message = caughtError instanceof Error ? caughtError.message : "Something went wrong. Please try again";
+      setFormError(message);
+      error("Sign in failed", message);
     } finally {
       setIsLoading(false);
     }
@@ -76,6 +80,12 @@ const LoginForm = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+          {formError ? (
+            <div role="alert" className="rounded-md border border-[var(--color-danger)] bg-[var(--color-danger-subtle)] px-4 py-3 text-[length:var(--text-sm)] text-[var(--color-danger)]">
+              {formError}
+            </div>
+          ) : null}
+
           <InputField
             type="text"
             name="email"

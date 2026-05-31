@@ -15,6 +15,13 @@ import {
 import { useCart } from "../../../components/dashboard/CartContext";
 import { debounce } from "../../utils/debounce";
 
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(value);
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -352,7 +359,7 @@ export default function RestaurantDetailPage({ params }: PageProps) {
                     </h2>
                     <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
                       {items.map((item) => (
-                        <MenuItemCard key={item.id} item={item} />
+                        <MenuItemCard key={item.id} item={item} restaurantId={id} />
                       ))}
                     </div>
                   </section>
@@ -366,7 +373,7 @@ export default function RestaurantDetailPage({ params }: PageProps) {
   );
 }
 
-function MenuItemCard({ item }: { item: MenuItem }) {
+function MenuItemCard({ item, restaurantId }: { item: MenuItem; restaurantId: string }) {
   const [expanded, setExpanded] = useState(false);
   const { cartItems, addToCart, updateQuantity } = useCart();
 
@@ -375,11 +382,13 @@ function MenuItemCard({ item }: { item: MenuItem }) {
   const quantity = cartItem ? cartItem.quantity : 0;
 
   const handleAdd = () => {
+    const effectivePrice = item.discount_price ?? item.price;
     addToCart({
       id: item.id,
       name: item.name,
-      price: item.price,
+      price: effectivePrice,
       image: item.image_url || undefined,
+      restaurantId: restaurantId,
     });
   };
 
@@ -411,9 +420,22 @@ function MenuItemCard({ item }: { item: MenuItem }) {
             {item.name}
           </h3>
         </div>
-        <p className="mt-1 font-semibold text-[length:var(--text-sm)] text-[var(--color-text-primary)]">
-          ₹{item.price}
-        </p>
+        <div className="mt-1 flex flex-col gap-0.5">
+          {item.discount_price ? (
+            <>
+              <p className="font-semibold text-[length:var(--text-sm)] text-[var(--color-accent)]">
+                {formatCurrency(item.discount_price)}
+              </p>
+              <p className="text-[10px] font-medium text-[var(--color-text-muted)] line-through">
+                {formatCurrency(item.price)}
+              </p>
+            </>
+          ) : (
+            <p className="font-semibold text-[length:var(--text-sm)] text-[var(--color-text-primary)]">
+              {formatCurrency(item.price)}
+            </p>
+          )}
+        </div>
         <div className="mt-2">
           <p className={`text-[length:var(--text-xs)] text-[var(--color-text-secondary)] leading-relaxed ${
             expanded ? "" : "line-clamp-2"

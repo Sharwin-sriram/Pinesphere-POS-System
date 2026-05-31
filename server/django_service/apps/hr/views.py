@@ -297,30 +297,6 @@ def mark_attendance(request):
         return Response({'error': 'Employee not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
-def predict_scheduling(request):
-    """
-    AI Stub: Predicts staff shortage/scheduling based on historical data.
-    In a real scenario, this would use an ML model. 
-    Here we simulate logic based on the day of the week.
-    """
-    today = timezone.now().date()
-    weekday = today.weekday() # 0 = Monday, 6 = Sunday
-    
-    recommendation = "Normal staffing levels are sufficient."
-    if weekday == 4: # Friday
-        recommendation = "Friday evenings are busy. AI recommends adding 2 more waiters."
-    elif weekday == 5: # Saturday
-        recommendation = "Saturday is the peak day. AI recommends adding 3 more waiters and 1 kitchen staff."
-    elif weekday == 6: # Sunday
-        recommendation = "Sunday brunch is busy. AI recommends adding 1 cashier and 2 waiters."
-        
-    return Response({
-        'day': today.strftime("%A"),
-        'ai_recommendation': recommendation,
-        'confidence_score': 0.85
-    })
-
-@api_view(['GET'])
 def employee_dashboard(request, pk):
     try:
         employee = Employee.objects.get(pk=pk)

@@ -12,7 +12,7 @@ interface SuperAdminHeaderProps {
 export default function SuperAdminHeader({ onMenuClick }: SuperAdminHeaderProps) {
  const pathname = usePathname();
 
- const pageKey = pathname.split("/").pop() ?? "";
+ const pageKey = pathname?.split("/").pop() ?? "";
  const title =
    pathname === "/super-admin"
      ? "Subscription & Billing"

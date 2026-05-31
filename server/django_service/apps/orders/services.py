@@ -33,22 +33,62 @@ def get_order_or_404(order_id: str) -> Order:
 
 def tenant_scoped_orders_for_user(user):
     """
-    Return a scoped queryset for the current user.
+    Return a scoped queryset for the current user based on restaurant/tenant.
 
-    NOTE: current order schema has no restaurant/branch FK, so this is a best-effort
-    scope for now: customer role sees own phone-linked orders; staff sees all.
+    - CUSTOMER role: sees own phone-linked orders within their restaurant
+    - SUPER_ADMIN: sees all orders across all restaurants
+    - Other staff roles: sees orders for their assigned restaurant
     """
 
     queryset = Order.objects.all().order_by("-created_at")
+    
+    # Super admin sees all orders
+    if getattr(user, "role", None) == "SUPER_ADMIN":
+        return queryset
+    
+    # Get user's restaurant
+    user_restaurant_id = getattr(user, "restaurant_id", None)
+    
+    # Filter by restaurant if user has one assigned
+    if user_restaurant_id:
+        queryset = queryset.filter(restaurant_id=user_restaurant_id)
+    
+    # Customers additionally filter by their phone number
     if getattr(user, "role", None) == "CUSTOMER":
         queryset = queryset.filter(customer_phone=getattr(user, "mobile", ""))
+    
     return queryset
 
 
 @transaction.atomic
 def create_order(tenant, branch, order_type, table_id, items) -> Order:
-    # tenant/branch/order_type/table_id kept for API contract compatibility.
+    """
+    Create a new order with restaurant scoping.
+    
+    Args:
+        tenant: Restaurant instance or UUID to associate with the order
+        branch: Branch identifier (kept for API contract compatibility)
+        order_type: Type of order (dine-in, takeout, delivery, etc.)
+        table_id: Table identifier for dine-in orders
+        items: List of items to add to the order
+    
+    Returns:
+        Created Order instance
+    """
+    # Handle tenant as either Restaurant instance or UUID string
+    restaurant = None
+    if tenant:
+        if isinstance(tenant, str):
+            from authentication.models import Restaurant
+            try:
+                restaurant = Restaurant.objects.get(id=tenant)
+            except Restaurant.DoesNotExist:
+                pass
+        else:
+            restaurant = tenant
+    
     order = Order.objects.create(
+        restaurant=restaurant,
         order_number=_next_order_number(),
         status="pending",
         notes=f"order_type={order_type or ''}; table_id={table_id or ''}",

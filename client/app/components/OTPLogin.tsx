@@ -15,6 +15,7 @@ const OTPLogin = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [formError, setFormError] = useState("");
   const [demoOtp, setDemoOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
 
@@ -34,6 +35,7 @@ const OTPLogin = () => {
   const handleSendOTP = async () => {
     if (!validatePhoneNumber()) return;
     setIsLoading(true);
+    setFormError("");
     try {
       const result = await authService.sendOTP(phoneNumber);
       if (result.success) {
@@ -44,10 +46,14 @@ const OTPLogin = () => {
           window.location.href = `/verify-otp?phone=${phoneNumber}`;
         }, 1500);
       } else {
-        toast.error(result.error || "Could not send OTP. Try again", authToastError);
+        const message = result.error || "Could not send OTP. Try again";
+        setFormError(message);
+        toast.error(message, authToastError);
       }
-    } catch {
-      toast.error("Could not send OTP. Try again", authToastError);
+    } catch (caughtError) {
+      const message = caughtError instanceof Error ? caughtError.message : "Could not send OTP. Try again";
+      setFormError(message);
+      toast.error(message, authToastError);
     } finally {
       setIsLoading(false);
     }
@@ -58,6 +64,12 @@ const OTPLogin = () => {
       <Toaster />
       <AuthCard title="Sign in with OTP" subtitle="Enter your mobile number to receive a verification code">
         <div className="space-y-5">
+          {formError ? (
+            <div role="alert" className="rounded-lg border border-[var(--color-danger)] bg-[var(--color-danger-subtle)] px-4 py-3 text-[length:var(--text-sm)] text-[var(--color-danger)]">
+              {formError}
+            </div>
+          ) : null}
+
           <PhoneInput value={phoneNumber} onChange={setPhoneNumber} error={error} disabled={isLoading} />
 
           {demoOtp ? (

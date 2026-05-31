@@ -20,7 +20,7 @@ export default function RiderDetailsPage() {
           </h1>
 
           <p className="text-gray-500 mt-2">
-            Rider ID: {params.id}
+            Rider ID: {params?.id}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">

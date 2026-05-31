@@ -200,3 +200,4 @@ export type PaymentSettingsFormValues = z.infer<typeof paymentSettingsSchema>;
 export type NotificationSettingsFormValues = z.infer<typeof notificationSettingsSchema>;
 export type SecuritySettingsFormValues = z.infer<typeof securitySettingsSchema>;
 export type PaymentRateFormValues = z.infer<typeof paymentRateSchema>;
+export type IntegrationSettingsFormValues = z.infer<typeof integrationSettingsSchema>;

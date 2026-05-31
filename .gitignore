@@ -13,3 +13,9 @@ logs
 __pycache__
 db.sqlite3
 *.py[cod]
+*.csv
+.venv
+myenv
+*.md
+*.kiro
+*.ini

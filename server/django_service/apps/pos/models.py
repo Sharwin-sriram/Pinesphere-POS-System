@@ -214,3 +214,42 @@ class CartItem(models.Model):
     def get_subtotal(self):
         """Calculate subtotal for this item"""
         return self.price * self.quantity
+
+
+class Address(models.Model):
+    """User delivery addresses"""
+    ADDRESS_TYPE_CHOICES = [
+        ('home', 'Home'),
+        ('work', 'Work'),
+        ('other', 'Other'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
+    address_type = models.CharField(max_length=20, choices=ADDRESS_TYPE_CHOICES, default='home')
+    street_address = models.CharField(max_length=255)
+    apartment_suite = models.CharField(max_length=100, blank=True)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=20)
+    country = models.CharField(max_length=100, default='India')
+    phone = models.CharField(max_length=20, blank=True)
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['user', 'is_default']),
+        ]
+    
+    def __str__(self):
+        return f"{self.address_type.title()} - {self.street_address}, {self.city}"
+    
+    def get_full_address(self):
+        """Get formatted full address"""
+        parts = [self.street_address]
+        if self.apartment_suite:
+            parts.append(self.apartment_suite)
+        parts.extend([self.city, self.state, self.postal_code, self.country])
+        return ", ".join(parts)

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { KDSTicket, KDSUrgency } from "../types";
+import { type KDSTicket, KDSUrgency } from "../types";
 import KDSTicketHeader from "./KDSTicketHeader";
 import KDSTicketItems from "./KDSTicketItems";
 import KDSTicketFooter from "./KDSTicketFooter";

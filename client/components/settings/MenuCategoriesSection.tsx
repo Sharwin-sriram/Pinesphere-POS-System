@@ -210,7 +210,7 @@ export default function MenuCategoriesSection() {
             <Input label="Available until" type="time" {...form.register("end_time")} />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            <Select label="Display status" {...form.register("is_active") as never}>
+            <Select label="Display status" {...form.register("is_active") as any}>
               <option value={String(true)}>Active</option>
               <option value={String(false)}>Inactive</option>
             </Select>
