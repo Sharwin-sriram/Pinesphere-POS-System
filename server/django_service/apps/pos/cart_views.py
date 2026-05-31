@@ -55,6 +55,22 @@ def get_cart(request):
         # Create a new cart if it doesn't exist
         cart = Cart.objects.create(user=request.user)
     
+    # Fallback/healing: if cart has items but no restaurant_id, try to populate it
+    if not cart.restaurant_id and cart.items.exists():
+        first_item = cart.items.exclude(restaurant="").first()
+        if first_item:
+            cart.restaurant_id = first_item.restaurant
+            cart.save()
+        else:
+            first_item = cart.items.first()
+            if first_item:
+                menu_item = MenuItem.objects.filter(id=first_item.menu_item_id).first()
+                if menu_item:
+                    cart.restaurant_id = menu_item.restaurant_id
+                    first_item.restaurant = menu_item.restaurant_id
+                    first_item.save()
+                    cart.save()
+    
     return Response(serialize_cart(cart))
 
 
@@ -87,8 +103,9 @@ def add_to_cart(request):
     cart, _ = Cart.objects.get_or_create(user=request.user)
     
     # Update restaurant_id if provided
-    if data.get("restaurant"):
-        cart.restaurant_id = data.get("restaurant")
+    restaurant_id = data.get("restaurant_id") or data.get("restaurant")
+    if restaurant_id:
+        cart.restaurant_id = restaurant_id
         cart.save()
     
     # Add or update item in cart
@@ -104,13 +121,15 @@ def add_to_cart(request):
             "price": price,
             "quantity": quantity,
             "image": data.get("image", ""),
-            "restaurant": data.get("restaurant", ""),
+            "restaurant": restaurant_id or "",
         }
     )
     
     if not created:
         # Item already exists, increment quantity
         cart_item.quantity += quantity
+        if restaurant_id and not cart_item.restaurant:
+            cart_item.restaurant = restaurant_id
         cart_item.save()
     
     return Response(serialize_cart(cart), status=status.HTTP_201_CREATED)
@@ -169,6 +188,9 @@ def remove_from_cart(request, item_id):
         )
     
     item.delete()
+    if not cart.items.exists():
+        cart.restaurant_id = None
+        cart.save()
     return Response(serialize_cart(cart))
 
 
@@ -179,6 +201,8 @@ def clear_cart(request):
     try:
         cart = Cart.objects.get(user=request.user)
         cart.items.all().delete()
+        cart.restaurant_id = None
+        cart.save()
     except Cart.DoesNotExist:
         pass
     

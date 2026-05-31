@@ -359,7 +359,7 @@ export default function RestaurantDetailPage({ params }: PageProps) {
                     </h2>
                     <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
                       {items.map((item) => (
-                        <MenuItemCard key={item.id} item={item} />
+                        <MenuItemCard key={item.id} item={item} restaurantId={id} />
                       ))}
                     </div>
                   </section>
@@ -373,7 +373,7 @@ export default function RestaurantDetailPage({ params }: PageProps) {
   );
 }
 
-function MenuItemCard({ item }: { item: MenuItem }) {
+function MenuItemCard({ item, restaurantId }: { item: MenuItem; restaurantId: string }) {
   const [expanded, setExpanded] = useState(false);
   const { cartItems, addToCart, updateQuantity } = useCart();
 
@@ -388,6 +388,7 @@ function MenuItemCard({ item }: { item: MenuItem }) {
       name: item.name,
       price: effectivePrice,
       image: item.image_url || undefined,
+      restaurantId: restaurantId,
     });
   };
 

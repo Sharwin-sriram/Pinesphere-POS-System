@@ -13,6 +13,7 @@ export interface RazorpayOrder {
   attempts: number;
   notes: Record<string, any>;
   created_at: number;
+  key_id?: string;
 }
 
 export interface RazorpayPaymentResponse {
@@ -97,8 +98,13 @@ class RazorpayService {
       throw new Error('Razorpay is not available');
     }
 
+    const razorpayKey = order.key_id || this.razorpayKey;
+    if (!razorpayKey) {
+      throw new Error('Razorpay key is not configured');
+    }
+
     const paymentOptions = {
-      key: this.razorpayKey,
+      key: razorpayKey,
       order_id: order.id,
       amount: order.amount,
       currency: order.currency,

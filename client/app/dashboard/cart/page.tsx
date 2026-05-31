@@ -95,7 +95,7 @@ function EmptyCart({ isAuthenticated }: { isAuthenticated: boolean }) {
 }
 
 export default function CartPage() {
-  const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, clearCart, restaurantId: cartRestaurantId } = useCart();
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("delivery");
   const [address, setAddress] = useState("");
   const [editingAddress, setEditingAddress] = useState(false);
@@ -149,7 +149,7 @@ export default function CartPage() {
     const fetchTaxRates = async () => {
       try {
         setLoadingTaxes(true);
-        const restaurantId = cartItems[0]?.restaurant;
+        const restaurantId = cartRestaurantId || cartItems[0]?.restaurant;
         if (!restaurantId) {
           setTaxRates([]);
           setLoadingTaxes(false);
@@ -256,13 +256,24 @@ export default function CartPage() {
 
     try {
       const currentUser = authService.getCurrentUser();
+      const restaurantId = currentUser?.restaurant_id || cartRestaurantId || cartItems[0]?.restaurantId || cartItems[0]?.restaurant || null;
+      const branchId = currentUser?.branch_id || null;
       const orderPayload = {
-        order_type: deliveryMode,
-        table_id: null,
-        branch: cartItems[0]?.restaurant || null,
+        restaurant_id: restaurantId,
+        branch_id: branchId,
+        source: "web",
+        delivery_type: deliveryMode,
+        customer_id: currentUser?.id || null,
+        external_id: `razorpay_${Date.now()}`,
         customer_name:
           currentUser?.name || [currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(" "),
         customer_phone: currentUser?.mobile || "",
+        delivery_address: deliveryMode === "delivery" ? address : null,
+        metadata: {
+          order_type: deliveryMode,
+          delivery_address: deliveryMode === "delivery" ? address : null,
+          customer_name: currentUser?.name || [currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(" "),
+        },
         notes: [
           deliveryMode === "delivery" ? `Delivery address: ${address}` : "Pickup order",
           instructions.trim() ? `Instructions: ${instructions.trim()}` : "",
@@ -271,8 +282,8 @@ export default function CartPage() {
           .join(" | "),
         items: cartItems.map((item) => ({
           menu_item_id: item.menu_item_id ?? item.id,
-          item_name: item.name,
-          qty: item.quantity,
+          name: item.name,
+          quantity: item.quantity,
           unit_price: getEffectiveUnitPrice(item),
         })),
       };
@@ -327,6 +338,74 @@ export default function CartPage() {
       });
     } catch (error: any) {
       const message = error?.message || "Failed to initiate payment";
+      toast.error(message);
+      setIsPlacingOrder(false);
+    }
+  };
+
+  const buildOrderPayload = () => {
+    const currentUser = authService.getCurrentUser();
+    const restaurantId = currentUser?.restaurant_id || cartRestaurantId || cartItems[0]?.restaurantId || cartItems[0]?.restaurant || null;
+    const branchId = currentUser?.branch_id || null;
+
+    return {
+      restaurant_id: restaurantId,
+      branch_id: branchId,
+      source: "web",
+      delivery_type: deliveryMode,
+      customer_id: currentUser?.id || null,
+      external_id: `razorpay_${Date.now()}`,
+      customer_name:
+        currentUser?.name || [currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(" "),
+      customer_phone: currentUser?.mobile || "",
+      delivery_address: deliveryMode === "delivery" ? address : null,
+      metadata: {
+        order_type: deliveryMode,
+        delivery_address: deliveryMode === "delivery" ? address : null,
+        customer_name: currentUser?.name || [currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(" "),
+      },
+      notes: [
+        deliveryMode === "delivery" ? `Delivery address: ${address}` : "Pickup order",
+        instructions.trim() ? `Instructions: ${instructions.trim()}` : "",
+      ]
+        .filter(Boolean)
+        .join(" | "),
+      items: cartItems.map((item) => ({
+        menu_item_id: item.menu_item_id ?? item.id,
+        name: item.name,
+        quantity: item.quantity,
+        unit_price: getEffectiveUnitPrice(item),
+      })),
+    };
+  };
+
+  const simulateSuccessfulOrderPlacement = async () => {
+    if (isPlacingOrder || cartItems.length === 0) {
+      return;
+    }
+
+    if (deliveryMode === "delivery" && !address.trim()) {
+      toast.error("Add a delivery address before placing the order.");
+      return;
+    }
+
+    setIsPlacingOrder(true);
+
+    try {
+      const orderPayload = buildOrderPayload();
+      const response = await httpClient.post("/api/v1/orders/", orderPayload);
+      const orderId = response.data?.data?.id || response.data?.id;
+
+      try {
+        await clearCart();
+      } catch (clearError) {
+        console.error("Order created but cart could not be cleared", clearError);
+      }
+
+      toast.success("Test order placed successfully.");
+      window.location.href = `/dashboard/orders/${orderId}`;
+    } catch (error: any) {
+      const message = error?.response?.data?.detail || error?.message || "Failed to simulate order placement";
       toast.error(message);
       setIsPlacingOrder(false);
     }
@@ -554,6 +633,14 @@ export default function CartPage() {
                   Place order · ₹{total.toFixed(2)}
                 </span>
               </Button>
+
+              <button
+                onClick={simulateSuccessfulOrderPlacement}
+                disabled={isPlacingOrder}
+                className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-[var(--color-blue)] bg-blue-50 py-2.5 text-sm font-semibold text-[var(--color-blue)] hover:bg-blue-100 transition-smooth disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Simulate successful order placement
+              </button>
 
               <Link
                 href="/dashboard"

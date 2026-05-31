@@ -78,23 +78,13 @@ class Migration(migrations.Migration):
                 ("restaurant", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="authentication.restaurant")),
                 ("branch", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="billing.branch")),
                 (
-                    "table",
-                    models.ForeignKey(
-                        blank=True,
-                        null=True,
-                        db_constraint=False,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        to="tables.table",
-                    ),
-                ),
-                (
                     "customer",
                     models.ForeignKey(
                         blank=True,
                         null=True,
                         db_constraint=False,
                         on_delete=django.db.models.deletion.SET_NULL,
-                        to="crm.customer",
+                        to="authentication.user",
                     ),
                 ),
                 ("order_type", models.CharField(choices=[("DINEIN", "Dine In"), ("TAKEAWAY", "Takeaway"), ("DELIVERY", "Delivery")], max_length=20)),

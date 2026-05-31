@@ -60,7 +60,6 @@ INSTALLED_APPS = [
     "pinesphere.apps.analytics",
     "pinesphere.apps.inventory",
     "pinesphere.apps.menu",
-    "pinesphere.apps.crm",
     "pinesphere.apps.orders.apps.PinesphereOrdersConfig",
     "pinesphere.apps.delivery",
     "pinesphere.apps.payments",

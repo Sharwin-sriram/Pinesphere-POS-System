@@ -9,7 +9,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('billing', '0001_initial'),
-        ('crm', '__first__'),
         ('tables', '__first__'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
@@ -23,12 +22,17 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='order',
             name='customer',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='crm.customer'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='authentication.user'),
         ),
-        migrations.AlterField(
-            model_name='order',
-            name='table',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='tables.table'),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.AddField(
+                    model_name='order',
+                    name='table',
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='tables.table'),
+                ),
+            ],
         ),
         migrations.AlterField(
             model_name='payment',
