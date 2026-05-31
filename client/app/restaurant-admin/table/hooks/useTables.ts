@@ -26,6 +26,7 @@ export const useTables = (restaurantId: string = "r1") => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchTables = useCallback(async () => {
+    if (!restaurantId) return;
     try {
       const data = await tableApi.getTables(restaurantId);
       // Sort tables logically by table number
@@ -45,6 +46,7 @@ export const useTables = (restaurantId: string = "r1") => {
   }, [fetchTables]);
 
   useEffect(() => {
+    if (!restaurantId) return;
     let ws: WebSocket | null = null;
     let pollInterval: any = null;
     let reconnectTimeout: any = null;

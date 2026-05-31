@@ -64,6 +64,15 @@ export const settingsApi = {
       headers: { "Content-Type": "multipart/form-data" },
     }));
   },
+  uploadRestaurantCoverPhoto: (restaurantId: string, file: File) => {
+    const formData = new FormData();
+    formData.append("cover_photo", file);
+    formData.append("restaurant_id", restaurantId);
+    return unwrap(httpClient.post<ApiEnvelope<any>>("/api/settings/restaurant/cover-photo/", formData, {
+      params: getRestaurantContextParams(),
+      headers: { "Content-Type": "multipart/form-data" },
+    }));
+  },
   getPermissions: () => unwrap(httpClient.get<ApiEnvelope<any[]>>("/api/settings/permissions/", withRestaurantContext())),
 
   getRoles: () => unwrap(httpClient.get<ApiEnvelope<any[]>>("/api/settings/roles/", withRestaurantContext())),

@@ -199,6 +199,24 @@ def restaurant_logo_upload_view(request):
     return _success({"logo": settings.logo.url if settings.logo else None})
 
 
+@api_view(["POST"])
+@permission_classes([IsRestaurantAdminOrOwner])
+def restaurant_cover_photo_upload_view(request):
+    try:
+        restaurant = _restaurant_from_request(request)
+    except ValueError as exc:
+        return _error("restaurant_context_missing", str(exc), status_code=status.HTTP_400_BAD_REQUEST)
+
+    settings = ensure_settings(restaurant)
+    cover_photo = request.FILES.get("cover_photo") or request.FILES.get("file")
+    if not cover_photo:
+        return _error("cover_photo_missing", "Cover photo file is required", status_code=status.HTTP_400_BAD_REQUEST)
+
+    settings.cover_photo = cover_photo
+    settings.save(update_fields=["cover_photo", "updated_at"])
+    return _success({"cover_photo": settings.cover_photo.url if settings.cover_photo else None})
+
+
 @api_view(["GET"])
 @permission_classes([IsRestaurantAdminOrOwner])
 def permissions_list_view(request):

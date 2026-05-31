@@ -339,7 +339,7 @@ def restaurants_list(request):
                 pass
         return True
 
-    db_restaurants = Restaurant.objects.filter(is_active=True)
+    db_restaurants = Restaurant.objects.all()
     all_restaurants = [_serialize_restaurant(r) for r in db_restaurants]
 
     filtered = [r for r in all_restaurants if matches(r)]
@@ -350,6 +350,8 @@ def restaurants_list(request):
         filtered.sort(key=lambda r: r["delivery_time_min"])
     elif sort == "name_asc":
         filtered.sort(key=lambda r: r["name"].lower())
+
+    filtered.sort(key=lambda r: not r["is_open"])
 
     total = len(filtered)
     start = (page - 1) * page_size
@@ -373,7 +375,7 @@ def restaurant_detail(request, pk):
     Get metadata for a single restaurant.
     """
     try:
-        r = Restaurant.objects.get(id=pk, is_active=True)
+        r = Restaurant.objects.get(id=pk)
         return Response(_serialize_restaurant(r))
     except (Restaurant.DoesNotExist, ValueError):
         return Response({"detail": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -472,7 +474,7 @@ def toggle_favorite(request, pk):
     Accepts {"fail": true} in request body to simulate API failures for rollback testing.
     """
     try:
-        r = Restaurant.objects.get(id=pk, is_active=True)
+        r = Restaurant.objects.get(id=pk)
     except (Restaurant.DoesNotExist, ValueError):
         return Response({"detail": "Restaurant not found"}, status=status.HTTP_404_NOT_FOUND)
     
@@ -881,8 +883,75 @@ def restaurant_tables_list(request, pk):
     """
     List tables for a restaurant, or create a new table.
     """
-    if pk not in MOCK_TABLES:
-        MOCK_TABLES[pk] = []
+    if pk not in MOCK_TABLES or not MOCK_TABLES[pk]:
+        MOCK_TABLES[pk] = [
+            {
+                "id": f"t_{pk}_1",
+                "number": 1,
+                "capacity": 4,
+                "section": "Indoor",
+                "notes": "Near window",
+                "status": "Available",
+                "waiter": "",
+                "seated_at": "",
+            },
+            {
+                "id": f"t_{pk}_2",
+                "number": 2,
+                "capacity": 2,
+                "section": "Outdoor",
+                "notes": "Cozy corner",
+                "status": "Occupied",
+                "waiter": "Sarah Jenkins",
+                "seated_at": "2026-05-31T05:00:00Z",
+            },
+            {
+                "id": f"t_{pk}_3",
+                "number": 3,
+                "capacity": 6,
+                "section": "Indoor",
+                "notes": "Large family table",
+                "status": "Reserved",
+                "waiter": "Michael Chang",
+                "seated_at": "",
+                "reserved_at": "2026-05-31T19:30:00Z",
+            },
+            {
+                "id": f"t_{pk}_4",
+                "number": 4,
+                "capacity": 4,
+                "section": "Bar",
+                "notes": "High chairs",
+                "status": "Cleaning",
+                "waiter": "",
+                "seated_at": "",
+            },
+        ]
+        
+        # Seed default order details for Table 2
+        if pk not in MOCK_TABLE_ORDERS:
+            MOCK_TABLE_ORDERS[pk] = {}
+        t2_id = f"t_{pk}_2"
+        MOCK_TABLE_ORDERS[pk][t2_id] = [
+            {
+                "id": "o_init_1",
+                "item_id": "m1_1",
+                "item_name": "Zinger Burger",
+                "quantity": 2,
+                "notes": "Extra crispy, no mayo",
+                "price": 189.0,
+                "status": "Served",
+            },
+            {
+                "id": "o_init_2",
+                "item_id": "m1_2",
+                "item_name": "Veg Zinger",
+                "quantity": 1,
+                "notes": "",
+                "price": 149.0,
+                "status": "Preparing",
+            }
+        ]
     
     tables = MOCK_TABLES[pk]
 

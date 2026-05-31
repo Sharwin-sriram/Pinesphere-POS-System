@@ -15,6 +15,7 @@ class RestaurantSettings(models.Model):
         related_name="settings_profile",
     )
     logo = models.ImageField(upload_to="settings/logos/", null=True, blank=True)
+    cover_photo = models.ImageField(upload_to="settings/cover-photos/", null=True, blank=True)
     tax_id = models.CharField(max_length=100, blank=True, default="")
     default_timezone = models.CharField(max_length=50, default="UTC")
     currency = models.CharField(max_length=16, default="USD")

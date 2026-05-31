@@ -16,3 +16,9 @@ export function useUploadSettingsRestaurantLogo() {
     settingsApi.uploadRestaurantLogo(restaurantId, file),
   );
 }
+
+export function useUploadSettingsRestaurantCoverPhoto() {
+  return useSettingsMutation(({ restaurantId, file }: { restaurantId: string; file: File }) =>
+    settingsApi.uploadRestaurantCoverPhoto(restaurantId, file),
+  );
+}

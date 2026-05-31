@@ -16,18 +16,21 @@ export default function RestaurantAdminLayout({
  children: React.ReactNode;
 }) {
  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+ const [isMounted, setIsMounted] = useState(false);
  const router = useRouter();
  const pathname = usePathname();
 
  useEffect(() => {
-    const isRestaurantAdmin = RESTAURANT_ROLES.includes(authService.getUserRole() || "");
+  setIsMounted(true);
+
+  const isRestaurantAdmin = RESTAURANT_ROLES.includes(authService.getUserRole() || "");
   if (!authService.isAuthenticated() || !isRestaurantAdmin) {
    const next = pathname && pathname !== "/restaurant/login" ? `?next=${encodeURIComponent(pathname)}` : "";
    router.replace(`/restaurant/login${next}`);
   }
  }, [pathname, router]);
 
- const isRestaurantAdmin = authService.isAuthenticated() && RESTAURANT_ROLES.includes(authService.getUserRole() || "");
+ const isRestaurantAdmin = isMounted && authService.isAuthenticated() && RESTAURANT_ROLES.includes(authService.getUserRole() || "");
 
  if (!isRestaurantAdmin) {
   return null;

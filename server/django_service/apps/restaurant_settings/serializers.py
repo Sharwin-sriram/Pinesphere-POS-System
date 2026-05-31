@@ -37,6 +37,7 @@ class RestaurantProfileSerializer(serializers.Serializer):
     operating_hours = OperatingHourSerializer(many=True, required=False)
     table_count = serializers.IntegerField(min_value=0, required=False)
     floor_capacity = serializers.IntegerField(min_value=0, required=False)
+    is_active = serializers.BooleanField(required=False)
 
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -201,6 +202,7 @@ class RestaurantSettingsSerializer(serializers.ModelSerializer):
             "id",
             "restaurant",
             "logo",
+            "cover_photo",
             "tax_id",
             "default_timezone",
             "currency",
