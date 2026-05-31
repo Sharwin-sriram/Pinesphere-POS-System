@@ -63,4 +63,14 @@ urlpatterns = [
         'low-stock/',
         low_stock_items
     ),
+    # Compatibility alias: frontend requests '/items/stock/low-stock/'
+    path(
+        'items/stock/low-stock/',
+        low_stock_items
+    ),
+    # Additional alias for '/items/low-stock/' if used elsewhere
+    path(
+        'items/low-stock/',
+        low_stock_items
+    ),
 ]

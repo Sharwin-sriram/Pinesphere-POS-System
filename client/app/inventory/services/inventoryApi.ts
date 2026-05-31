@@ -1,6 +1,12 @@
-import { httpClient } from "../../lib/authService";
+import axios from "axios";
+import { authService } from "../../lib/authService";
 
-type ApiCollection<T> = T[] | { results?: T[] };
+type ApiCollection<T> = T[] | { results?: T[]; data?: T[] };
+
+type InventoryScope = {
+ restaurantId: string;
+ branchId: string;
+};
 
 type BackendSupplier = {
  id: number;
@@ -36,16 +42,77 @@ type BackendPurchaseOrder = {
  inventory_item: BackendInventoryItem | number;
 };
 
+const INVENTORY_API_BASE_URL =
+ process.env.NEXT_PUBLIC_INVENTORY_API_URL ||
+ process.env.NEXT_PUBLIC_NODE_API_URL ||
+ // Default to local Django dev server (was previously Node on 5000)
+ "http://127.0.0.1:8000";
+
+const inventoryHttpClient = axios.create({
+ baseURL: INVENTORY_API_BASE_URL,
+ timeout: 10000,
+ headers: {
+ "Content-Type": "application/json",
+ },
+});
+
+inventoryHttpClient.interceptors.request.use((config) => {
+ if (typeof window !== "undefined") {
+ const token = localStorage.getItem("pos_token");
+ if (token) {
+ config.headers.Authorization = `Bearer ${token}`;
+ }
+ }
+
+ return config;
+});
+
 function extractCollection<T>(data: ApiCollection<T> | T) {
  if (Array.isArray(data)) {
  return data;
  }
 
- if (data && typeof data === "object" && "results" in data) {
- return data.results || [];
+ if (data && typeof data === "object") {
+ if ("data" in data && Array.isArray(data.data)) {
+ return data.data;
+ }
+
+ if ("results" in data && Array.isArray(data.results)) {
+ return data.results;
+ }
  }
 
  return [];
+}
+
+function getInventoryScope(): InventoryScope {
+ const user = authService.getCurrentUser?.() || authService.getUserInfo?.() || {};
+
+ const restaurantId =
+ user.restaurant?.id ||
+ user.restaurant_id ||
+ user.restaurantId ||
+ user.restaurant ||
+ "r1";
+
+ const branchId =
+ user.branch?.id ||
+ user.branch_id ||
+ user.branchId ||
+ "1";
+
+ return {
+ restaurantId: String(restaurantId),
+ branchId: String(branchId),
+ };
+}
+
+function getInventoryParams() {
+ const scope = getInventoryScope();
+ return {
+ restaurantId: scope.restaurantId,
+ branchId: scope.branchId,
+ };
 }
 
 function mapSupplier(supplier?: BackendSupplier) {
@@ -97,21 +164,33 @@ function mapPurchaseOrder(order: BackendPurchaseOrder) {
 }
 
 export const getInventoryItems = async () => {
- const response = await httpClient.get("/api/inventory/items/");
- return extractCollection<BackendInventoryItem>(response.data).map(mapInventoryItem);
+ const response = await inventoryHttpClient.get("/api/inventory/items/", {
+ params: getInventoryParams(),
+ });
+ return extractCollection<BackendInventoryItem>(response.data?.data ?? response.data).map(mapInventoryItem);
 };
 
 export const getSuppliers = async () => {
- const response = await httpClient.get("/api/inventory/suppliers/");
- return extractCollection<BackendSupplier>(response.data).map(mapSupplier);
+ const response = await inventoryHttpClient.get("/api/inventory/suppliers/", {
+ params: getInventoryParams(),
+ });
+ return extractCollection<BackendSupplier>(response.data?.data ?? response.data).map(mapSupplier);
 };
 
 export const getPurchaseOrders = async () => {
- const response = await httpClient.get("/api/inventory/purchase-orders/");
- return extractCollection<BackendPurchaseOrder>(response.data).map(mapPurchaseOrder);
+ try {
+ const response = await inventoryHttpClient.get("/api/inventory/purchase-orders/", {
+ params: getInventoryParams(),
+ });
+ return extractCollection<BackendPurchaseOrder>(response.data?.data ?? response.data).map(mapPurchaseOrder);
+ } catch {
+ return [];
+ }
 };
 
 export const getLowStockItems = async () => {
- const response = await httpClient.get("/api/inventory/low-stock/");
- return extractCollection<BackendInventoryItem>(response.data).map(mapInventoryItem);
+ const response = await inventoryHttpClient.get("/api/inventory/items/stock/low-stock/", {
+ params: getInventoryParams(),
+ });
+ return extractCollection<BackendInventoryItem>(response.data?.data ?? response.data).map(mapInventoryItem);
 };
