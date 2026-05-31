@@ -60,13 +60,39 @@ class OrderCreationView(APIView):
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
-        payment = services.create_razorpay_order(
-            customer=request.user,
-            amount=validated_data["amount"],
-            currency=validated_data.get("currency", "INR"),
-            receipt=validated_data["receipt"],
-            notes=validated_data.get("notes", {}),
-        )
+        try:
+            payment = services.create_razorpay_order(
+                customer=request.user,
+                amount=validated_data["amount"],
+                currency=validated_data.get("currency", "INR"),
+                receipt=validated_data["receipt"],
+                notes=validated_data.get("notes", {}),
+            )
+        except Exception as exc:
+            # Log the exception for server-side diagnostics
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.exception("Razorpay order creation error in OrderCreationView")
+
+            # Try to return a helpful response in DEBUG, otherwise return a 502
+            from django.conf import settings as _settings
+
+            # If it's the specific RazorpayOrderCreationError, map to 502
+            try:
+                from .exceptions import RazorpayOrderCreationError
+            except Exception:
+                RazorpayOrderCreationError = None
+
+            if RazorpayOrderCreationError and isinstance(exc, RazorpayOrderCreationError):
+                return Response({"detail": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+
+            if getattr(_settings, "DEBUG", False):
+                # Expose exception detail to help local debugging
+                return Response({"detail": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # Generic message for production
+            return Response({"detail": "Failed to create payment order."}, status=status.HTTP_502_BAD_GATEWAY)
 
         return Response(
             {

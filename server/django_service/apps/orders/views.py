@@ -5,6 +5,7 @@ from __future__ import annotations
 from django.http import HttpResponse
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
@@ -77,13 +78,27 @@ class OrderViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         order = get_order_or_404(pk)
+        # Verify user has access to this order's restaurant
+        user_restaurant_id = getattr(request.user, "restaurant_id", None)
+        user_role = getattr(request.user, "role", None)
+        
+        # Super admin can see all orders
+        if user_role != "SUPER_ADMIN":
+            # Check if order belongs to user's restaurant
+            if order.restaurant_id and user_restaurant_id and str(order.restaurant_id) != str(user_restaurant_id):
+                raise PermissionDenied("You do not have access to this order.")
+        
         return success_response(data=OrderReadSerializer(order).data)
 
     def create(self, request):
         serializer = OrderCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        
+        # Use restaurant from request data if provided, otherwise use user's restaurant
+        restaurant = serializer.validated_data.get("restaurant") or getattr(request.user, "restaurant_id", None)
+        
         order = create_order(
-            tenant=getattr(request.user, "restaurant_id", None),
+            tenant=restaurant,
             branch=serializer.validated_data.get("branch"),
             order_type=serializer.validated_data.get("order_type"),
             table_id=serializer.validated_data.get("table_id"),

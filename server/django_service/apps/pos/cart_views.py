@@ -7,16 +7,23 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from decimal import Decimal
-from .models import Cart, CartItem
+from .models import Cart, CartItem, MenuItem
 
 
 def serialize_cart_item(item):
     """Convert CartItem model to API response format"""
+    menu_item = MenuItem.objects.filter(id=item.menu_item_id, restaurant_id=item.restaurant).first()
+    original_price = float(menu_item.price) if menu_item else float(item.price)
+    discounted_price = float(menu_item.discount_price) if menu_item and menu_item.discount_price is not None else None
+    effective_price = discounted_price if discounted_price is not None else float(item.price)
     return {
         "id": str(item.id),
         "menu_item_id": item.menu_item_id,
         "name": item.name,
         "price": float(item.price),
+        "original_price": original_price,
+        "discounted_price": discounted_price,
+        "effective_price": effective_price,
         "quantity": item.quantity,
         "image": item.image,
         "restaurant": item.restaurant,

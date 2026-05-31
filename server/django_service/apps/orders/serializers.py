@@ -25,12 +25,16 @@ class OrderItemReadSerializer(serializers.ModelSerializer):
 
 class OrderReadSerializer(serializers.ModelSerializer):
     items = OrderItemReadSerializer(many=True, read_only=True)
+    restaurant_id = serializers.SerializerMethodField()
+    restaurant_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = [
             "id",
             "order_number",
+            "restaurant_id",
+            "restaurant_name",
             "status",
             "customer_name",
             "customer_phone",
@@ -42,8 +46,15 @@ class OrderReadSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
+    def get_restaurant_id(self, obj):
+        return str(obj.restaurant_id) if obj.restaurant_id else None
+
+    def get_restaurant_name(self, obj):
+        return obj.restaurant.name if obj.restaurant else None
+
 
 class OrderCreateSerializer(serializers.Serializer):
+    restaurant = serializers.CharField(required=False, allow_blank=True, allow_null=True, default=None, help_text="Restaurant UUID")
     order_type = serializers.CharField(required=False, allow_blank=True, default="table")
     table_id = serializers.CharField(required=False, allow_blank=True, allow_null=True, default=None)
     branch = serializers.CharField(required=False, allow_blank=True, allow_null=True, default=None)
