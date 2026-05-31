@@ -6,8 +6,12 @@ import authService, { httpClient } from "../../lib/authService";
 
 export interface CartItem {
   id: string;
+  menu_item_id?: string;
   name: string;
   price: number;
+  original_price?: number;
+  discounted_price?: number | null;
+  effective_price?: number;
   quantity: number;
   image?: string;
   restaurant?: string;

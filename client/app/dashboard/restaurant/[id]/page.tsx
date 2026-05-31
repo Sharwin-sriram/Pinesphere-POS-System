@@ -382,10 +382,11 @@ function MenuItemCard({ item }: { item: MenuItem }) {
   const quantity = cartItem ? cartItem.quantity : 0;
 
   const handleAdd = () => {
+    const effectivePrice = item.discount_price ?? item.price;
     addToCart({
       id: item.id,
       name: item.name,
-      price: item.price,
+      price: effectivePrice,
       image: item.image_url || undefined,
     });
   };

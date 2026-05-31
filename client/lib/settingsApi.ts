@@ -37,16 +37,17 @@ async function unwrap<T>(promise: Promise<{ data: ApiEnvelope<T> }>): Promise<T>
   }
 }
 
-function getRestaurantContextParams() {
-  const restaurantId = authService.getCurrentUser()?.restaurant_id;
-  return restaurantId ? { restaurant_id: restaurantId } : {};
+function getRestaurantContextParams(restaurantId?: string) {
+  const resolvedRestaurantId = restaurantId || authService.getCurrentUser()?.restaurant_id;
+  const restaurantIdValue = resolvedRestaurantId;
+  return restaurantIdValue ? { restaurant_id: restaurantIdValue } : {};
 }
 
-function withRestaurantContext(config: { params?: Record<string, unknown> } = {}) {
+function withRestaurantContext(config: { params?: Record<string, unknown> } = {}, restaurantId?: string) {
   return {
     ...config,
     params: {
-      ...getRestaurantContextParams(),
+      ...getRestaurantContextParams(restaurantId),
       ...(config.params || {}),
     },
   };
@@ -104,9 +105,9 @@ export const settingsApi = {
   deletePrinter: (printerId: string) => unwrap(httpClient.delete<ApiEnvelope<{ deleted: boolean }>>(`/api/settings/printers/${printerId}/`, withRestaurantContext())),
   testPrinter: (printerId: string) => unwrap(httpClient.post<ApiEnvelope<any>>(`/api/settings/printers/${printerId}/test/`, {}, withRestaurantContext())),
 
-  getPaymentSettings: () => unwrap(httpClient.get<ApiEnvelope<any>>("/api/settings/payment/", withRestaurantContext())),
+  getPaymentSettings: (restaurantId?: string) => unwrap(httpClient.get<ApiEnvelope<any>>("/api/settings/payment/", withRestaurantContext({}, restaurantId))),
   updatePaymentSettings: (payload: unknown) => unwrap(httpClient.put<ApiEnvelope<any>>("/api/settings/payment/", payload, withRestaurantContext())),
-  getTaxRates: () => unwrap(httpClient.get<ApiEnvelope<any[]>>("/api/settings/tax-rates/", withRestaurantContext())),
+  getTaxRates: (restaurantId?: string) => unwrap(httpClient.get<ApiEnvelope<any[]>>("/api/settings/tax-rates/", withRestaurantContext({}, restaurantId))),
   createTaxRate: (payload: unknown) => unwrap(httpClient.post<ApiEnvelope<any>>("/api/settings/tax-rates/", payload, withRestaurantContext())),
   updateTaxRate: (taxRateId: string, payload: unknown) => unwrap(httpClient.put<ApiEnvelope<any>>(`/api/settings/tax-rates/${taxRateId}/`, payload, withRestaurantContext())),
   deleteTaxRate: (taxRateId: string) => unwrap(httpClient.delete<ApiEnvelope<{ deleted: boolean }>>(`/api/settings/tax-rates/${taxRateId}/`, withRestaurantContext())),

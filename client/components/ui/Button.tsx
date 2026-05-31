@@ -23,7 +23,7 @@ export default function Button({
 }: ButtonProps) {
   // DS: radius — md (8px); DS: motion — 150ms base transition
   const base =
-    'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-semibold transition duration-150 ease-[ease] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-border-focus)] disabled:cursor-not-allowed disabled:opacity-40 font-[family-name:var(--font-ui)] text-[length:var(--text-base)] active:scale-[0.97]'
+    'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-semibold transition duration-150 ease-[ease] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-border-focus)] disabled:cursor-default disabled:opacity-40 font-[family-name:var(--font-ui)] text-[length:var(--text-base)] active:scale-[0.97]'
   const variants: Record<string, string> = {
     primary:
       'border-0 bg-[var(--color-accent)] text-[var(--color-text-inverse)] hover:bg-[var(--color-accent-hover)] active:bg-[var(--color-accent-active)]',

@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.dateparse import parse_time
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from authentication.models import Restaurant
@@ -546,8 +547,11 @@ def payment_settings_view(request):
 
 
 @api_view(["GET", "POST"])
-@permission_classes([IsRestaurantAdminOrOwner])
+@permission_classes([IsAuthenticated])
 def tax_rates_list_view(request):
+    if request.method == "POST" and not IsRestaurantAdminOrOwner().has_permission(request, None):
+        return _error("forbidden", "You do not have permission to modify tax rates", status_code=status.HTTP_403_FORBIDDEN)
+
     try:
         restaurant = _restaurant_from_request(request)
     except ValueError as exc:

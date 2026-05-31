@@ -55,6 +55,15 @@ export default function OrdersPage() {
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [demoStatus, setDemoStatus] = useState<OrderStatus | null>(null);
+
+  // In production, get orderId from URL params or user session
+  const orderId = "demo-order-001";
+
+  const { order, loading, error, refetch } = useOrderTracking({
+    orderId,
+    // wsUrl: `ws://localhost:8000/ws/orders/${orderId}/`,  // uncomment for real WS
+  });
 
   useEffect(() => {
     const userRole = authService.getUserRole();
@@ -92,16 +101,8 @@ export default function OrdersPage() {
       </div>
     );
   }
-  // In production, get orderId from URL params or user session
-  const orderId = "demo-order-001";
-
-  const { order, loading, error, refetch } = useOrderTracking({
-    orderId,
-    // wsUrl: `ws://localhost:8000/ws/orders/${orderId}/`,  // uncomment for real WS
-  });
 
   // Demo status override for previewing all states
-  const [demoStatus, setDemoStatus] = useState<OrderStatus | null>(null);
   const displayOrder = order && demoStatus ? { ...order, status: demoStatus } : order;
 
   return (
