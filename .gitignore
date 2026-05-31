@@ -17,3 +17,5 @@ db.sqlite3
 .venv
 myenv
 *.md
+*.kiro
+*.ini

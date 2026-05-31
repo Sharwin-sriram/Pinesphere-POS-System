@@ -57,7 +57,7 @@ export default function RolesPermissionsSection() {
       name: String(role.name || ""),
       color: String(role.color || "#334155"),
       icon: String(role.icon || ""),
-      permissions: (role.permissions as Record<string, Record<string, boolean>>) || {},
+      permissions: (role.permissions as any) || {},
       sort_order: Number(role.sort_order || 0),
       is_system: Boolean(role.is_system),
     });
