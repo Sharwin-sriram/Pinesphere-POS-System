@@ -1,13 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { httpClient } from "../../lib/authService";
 import { Order, OrderStatus } from "./types";
 
 interface UseOrderTrackingOptions {
   orderId: string;
-  /** Pass a real WebSocket URL like "ws://localhost:8000/ws/orders/{id}/" */
-  wsUrl?: string;
-  /** Polling interval in ms when WebSocket is not available (default 15 000) */
+  /** Polling interval in ms (default 20 000) */
   pollInterval?: number;
 }
 
@@ -18,102 +17,160 @@ interface UseOrderTrackingResult {
   refetch: () => void;
 }
 
-// ─── Mock data for development ────────────────────────────────────────────────
-function mockOrder(id: string): Order {
+// ─── Status map: backend → frontend ──────────────────────────────────────────
+const STATUS_MAP: Record<string, OrderStatus> = {
+  // backend lowercase values
+  pending:          "PLACED",
+  confirmed:        "ACCEPTED",
+  preparing:        "PREPARING",
+  ready:            "READY_FOR_PICKUP",
+  out_for_delivery: "OUT_FOR_DELIVERY",
+  delivered:        "DELIVERED",
+  cancelled:        "CANCELLED",
+  payment_failed:   "PAYMENT_FAILED",
+  refunded:         "REFUNDED",
+  // pass-through if already uppercase
+  PLACED:           "PLACED",
+  ACCEPTED:         "ACCEPTED",
+  PREPARING:        "PREPARING",
+  READY_FOR_PICKUP: "READY_FOR_PICKUP",
+  OUT_FOR_DELIVERY: "OUT_FOR_DELIVERY",
+  DELIVERED:        "DELIVERED",
+  CANCELLED:        "CANCELLED",
+  PAYMENT_FAILED:   "PAYMENT_FAILED",
+  REFUNDED:         "REFUNDED",
+};
+
+function mapStatus(raw: string): OrderStatus {
+  return STATUS_MAP[raw] ?? "PLACED";
+}
+
+// ─── Transform raw API response → Order type ─────────────────────────────────
+function mapBackendOrder(raw: any): Order {
+  const status = mapStatus(raw.status ?? "pending");
+
+  const items = (raw.items ?? []).map((it: any) => {
+    const unitPrice = parseFloat(it.unit_price ?? 0);
+    return {
+      id:       String(it.id),
+      name:     it.name ?? "Item",
+      quantity: Number(it.quantity ?? 1),
+      price:    unitPrice,
+    };
+  });
+
+  const total     = parseFloat(raw.total_amount ?? 0);
+  const subtotal  = items.reduce(
+    (sum: number, it: { price: number; quantity: number }) => sum + it.price * it.quantity,
+    0
+  );
+
   return {
-    id,
-    orderNumber: `ORD-${id.slice(-6).toUpperCase()}`,
-    status: "PREPARING",
-    placedAt: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
-    estimatedDelivery: new Date(Date.now() + 25 * 60 * 1000).toISOString(),
-    restaurantName: "The Spice Garden",
-    restaurantImage: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80",
-    items: [
-      { id: "1", name: "Butter Chicken", quantity: 1, price: 14.99 },
-      { id: "2", name: "Garlic Naan × 2", quantity: 2, price: 3.49 },
-      { id: "3", name: "Mango Lassi", quantity: 1, price: 4.99 },
-    ],
-    subtotal: 26.96,
-    deliveryFee: 2.99,
-    tax: 2.43,
-    total: 32.38,
-    deliveryAddress: "42 Maple Street, Apt 3B, Chennai 600001",
-    deliveryPartner: {
-      name: "Ravi Kumar",
-      phone: "+91 98765 43210",
-    },
+    id:                String(raw.id),
+    orderNumber:       raw.external_id ?? `ORD-${String(raw.id).padStart(6, "0")}`,
+    status,
+    placedAt:          raw.placed_at ?? raw.created_at,
+    estimatedDelivery: raw.scheduled_at ?? undefined,
+    restaurantName:    raw.restaurant_name ?? "Restaurant",
+    restaurantImage:   undefined,
+    items,
+    subtotal,
+    deliveryFee:       0,
+    tax:               0,
+    total,
+    deliveryAddress:   raw.delivery_address ?? "",
+    cancellationReason: raw.metadata?.cancellation_reason,
   };
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// ─── Hook: single order tracking ─────────────────────────────────────────────
 export function useOrderTracking({
   orderId,
-  wsUrl,
-  pollInterval = 15_000,
+  pollInterval = 20_000,
 }: UseOrderTrackingOptions): UseOrderTrackingResult {
-  const [order, setOrder] = useState<Order | null>(null);
+  const [order, setOrder]   = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [error, setError]   = useState<string | null>(null);
+  const pollRef             = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mountedRef          = useRef(true);
 
   const fetchOrder = useCallback(async () => {
     try {
-      // ── Replace with real API call ──────────────────────────────────────────
-      // const res = await fetch(`/api/orders/${orderId}`);
-      // if (!res.ok) throw new Error("Failed to fetch order");
-      // const data: Order = await res.json();
-      // setOrder(data);
-      // ───────────────────────────────────────────────────────────────────────
-
-      // Mock: simulate network delay
-      await new Promise((r) => setTimeout(r, 600));
-      setOrder(mockOrder(orderId));
+      const res  = await httpClient.get(`/api/v1/orders/${orderId}/`);
+      const raw  = res.data?.data ?? res.data;
+      if (!mountedRef.current) return;
+      setOrder(mapBackendOrder(raw));
       setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load order");
+    } catch (err: any) {
+      if (!mountedRef.current) return;
+      const msg =
+        err?.response?.data?.detail ??
+        err?.message ??
+        "Failed to load order.";
+      setError(msg);
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, [orderId]);
 
-  // Connect WebSocket if URL provided
   useEffect(() => {
-    if (!wsUrl) return;
-
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data) as { status: OrderStatus };
-        setOrder((prev) => (prev ? { ...prev, status: data.status } : prev));
-      } catch {
-        // ignore malformed messages
-      }
-    };
-
-    ws.onerror = () => setError("Real-time connection lost. Retrying…");
-    ws.onclose = () => {
-      // Fallback to polling if WS closes unexpectedly
-      pollRef.current = setInterval(fetchOrder, pollInterval);
-    };
-
-    return () => {
-      ws.close();
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-  }, [wsUrl, fetchOrder, pollInterval]);
-
-  // Polling fallback when no WebSocket URL
-  useEffect(() => {
-    if (wsUrl) return;
+    mountedRef.current = true;
+    setLoading(true);
     fetchOrder();
     pollRef.current = setInterval(fetchOrder, pollInterval);
     return () => {
+      mountedRef.current = false;
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [wsUrl, fetchOrder, pollInterval]);
+  }, [fetchOrder, pollInterval]);
 
   return { order, loading, error, refetch: fetchOrder };
+}
+
+// ─── Hook: all orders list ────────────────────────────────────────────────────
+interface UseOrdersListResult {
+  orders: Order[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => void;
+}
+
+export function useOrdersList(pollInterval = 30_000): UseOrdersListResult {
+  const [orders, setOrders]   = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState<string | null>(null);
+  const pollRef               = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mountedRef            = useRef(true);
+
+  const fetchOrders = useCallback(async () => {
+    try {
+      const res  = await httpClient.get("/api/v1/orders/");
+      const list = res.data?.data ?? res.data ?? [];
+      if (!mountedRef.current) return;
+      setOrders(Array.isArray(list) ? list.map(mapBackendOrder) : []);
+      setError(null);
+    } catch (err: any) {
+      if (!mountedRef.current) return;
+      const msg =
+        err?.response?.data?.detail ??
+        err?.message ??
+        "Failed to load orders.";
+      setError(msg);
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    setLoading(true);
+    fetchOrders();
+    pollRef.current = setInterval(fetchOrders, pollInterval);
+    return () => {
+      mountedRef.current = false;
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [fetchOrders, pollInterval]);
+
+  return { orders, loading, error, refetch: fetchOrders };
 }

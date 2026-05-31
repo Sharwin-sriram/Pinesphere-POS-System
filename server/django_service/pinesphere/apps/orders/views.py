@@ -8,22 +8,50 @@ from . import models, serializers, services
 
 class OrderViewSet(AuditLogMixin, viewsets.ViewSet):
     def list(self, request):
-        qs = models.Order.objects.filter(branch_id=request.user.branch_id, deleted_at__isnull=True)
+        user = request.user
+        qs = models.Order.objects.filter(deleted_at__isnull=True)
+
+        branch_id = getattr(user, 'branch_id', None)
+        restaurant_id = getattr(user, 'restaurant_id', None)
+
+        if branch_id:
+            qs = qs.filter(branch_id=str(branch_id))
+        elif restaurant_id:
+            qs = qs.filter(restaurant_id=str(restaurant_id))
+        else:
+            # Customer user — show only their own orders
+            qs = qs.filter(customer_id=str(user.id))
+
+        qs = qs.order_by('-created_at')
         data = serializers.OrderSerializer(qs, many=True).data
         return Response({'success': True, 'data': data, 'meta': {}}, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk=None):
-        order = models.Order.objects.get(id=pk, branch_id=request.user.branch_id)
+        user = request.user
+        qs = models.Order.objects.filter(deleted_at__isnull=True)
+        branch_id = getattr(user, 'branch_id', None)
+        restaurant_id = getattr(user, 'restaurant_id', None)
+        try:
+            if branch_id:
+                order = qs.get(id=pk, branch_id=str(branch_id))
+            elif restaurant_id:
+                order = qs.get(id=pk, restaurant_id=str(restaurant_id))
+            else:
+                order = qs.get(id=pk, customer_id=str(user.id))
+        except models.Order.DoesNotExist:
+            return Response(
+                {'success': False, 'detail': 'Order not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         data = serializers.OrderSerializer(order).data
         return Response({'success': True, 'data': data, 'meta': {}}, status=status.HTTP_200_OK)
 
     def create(self, request):
-        payload = request.data
-        if not isinstance(payload, dict):
-            try:
-                payload = payload.copy()
-            except AttributeError:
-                payload = dict(payload)
+        # Always work with a plain mutable dict copy so we can inject branch_id/restaurant_id
+        try:
+            payload = dict(request.data)
+        except Exception:
+            payload = {}
 
         restaurant_id = payload.get("restaurant_id") or getattr(request.user, "restaurant_id", None)
         branch_id = payload.get("branch_id") or getattr(request.user, "branch_id", None)
@@ -43,6 +71,19 @@ class OrderViewSet(AuditLogMixin, viewsets.ViewSet):
 
         if not branch_id:
             first_branch = restaurant.branches.filter(is_active=True).first() or restaurant.branches.first()
+            if not first_branch:
+                from authentication.models import Branch
+                try:
+                    first_branch = Branch.objects.create(
+                        restaurant=restaurant,
+                        name="Main Branch",
+                        address=restaurant.address or "Default Address",
+                        phone=restaurant.phone or "0000000000",
+                        is_active=True
+                    )
+                except Exception:
+                    pass
+            
             if first_branch:
                 branch_id = str(first_branch.id)
                 payload["branch_id"] = branch_id
