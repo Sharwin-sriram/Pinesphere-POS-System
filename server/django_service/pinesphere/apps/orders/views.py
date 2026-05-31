@@ -86,8 +86,15 @@ class OrderViewSet(AuditLogMixin, viewsets.ViewSet):
         except Exception:
             payload = {}
 
-        restaurant_id = payload.get('restaurant_id') or getattr(request.user, 'restaurant_id', None)
-        branch_id     = payload.get('branch_id')     or getattr(request.user, 'branch_id',     None)
+        # Prioritize payload restaurant_id over user attribute
+        # For customers, payload should contain the restaurant_id from the cart
+        restaurant_id = payload.get('restaurant_id')
+        if not restaurant_id:
+            restaurant_id = getattr(request.user, 'restaurant_id', None)
+        
+        branch_id = payload.get('branch_id')
+        if not branch_id:
+            branch_id = getattr(request.user, 'branch_id', None)
 
         if not restaurant_id:
             return Response(

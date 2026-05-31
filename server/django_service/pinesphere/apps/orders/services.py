@@ -21,8 +21,16 @@ def create_order(payload: dict, user=None) -> models.Order:
     - attempting to call inventory and billing integrations if present
     """
     items_payload = payload.get('items', []) or []
-    restaurant_id = payload.get('restaurant_id') or getattr(user, 'restaurant_id', None)
-    branch_id = payload.get('branch_id') or getattr(user, 'branch_id', None)
+    
+    # Prioritize payload restaurant_id over user attribute
+    # For customers, payload should contain the restaurant_id from the cart
+    restaurant_id = payload.get('restaurant_id')
+    if not restaurant_id:
+        restaurant_id = getattr(user, 'restaurant_id', None)
+    
+    branch_id = payload.get('branch_id')
+    if not branch_id:
+        branch_id = getattr(user, 'branch_id', None)
 
     with transaction.atomic():
         order = models.Order.objects.create(

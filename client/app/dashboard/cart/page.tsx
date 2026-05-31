@@ -256,7 +256,15 @@ export default function CartPage() {
 
     try {
       const currentUser = authService.getCurrentUser();
-      const restaurantId = currentUser?.restaurant_id || cartRestaurantId || cartItems[0]?.restaurantId || cartItems[0]?.restaurant || null;
+      // Ensure restaurant_id is always set - try multiple sources in order of priority
+      const restaurantId = currentUser?.restaurant_id || cartRestaurantId || cartItems[0]?.restaurantId || cartItems[0]?.restaurant;
+      
+      if (!restaurantId) {
+        toast.error("Unable to determine restaurant. Please refresh and try again.");
+        setIsPlacingOrder(false);
+        return;
+      }
+      
       const branchId = currentUser?.branch_id || null;
       const orderPayload = {
         restaurant_id: restaurantId,
