@@ -5,42 +5,39 @@ interface Props {
   onClose: () => void;
 }
 
-export default function OTPVerificationModal({
-  isOpen,
-  onClose,
-}: Props) {
+export default function OTPVerificationModal({ isOpen, onClose }: Props) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white w-[400px] rounded-2xl p-6">
-        <h2 className="text-2xl font-bold mb-4">
+      <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] w-[400px] rounded-2xl p-6 animate-fade-in-up">
+        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">
           OTP Verification
         </h2>
 
-        <p className="text-gray-500 mb-5">
+        <p className="text-sm text-[var(--color-text-secondary)] mb-5">
           Enter delivery OTP to verify order completion.
         </p>
 
         <input
           type="text"
           placeholder="Enter OTP"
-          className="w-full border rounded-xl p-3 outline-none mb-5"
+          className="input-light mb-5"
         />
 
         <div className="flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-gray-200"
+            className="btn-secondary-light px-5"
           >
             Cancel
           </button>
 
-          <button className="px-5 py-2 rounded-xl bg-blue-600 text-white">
+          <button className="btn-light px-5">
             Verify OTP
           </button>
         </div>
       </div>
     </div>
   );
-}
+}

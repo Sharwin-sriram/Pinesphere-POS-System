@@ -1,9 +1,6 @@
 "use client";
 
 import { useState } from "react";
-
-import DeliverySidebar from "../components/DeliverySidebar";
-import DeliveryTopbar from "../components/DeliveryTopbar";
 import DeliveryMap from "../components/DeliveryMap";
 import DeliveryTimeline from "../components/DeliveryTimeline";
 import OTPVerificationModal from "../components/OTPVerificationModal";
@@ -13,50 +10,42 @@ export default function TrackingPage() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex bg-[#f5f7fb] min-h-screen">
-      <DeliverySidebar />
-
-      <main className="flex-1 p-6">
-        <DeliveryTopbar />
-
-        <div className="flex items-center justify-between mt-6">
-          <div>
-            <h1 className="text-3xl font-bold">
-              Live Delivery Tracking
-            </h1>
-
-            <p className="text-gray-500 mt-1">
-              Monitor all active deliveries in realtime
-            </p>
-          </div>
-
-          <button
-            onClick={() => setOpen(true)}
-            className="bg-blue-600 text-white px-5 py-3 rounded-xl"
-          >
-            Verify Delivery OTP
-          </button>
+    <div className="flex flex-col gap-6 animate-fade-in-up">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">
+            Live Delivery Tracking
+          </h1>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+            Monitor all active deliveries in realtime
+          </p>
         </div>
+        <button
+          onClick={() => setOpen(true)}
+          className="btn-light px-5 py-2"
+        >
+          Verify Delivery OTP
+        </button>
+      </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-6">
-          <div className="xl:col-span-2">
-            <DeliveryMap />
-          </div>
-
-          <div>
-            <RouteOptimizationPanel />
-          </div>
+      {/* Map + Route panel */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2">
+          <DeliveryMap />
         </div>
-
-        <div className="mt-6">
-          <DeliveryTimeline />
+        <div>
+          <RouteOptimizationPanel />
         </div>
+      </div>
 
-        <OTPVerificationModal
-          isOpen={open}
-          onClose={() => setOpen(false)}
-        />
-      </main>
+      {/* Timeline */}
+      <DeliveryTimeline />
+
+      <OTPVerificationModal
+        isOpen={open}
+        onClose={() => setOpen(false)}
+      />
     </div>
   );
-}
+}
