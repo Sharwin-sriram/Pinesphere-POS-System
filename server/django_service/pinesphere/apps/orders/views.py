@@ -2,8 +2,46 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from pinesphere.core.mixins import AuditLogMixin
-from authentication.models import Restaurant
+from authentication.models import Branch, Restaurant, User
 from . import models, serializers, services
+
+
+RESTAURANT_ROLES = {
+    User.RoleChoices.ORGANIZATION_OWNER,
+    User.RoleChoices.BRANCH_MANAGER,
+    User.RoleChoices.CASHIER,
+    User.RoleChoices.WAITER,
+    User.RoleChoices.KITCHEN_STAFF,
+    User.RoleChoices.INVENTORY_MANAGER,
+    User.RoleChoices.ACCOUNTANT,
+}
+
+
+def _clean_id(value):
+    if value in (None, '', 'null', 'undefined'):
+        return None
+    text = str(value).strip()
+    if not text or text.lower() in {'null', 'undefined'}:
+        return None
+    return text
+
+
+def _resolve_user_scope(user):
+    """Return effective restaurant/branch ids for the current user."""
+    branch_id = _clean_id(getattr(user, 'branch_id', None))
+    restaurant_id = _clean_id(getattr(user, 'restaurant_id', None))
+
+    if restaurant_id:
+        return restaurant_id, branch_id
+
+    role = getattr(user, 'role', None)
+    email = getattr(user, 'email', None)
+    if role == User.RoleChoices.ORGANIZATION_OWNER and email:
+        restaurant = Restaurant.objects.filter(email__iexact=email).only('id').first()
+        if restaurant is not None:
+            restaurant_id = str(restaurant.id)
+
+    return restaurant_id, branch_id
 
 
 # ─── Allowed status transitions ───────────────────────────────────────────────
@@ -23,8 +61,7 @@ VALID_TRANSITIONS = {
 
 def _get_order_for_user(qs, pk, user):
     """Return the order or raise DoesNotExist, scoped to the user's access level."""
-    branch_id     = getattr(user, 'branch_id',     None)
-    restaurant_id = getattr(user, 'restaurant_id', None)
+    restaurant_id, branch_id = _resolve_user_scope(user)
 
     if branch_id:
         return qs.get(id=pk, branch_id=str(branch_id))
@@ -41,17 +78,22 @@ class OrderViewSet(AuditLogMixin, viewsets.ViewSet):
         user = request.user
         qs   = models.Order.objects.filter(deleted_at__isnull=True)
 
-        branch_id     = getattr(user, 'branch_id',     None)
-        restaurant_id = getattr(user, 'restaurant_id', None)
+        restaurant_id, branch_id = _resolve_user_scope(user)
+        role = getattr(user, 'role', None)
 
         # Optional status filter from query params (e.g. ?status=ready,out_for_delivery)
         status_filter = request.query_params.get('status', '')
         status_list   = [s.strip() for s in status_filter.split(',') if s.strip()]
 
+        is_restaurant_staff = role in RESTAURANT_ROLES
+        
         if branch_id:
             qs = qs.filter(branch_id=str(branch_id))
         elif restaurant_id:
             qs = qs.filter(restaurant_id=str(restaurant_id))
+        elif is_restaurant_staff:
+            # Preserve legacy fallback for staff accounts without a resolvable scope.
+            pass
         else:
             # Customer — own orders only; delivery staff pass ?status= instead
             if not status_list:
@@ -88,13 +130,13 @@ class OrderViewSet(AuditLogMixin, viewsets.ViewSet):
 
         # Prioritize payload restaurant_id over user attribute
         # For customers, payload should contain the restaurant_id from the cart
-        restaurant_id = payload.get('restaurant_id')
+        restaurant_id = _clean_id(payload.get('restaurant_id'))
         if not restaurant_id:
-            restaurant_id = getattr(request.user, 'restaurant_id', None)
+            restaurant_id, _ = _resolve_user_scope(request.user)
         
-        branch_id = payload.get('branch_id')
+        branch_id = _clean_id(payload.get('branch_id'))
         if not branch_id:
-            branch_id = getattr(request.user, 'branch_id', None)
+            _, branch_id = _resolve_user_scope(request.user)
 
         if not restaurant_id:
             return Response(
@@ -115,7 +157,6 @@ class OrderViewSet(AuditLogMixin, viewsets.ViewSet):
                 or restaurant.branches.first()
             )
             if not first_branch:
-                from authentication.models import Branch
                 try:
                     first_branch = Branch.objects.create(
                         restaurant=restaurant,

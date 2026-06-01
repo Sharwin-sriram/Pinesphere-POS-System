@@ -299,3 +299,64 @@ class TestBugConditionExploration:
             f"BUG CONFIRMED: Order {order_id} is not visible to restaurant-admin. "
             f"This proves customer-placed orders are invisible to restaurant staff."
         )
+
+    @pytest.mark.django_db
+    def test_owner_linked_by_restaurant_email_can_list_restaurant_orders(self):
+        """
+        Restaurant owners may be associated by matching Restaurant.email rather
+        than users.restaurant_id. The orders API should use the same fallback
+        as the auth profile serializer so /restaurant-admin/orders is populated.
+        """
+        restaurant = Restaurant.objects.create(
+            name="Dominionn",
+            address="123 Food St",
+            phone="1234567890",
+            email="owner@dominionn.test",
+        )
+        branch = Branch.objects.create(
+            restaurant=restaurant,
+            name="Main Branch",
+            address="123 Food St",
+            phone="1234567890",
+        )
+        owner = User.objects.create_user(
+            email="owner@dominionn.test",
+            mobile="9000000001",
+            first_name="Owner",
+            last_name="User",
+            role=User.RoleChoices.ORGANIZATION_OWNER,
+            restaurant_id=None,
+            branch_id=None,
+        )
+        customer = User.objects.create_user(
+            email="customer@dominionn.test",
+            mobile="9000000002",
+            first_name="Customer",
+            last_name="User",
+            role=User.RoleChoices.CUSTOMER,
+            restaurant_id=None,
+            branch_id=None,
+        )
+
+        client = APIClient()
+        client.force_authenticate(user=customer)
+        create_response = client.post(
+            '/api/v1/orders/',
+            {
+                'restaurant_id': str(restaurant.id),
+                'branch_id': str(branch.id),
+                'customer_id': str(customer.id),
+                'delivery_type': 'delivery',
+                'items': [{'name': 'Garlic', 'quantity': 1, 'unit_price': 99}],
+            },
+            format='json',
+        )
+        assert create_response.status_code == 201, create_response.data
+        order_id = create_response.data['data']['id']
+
+        admin_client = APIClient()
+        admin_client.force_authenticate(user=owner)
+        list_response = admin_client.get('/api/v1/orders/')
+
+        assert list_response.status_code == 200, list_response.data
+        assert order_id in [order['id'] for order in list_response.data['data']]
