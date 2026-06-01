@@ -1,25 +1,47 @@
 "use client";
 
-import { orders } from "../data/mockData";
+import { useEffect, useState } from "react";
+import { deliveryApi } from "../services/delivery.service";
 
 export default function ActiveOrdersTable() {
-  return (
-    <div className="bg-white rounded-2xl shadow-sm p-5 overflow-x-auto">
-      <h2 className="text-xl font-bold mb-5">
-        Active Orders
-      </h2>
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-      <table className="w-full">
+  useEffect(() => {
+    async function loadOrders() {
+      try {
+        const data = await deliveryApi.getOrders();
+        setOrders(data);
+      } catch (error) {
+        console.error("Failed to load orders:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadOrders();
+  }, []);
+
+  if (loading) {
+    return <div className="p-5 text-center text-[var(--color-text-secondary)]">Loading orders...</div>;
+  }
+
+  return (
+    <div className="card-light !p-5 overflow-x-auto">
+      <div className="mb-5">
+        <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Active Orders</h2>
+        <p className="text-sm text-[var(--color-text-secondary)]">Live order tracking across all riders</p>
+      </div>
+
+      <table className="w-full text-sm">
         <thead>
-          <tr className="text-left border-b">
-            <th className="pb-3">Order ID</th>
-            <th>Customer</th>
-            <th>Status</th>
-            <th>Delivery</th>
-            <th>Rider</th>
-            <th>ETA</th>
-            <th>Amount</th>
-            <th>Payment</th>
+          <tr className="text-left border-b border-[var(--color-border)]">
+            <th className="pb-3 text-[var(--color-text-muted)] font-medium">Order #</th>
+            <th className="pb-3 text-[var(--color-text-muted)] font-medium">Customer</th>
+            <th className="pb-3 text-[var(--color-text-muted)] font-medium">Status</th>
+            <th className="pb-3 text-[var(--color-text-muted)] font-medium">Delivery</th>
+            <th className="pb-3 text-[var(--color-text-muted)] font-medium">Rider</th>
+            <th className="pb-3 text-[var(--color-text-muted)] font-medium">ETA</th>
+            <th className="pb-3 text-[var(--color-text-muted)] font-medium">Amount</th>
           </tr>
         </thead>
 
@@ -27,41 +49,47 @@ export default function ActiveOrdersTable() {
           {orders.map((order) => (
             <tr
               key={order.id}
-              className="border-b hover:bg-gray-50"
+              className="border-b border-[var(--color-border)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
             >
-              <td className="py-4 font-medium">
-                #{order.id}
+              <td className="py-4 font-semibold text-[var(--color-text-primary)]">
+                {order.order_details?.order_number || `#${order.order_id}`}
               </td>
 
-              <td>{order.customer}</td>
+              <td className="py-4 text-[var(--color-text-primary)]">
+                {order.order_details?.customer_name || "Guest"}
+              </td>
 
-              <td>
-                <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
+              <td className="py-4">
+                <span className="bg-[var(--color-warning-subtle)] text-[var(--color-warning)] px-3 py-1 rounded-full text-xs font-semibold">
                   {order.status}
                 </span>
               </td>
 
-              <td>
-                <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm">
-                  {order.deliveryStatus}
+              <td className="py-4">
+                <span className="bg-[var(--color-accent-subtle)] text-[var(--color-accent)] px-3 py-1 rounded-full text-xs font-semibold">
+                  {order.status}
                 </span>
               </td>
 
-              <td>{order.rider}</td>
-
-              <td>{order.eta}</td>
-
-              <td>
-                ₹{order.netAmount}
+              <td className="py-4 text-[var(--color-text-secondary)]">
+                {order.courier ? order.courier.name : "Unassigned"}
               </td>
-
-              <td>
-                {order.paymentMethod}
+              <td className="py-4 text-[var(--color-text-secondary)]">{order.eta || "-"}</td>
+              <td className="py-4 font-semibold text-[var(--color-text-primary)]">
+                ₹{order.order_details?.total_amount || "0"}
               </td>
             </tr>
           ))}
+          {orders.length === 0 && (
+            <tr>
+              <td colSpan={7} className="py-8 text-center text-[var(--color-text-muted)]">
+                No active orders found.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
   );
 }
+

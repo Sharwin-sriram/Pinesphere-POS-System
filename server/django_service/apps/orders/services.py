@@ -65,6 +65,19 @@ def create_order(tenant, branch, order_type, table_id, items) -> Order:
     totals = calculate_totals(order)
     order.total_amount = totals["net_total"]
     order.save(update_fields=["total_amount", "updated_at"])
+
+    if order_type and order_type.lower() == "delivery":
+        # Create a delivery record automatically
+        try:
+            from pinesphere.apps.delivery.services import create_delivery
+            create_delivery(order.id, {
+                'restaurant_id': tenant,
+                'branch_id': branch,
+                'notes': 'Auto-created from order'
+            })
+        except ImportError:
+            pass
+
     return order
 
 

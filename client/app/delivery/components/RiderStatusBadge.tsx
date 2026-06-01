@@ -2,20 +2,16 @@ interface Props {
   status: string;
 }
 
-export default function RiderStatusBadge({
-  status,
-}: Props) {
+export default function RiderStatusBadge({ status }: Props) {
   const colors: Record<string, string> = {
-    Online: "bg-green-100 text-green-600",
-    Offline: "bg-gray-100 text-gray-600",
-    Delivering: "bg-blue-100 text-blue-600",
+    Online:     "bg-[var(--color-success-subtle)] text-[var(--color-success)]",
+    Offline:    "bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)]",
+    Delivering: "bg-[var(--color-accent-subtle)] text-[var(--color-accent)]",
   };
 
   return (
-    <span
-      className={`px-3 py-1 rounded-full text-sm ${colors[status]}`}
-    >
+    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colors[status] ?? colors.Offline}`}>
       {status}
     </span>
   );
-}
+}
