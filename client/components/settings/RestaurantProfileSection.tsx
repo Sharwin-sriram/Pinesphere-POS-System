@@ -4,13 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
+import { Building2, CircleAlert } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import { SectionFrame, UnsavedChangesBar } from "./SectionFrame";
 import { WeekdayHoursEditor } from "./shared";
 import { restaurantProfileSchema, type RestaurantProfileFormValues } from "@/lib/validators/settings";
-import { useSettingsRestaurant, useUpdateSettingsRestaurant, useUploadSettingsRestaurantLogo } from "@/hooks/useSettingsRestaurant";
+import { useSettingsRestaurant, useUpdateSettingsRestaurant, useUploadSettingsRestaurantLogo, useUploadSettingsRestaurantCoverPhoto } from "@/hooks/useSettingsRestaurant";
 
 const TIMEZONE_OPTIONS = ["UTC", "Asia/Kolkata", "Asia/Dubai", "Europe/London", "America/New_York"];
 const CURRENCY_OPTIONS = ["USD", "INR", "AED", "EUR", "GBP"];
@@ -44,7 +45,13 @@ export default function RestaurantProfileSection() {
   const { data, error, isError, isFetching, isLoading, refetch } = useSettingsRestaurant();
   const updateMutation = useUpdateSettingsRestaurant();
   const uploadMutation = useUploadSettingsRestaurantLogo();
+  const uploadCoverMutation = useUploadSettingsRestaurantCoverPhoto();
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [coverPhotoFile, setCoverPhotoFile] = useState<File | null>(null);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
+  const [isClosingRestaurant, setIsClosingRestaurant] = useState(false);
+  const isRestaurantActive = Boolean(data?.is_active ?? true);
 
   const defaults = useMemo<RestaurantProfileFormValues>(() => {
     if (!data) return FALLBACK_PROFILE_DEFAULTS;
@@ -75,6 +82,27 @@ export default function RestaurantProfileSection() {
     }
   }, [data, defaults, form]);
 
+  // Create object URLs for immediate preview when a file is selected
+  useEffect(() => {
+    if (logoFile) {
+      const url = URL.createObjectURL(logoFile);
+      setLogoPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setLogoPreviewUrl(null);
+    return;
+  }, [logoFile]);
+
+  useEffect(() => {
+    if (coverPhotoFile) {
+      const url = URL.createObjectURL(coverPhotoFile);
+      setCoverPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setCoverPreviewUrl(null);
+    return;
+  }, [coverPhotoFile]);
+
   const onSubmit = form.handleSubmit(async (values) => {
     try {
       const payload = {
@@ -86,6 +114,16 @@ export default function RestaurantProfileSection() {
         await uploadMutation.mutateAsync({ restaurantId: updated.id, file: logoFile });
         setLogoFile(null);
       }
+      if (coverPhotoFile && updated?.id) {
+        await uploadCoverMutation.mutateAsync({ restaurantId: updated.id, file: coverPhotoFile });
+        setCoverPhotoFile(null);
+      }
+      // refetch settings so the newly uploaded media URLs are visible
+      try {
+        await refetch();
+      } catch (e) {
+        // ignore
+      }
       toast.success("Restaurant profile saved");
       form.reset(values);
     } catch (error) {
@@ -93,11 +131,57 @@ export default function RestaurantProfileSection() {
     }
   });
 
+  const handleCloseRestaurant = async () => {
+    if (!data?.id || !isRestaurantActive) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Closing the restaurant will mark it inactive for staff and POS access. Continue?",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setIsClosingRestaurant(true);
+      await updateMutation.mutateAsync({
+        ...form.getValues(),
+        operating_hours: form.getValues("operating_hours"),
+        is_active: false,
+      });
+      toast.success("Restaurant closed");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to close restaurant");
+    } finally {
+      setIsClosingRestaurant(false);
+    }
+  };
+
   return (
     <SectionFrame
       title="Restaurant Profile"
       description="Manage the core restaurant identity and operating defaults."
-      actions={<Button variant="secondary" onClick={() => form.reset(defaults)}>Reset</Button>}
+      actions={
+        <div className="flex flex-wrap items-center gap-3">
+          <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${isRestaurantActive ? "border-[var(--color-accent-green)] bg-[var(--color-accent-green-subtle)] text-[var(--color-accent-green)]" : "border-[var(--color-danger)] bg-[var(--color-danger-subtle)] text-[var(--color-danger)]"}`}>
+            <Building2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+            {isRestaurantActive ? "Open" : "Closed"}
+          </div>
+          <Button variant="secondary" onClick={() => form.reset(defaults)}>Reset</Button>
+          <Button
+            type="button"
+            variant="danger"
+            onClick={handleCloseRestaurant}
+            disabled={!isRestaurantActive || isClosingRestaurant || updateMutation.isPending}
+            loading={isClosingRestaurant}
+            leftIcon={<CircleAlert className="h-4 w-4" strokeWidth={1.5} />}
+          >
+            Close restaurant
+          </Button>
+        </div>
+      }
     >
       {!data && !isError && (isLoading || isFetching) ? (
         <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
@@ -189,12 +273,39 @@ export default function RestaurantProfileSection() {
             <p className="text-sm text-[var(--color-text-secondary)]">Upload a new restaurant logo. The file is sent separately so profile edits stay lightweight.</p>
           </div>
           <Input type="file" accept="image/*" onChange={(event) => setLogoFile(event.target.files?.[0] || null)} />
-          {data?.logo ? <p className="text-xs text-[var(--color-text-muted)]">Current logo: {data.logo}</p> : null}
+          <div className="mt-2 flex items-center gap-3">
+            {logoPreviewUrl ? (
+              <img src={logoPreviewUrl} alt="Logo preview" className="h-16 w-16 rounded-md object-cover border" />
+            ) : data?.logo ? (
+              <img src={data.logo} alt="Current logo" className="h-16 w-16 rounded-md object-cover border" />
+            ) : (
+              <div className="h-16 w-16 rounded-md border bg-[var(--color-bg-tertiary)] flex items-center justify-center text-xs text-[var(--color-text-muted)]">No logo</div>
+            )}
+            {data?.logo ? <p className="text-xs text-[var(--color-text-muted)]">Current logo: {data.logo}</p> : null}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Cover photo</h3>
+            <p className="text-sm text-[var(--color-text-secondary)]">Upload a wide banner image for the restaurant profile header.</p>
+          </div>
+          <Input type="file" accept="image/*" onChange={(event) => setCoverPhotoFile(event.target.files?.[0] || null)} />
+          <div className="mt-2">
+            {coverPreviewUrl ? (
+              <img src={coverPreviewUrl} alt="Cover preview" className="h-32 w-full rounded-md object-cover border" />
+            ) : data?.cover_photo ? (
+              <img src={data.cover_photo} alt="Current cover" className="h-32 w-full rounded-md object-cover border" />
+            ) : (
+              <div className="h-32 w-full rounded-md border bg-[var(--color-bg-tertiary)] flex items-center justify-center text-sm text-[var(--color-text-muted)]">No cover photo</div>
+            )}
+            {data?.cover_photo ? <p className="text-xs text-[var(--color-text-muted)]">Current cover photo: {data.cover_photo}</p> : null}
+          </div>
         </div>
 
         <div className="flex justify-end gap-3 border-t border-[var(--color-border)] pt-4">
           <Button type="button" variant="secondary" onClick={() => form.reset(defaults)}>Discard</Button>
-          <Button type="submit" loading={updateMutation.isPending || uploadMutation.isPending}>Save changes</Button>
+          <Button type="submit" loading={updateMutation.isPending || uploadMutation.isPending || uploadCoverMutation.isPending}>Save changes</Button>
         </div>
       </form>
     </SectionFrame>

@@ -42,7 +42,7 @@ class Order(models.Model):
     restaurant = models.ForeignKey('authentication.Restaurant', on_delete=models.CASCADE)
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
     table = models.ForeignKey('tables.Table', null=True, blank=True, on_delete=models.SET_NULL)
-    customer = models.ForeignKey('crm.Customer', null=True, blank=True, on_delete=models.SET_NULL)
+    customer = models.ForeignKey('authentication.User', null=True, blank=True, on_delete=models.SET_NULL, related_name='orders_as_customer')
     order_type = models.CharField(max_length=20, choices=ORDER_TYPES)
     status = models.CharField(max_length=20, choices=STATUS, default='OPEN')
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -53,7 +53,7 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
-    created_by = models.ForeignKey('authentication.User', null=True, on_delete=models.SET_NULL)
+    created_by = models.ForeignKey('authentication.User', null=True, on_delete=models.SET_NULL, related_name='orders_created')
 
 
 class OrderItem(models.Model):

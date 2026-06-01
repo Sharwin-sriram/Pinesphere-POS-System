@@ -19,6 +19,13 @@ class Order(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    restaurant = models.ForeignKey(
+        'authentication.Restaurant',
+        on_delete=models.CASCADE,
+        related_name='orders',
+        null=True,
+        blank=True
+    )
     order_number = models.CharField(max_length=50, unique=True)
     status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
     customer_name = models.CharField(max_length=100, blank=True)
@@ -30,6 +37,9 @@ class Order(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['restaurant', '-created_at']),
+        ]
     
     def __str__(self):
         return f"Order {self.order_number}"

@@ -4,6 +4,7 @@ import React, { useRef, useState } from "react";
 import { UploadCloud, Image, Loader2, Trash2 } from "lucide-react";
 import { menuApi } from "../services/menuApi";
 import { toast } from "react-hot-toast";
+import { resolveMediaUrl } from "@/components/ui/mediaUrl";
 
 interface ImageUploadZoneProps {
   value?: string | null;
@@ -83,16 +84,6 @@ export default function ImageUploadZone({ value, onChange }: ImageUploadZoneProp
     }
   };
 
-  // Convert relative backend paths to full URLs if needed
-  const getFullImageUrl = (url: string) => {
-    if (!url) return "";
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-      return url;
-    }
-    const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
-    return `${backendUrl}${url.startsWith("/") ? "" : "/"}${url}`;
-  };
-
   return (
     <div className="flex flex-col gap-2">
       <span className="text-xs uppercase tracking-wider text-[var(--color-text-muted)] font-semibold">
@@ -127,7 +118,7 @@ export default function ImageUploadZone({ value, onChange }: ImageUploadZoneProp
           <div className="relative h-full w-full group">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={getFullImageUrl(value)}
+              src={resolveMediaUrl(value)}
               alt="Uploaded preview"
               className="h-full w-full object-cover rounded-lg"
             />

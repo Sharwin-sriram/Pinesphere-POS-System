@@ -6,15 +6,21 @@ import authService, { httpClient } from "../../lib/authService";
 
 export interface CartItem {
   id: string;
+  menu_item_id?: string;
   name: string;
   price: number;
+  original_price?: number;
+  discounted_price?: number | null;
+  effective_price?: number;
   quantity: number;
   image?: string;
   restaurant?: string;
+  restaurantId?: string;
 }
 
 interface CartContextType {
   cartItems: CartItem[];
+  restaurantId?: string;
   addToCart: (item: Omit<CartItem, "quantity">) => Promise<void>;
   removeFromCart: (id: string) => Promise<void>;
   updateQuantity: (id: string, quantity: number) => Promise<void>;
@@ -30,6 +36,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [restaurantId, setRestaurantId] = useState<string | undefined>(undefined);
   const [hydrated, setHydrated] = useState(false);
 
   // Load from backend cart API on mount
@@ -41,7 +48,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const res = await httpClient.get("/api/cart/");
         const data = res?.data ?? {};
         const items = Array.isArray(data) ? data : data.items ?? data.cart ?? [];
-        if (mounted) setCartItems(items);
+        if (mounted) {
+          setCartItems(items);
+          setRestaurantId(data.restaurant_id || undefined);
+        }
       } catch (err) {
         // If unauthenticated or server error, keep empty cart silently
         console.debug("Failed to load cart:", err);
@@ -69,7 +79,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         name: item.name,
         price: item.price,
         image: item.image,
-        restaurant: item.restaurant,
+        restaurant: item.restaurant || item.restaurantId,
+        restaurant_id: item.restaurantId,
         quantity: 1,
       });
       // refresh cart
@@ -77,6 +88,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const data = res?.data ?? {};
       const items = Array.isArray(data) ? data : data.items ?? data.cart ?? [];
       setCartItems(items);
+      setRestaurantId(data.restaurant_id || undefined);
       toast.success(`${item.name} added to cart!`, {
         style: { borderRadius: "10px", background: "#333", color: "#fff" },
       });
@@ -88,8 +100,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeFromCart = async (id: string) => {
     try {
-      await httpClient.delete(`/api/cart/items/${id}/remove/`);
-      setCartItems((prev) => prev.filter((i) => i.id !== id));
+      const res = await httpClient.delete(`/api/cart/items/${id}/remove/`);
+      const data = res?.data ?? {};
+      const items = Array.isArray(data) ? data : data.items ?? data.cart ?? [];
+      setCartItems(items);
+      setRestaurantId(data.restaurant_id || undefined);
     } catch (error) {
       console.error("Remove from cart failed", error);
       toast.error("Failed to remove item");
@@ -115,6 +130,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       await httpClient.delete(`/api/cart/clear/`);
       setCartItems([]);
+      setRestaurantId(undefined);
     } catch (error) {
       console.error("Clear cart failed", error);
       toast.error("Failed to clear cart");
@@ -136,7 +152,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, checkout, cartCount, cartTotal }}
+      value={{ cartItems, restaurantId, addToCart, removeFromCart, updateQuantity, clearCart, checkout, cartCount, cartTotal }}
     >
       {children}
     </CartContext.Provider>

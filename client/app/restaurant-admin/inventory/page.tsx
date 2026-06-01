@@ -6,11 +6,6 @@ import { AlertTriangle, ArrowUpRight, Boxes, Package, RefreshCcw, Store, Truck }
 import EmptyState from "@/components/ui/EmptyState";
 import authService from "../../lib/authService";
 import { fetchRestaurants } from "../../dashboard/services/restaurantsApi";
-import {
-  getInventoryItems,
-  getLowStockItems,
-  getSuppliers,
-} from "../../inventory/services/inventoryApi";
 
 type InventoryItem = {
   id: number;
@@ -120,27 +115,8 @@ export default function InventoryPage() {
       setLoading(true);
       setError(null);
 
-      const [itemsResult, lowStockResult, suppliersResult] = await Promise.allSettled([
-        getInventoryItems(),
-        getLowStockItems(),
-        getSuppliers(),
-      ]);
 
       if (!mounted) return;
-
-      if (itemsResult.status === "fulfilled") {
-        setItems(itemsResult.value);
-      } else {
-        setError("Failed to load inventory items");
-      }
-
-      if (lowStockResult.status === "fulfilled") {
-        setLowStockItems(lowStockResult.value);
-      }
-
-      if (suppliersResult.status === "fulfilled") {
-        setSuppliers(suppliersResult.value);
-      }
 
       setLoading(false);
     };

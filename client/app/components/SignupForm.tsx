@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Eye, EyeOff, Lock, Mail, Phone, User } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import AuthShell from "./auth/AuthShell";
 import GoogleIcon from "./auth/GoogleIcon";
 import InputField from "./InputField";
@@ -13,20 +13,14 @@ import { getRoleHomePath } from "../lib/authRoutes";
 const iconProps = { className: "h-4 w-4", strokeWidth: 1.5 as const };
 
 const SIGNUP_FIELD_ORDER = [
-  "firstName",
-  "lastName",
   "email",
-  "mobile",
   "password",
   "confirmPassword",
 ] as const;
 
 const SignupForm = () => {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
     email: "",
-    mobile: "",
     password: "",
     confirmPassword: "",
   });
@@ -46,12 +40,8 @@ const SignupForm = () => {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
-    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
     if (!formData.email) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Please enter a valid email";
-    if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required";
-    else if (!/^\d{10,15}$/.test(formData.mobile.trim())) newErrors.mobile = "Please enter a valid mobile number";
     if (!formData.password) newErrors.password = "Password is required";
     else if (formData.password.length < 8) newErrors.password = "Password must be at least 8 characters";
     if (formData.confirmPassword !== formData.password) newErrors.confirmPassword = "Passwords do not match";
@@ -66,10 +56,7 @@ const SignupForm = () => {
     try {
       const result = await authService.register({
         email: formData.email,
-        mobile: formData.mobile,
         password: formData.password,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
       });
       if (result.success) {
         success("Account created", "Welcome to Pinesphere POS");
@@ -89,26 +76,6 @@ const SignupForm = () => {
       <ToastContainer />
       <AuthShell title="Create account" subtitle="Register your restaurant to get started">
         <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
-          <div className="grid grid-cols-2 gap-3">
-            <InputField
-              type="text"
-              name="firstName"
-              placeholder="First name"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              icon={<User {...iconProps} />}
-              error={errors.firstName}
-            />
-            <InputField
-              type="text"
-              name="lastName"
-              placeholder="Last name"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              icon={<User {...iconProps} />}
-              error={errors.lastName}
-            />
-          </div>
           <InputField
             type="text"
             name="email"
@@ -121,15 +88,6 @@ const SignupForm = () => {
             inputMode="email"
             autoCapitalize="off"
             spellCheck={false}
-          />
-          <InputField
-            type="tel"
-            name="mobile"
-            placeholder="e.g. 9876543210"
-            value={formData.mobile}
-            onChange={handleInputChange}
-            icon={<Phone {...iconProps} />}
-            error={errors.mobile}
           />
           <div className="relative">
             <InputField

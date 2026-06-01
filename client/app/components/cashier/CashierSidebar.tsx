@@ -45,7 +45,7 @@ export default function CashierSidebar({ isOpen, onClose }: CashierSidebarProps)
         <nav className="flex w-full flex-1 flex-col items-center gap-2 overflow-y-auto">
           {menuItems.map((item) => {
             const isActive =
-              pathname === item.path || (pathname.startsWith("/cashier/bill/") && item.path === "/cashier");
+              pathname === item.path || (pathname?.startsWith("/cashier/bill/") && item.path === "/cashier");
             const Icon = item.icon;
             return (
               <Link

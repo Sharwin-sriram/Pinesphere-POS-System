@@ -138,7 +138,8 @@ def update_restaurant_profile(restaurant: Restaurant, payload: dict[str, Any]) -
     restaurant.phone = payload.get("phone", restaurant.phone)
     restaurant.email = payload.get("email", restaurant.email)
     restaurant.timezone = payload.get("default_timezone", restaurant.timezone)
-    restaurant.save(update_fields=["name", "address", "phone", "email", "timezone", "updated_at"])
+    restaurant.is_active = bool(payload.get("is_active", restaurant.is_active))
+    restaurant.save(update_fields=["name", "address", "phone", "email", "timezone", "is_active", "updated_at"])
 
     settings.tax_id = payload.get("tax_id", settings.tax_id)
     settings.default_timezone = payload.get("default_timezone", settings.default_timezone)
@@ -169,6 +170,7 @@ def serialize_restaurant_profile(restaurant: Restaurant, settings: RestaurantSet
         "table_count": settings.table_count,
         "floor_capacity": settings.floor_capacity,
         "logo": settings.logo.url if settings.logo else None,
+        "cover_photo": settings.cover_photo.url if settings.cover_photo else None,
         "is_active": restaurant.is_active,
         "created_at": restaurant.created_at,
         "updated_at": restaurant.updated_at,

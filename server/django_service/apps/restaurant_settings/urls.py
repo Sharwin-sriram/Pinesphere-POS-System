@@ -16,6 +16,7 @@ from .views import (
     printer_detail_view,
     printer_test_view,
     printers_list_view,
+    restaurant_cover_photo_upload_view,
     restaurant_logo_upload_view,
     restaurant_settings_view,
     role_detail_view,
@@ -31,6 +32,7 @@ from .views import (
 urlpatterns = [
     path("restaurant/", restaurant_settings_view, name="restaurant-settings"),
     path("restaurant/logo/", restaurant_logo_upload_view, name="restaurant-settings-logo"),
+    path("restaurant/cover-photo/", restaurant_cover_photo_upload_view, name="restaurant-settings-cover-photo"),
     path("permissions/", permissions_list_view, name="settings-permissions"),
     path("roles/", roles_list_view, name="settings-roles"),
     path("roles/<int:role_id>/", role_detail_view, name="settings-role-detail"),

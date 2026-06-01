@@ -20,7 +20,7 @@ export default function TableMenuPage() {
  const params = useParams();
  const router = useRouter();
  const { placeOrder } = usePOS();
- const tableId = params.id as string;
+ const tableId = (params?.id as string) || "";
 
  const [selectedItems, setSelectedItems] = useState<OrderItem[]>([]);
 

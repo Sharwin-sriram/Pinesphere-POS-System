@@ -4,7 +4,7 @@ from .views import (
     EmployeeViewSet, ShiftViewSet, EmployeeShiftViewSet, ShiftSwapRequestViewSet,
     AttendanceViewSet, AttendanceCorrectionViewSet, LeaveRequestViewSet, LeaveBalanceViewSet,
     PayrollViewSet, PerformanceRecordViewSet, IncentiveViewSet, NotificationViewSet,
-    hr_dashboard, mark_attendance, predict_scheduling,
+    hr_dashboard, mark_attendance,
     employee_dashboard, employee_attendance_history
 )
 
@@ -26,7 +26,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('dashboard/', hr_dashboard, name='hr_dashboard'),
     path('attendance/mark/', mark_attendance, name='mark_attendance'),
-    path('ai/predict-scheduling/', predict_scheduling, name='predict_scheduling'),
     path('employees/<int:pk>/my-dashboard/', employee_dashboard, name='employee_dashboard'),
     path('employees/<int:pk>/attendance-history/', employee_attendance_history, name='employee_attendance_history'),
 ]

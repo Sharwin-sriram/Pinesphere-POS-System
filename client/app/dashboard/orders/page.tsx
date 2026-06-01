@@ -1,113 +1,146 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { ArrowLeft, RefreshCw, PackageSearch } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { ArrowLeft, RefreshCw, PackageSearch, ChevronRight, Clock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authService } from "../../lib/authService";
-import { useOrderTracking } from "./useOrderTracking";
-import OrderCard from "./OrderCard";
-import { OrderStatus } from "./types";
-import { STATUS_COLORS, STATUS_LABELS } from "./orderConfig";
+import { useOrdersList } from "./useOrderTracking";
+import { Order, OrderStatus } from "./types";
+import { STATUS_COLORS, STATUS_LABELS, FAILURE_STATUSES } from "./orderConfig";
 
-// ─── Demo: cycle through statuses to preview the tracker ─────────────────────
-const DEMO_STATUSES: OrderStatus[] = [
-  "PLACED",
-  "ACCEPTED",
-  "PREPARING",
-  "READY_FOR_PICKUP",
-  "OUT_FOR_DELIVERY",
-  "DELIVERED",
-  "CANCELLED",
-  "PAYMENT_FAILED",
-  "REFUNDED",
-];
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function isActiveOrder(status: OrderStatus) {
+  return !FAILURE_STATUSES.includes(status) && status !== "DELIVERED";
+}
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
-function OrderSkeleton() {
+function OrderRowSkeleton() {
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden animate-shimmer">
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--color-border)]">
-        <div className="h-10 w-10 rounded-lg bg-[var(--color-bg-tertiary)]" />
-        <div className="flex-1 space-y-2">
-          <div className="h-3.5 w-40 rounded bg-[var(--color-bg-tertiary)]" />
-          <div className="h-3 w-56 rounded bg-[var(--color-bg-tertiary)]" />
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-5 animate-pulse">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="h-10 w-10 rounded-lg bg-[var(--color-bg-tertiary)] shrink-0" />
+          <div className="flex-1 space-y-2">
+            <div className="h-3.5 w-36 rounded bg-[var(--color-bg-tertiary)]" />
+            <div className="h-3 w-52 rounded bg-[var(--color-bg-tertiary)]" />
+          </div>
         </div>
-        <div className="h-6 w-24 rounded-full bg-[var(--color-bg-tertiary)]" />
-      </div>
-      <div className="px-5 py-8 flex items-center justify-between gap-2">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <React.Fragment key={i}>
-            <div className="flex flex-col items-center gap-2">
-              <div className="h-10 w-10 rounded-full bg-[var(--color-bg-tertiary)]" />
-              <div className="h-3 w-16 rounded bg-[var(--color-bg-tertiary)]" />
-            </div>
-            {i < 5 && <div className="h-0.5 flex-1 rounded bg-[var(--color-bg-tertiary)]" />}
-          </React.Fragment>
-        ))}
+        <div className="h-6 w-24 rounded-full bg-[var(--color-bg-tertiary)] shrink-0" />
       </div>
     </div>
   );
 }
 
+// ─── Order row card ───────────────────────────────────────────────────────────
+function OrderRow({ order }: { order: Order }) {
+  const colors  = STATUS_COLORS[order.status];
+  const active  = isActiveOrder(order.status);
+  const preview = order.items.slice(0, 2).map((i) => i.name).join(", ") +
+    (order.items.length > 2 ? ` +${order.items.length - 2} more` : "");
+
+  return (
+    <Link
+      href={`/dashboard/orders/${order.id}`}
+      className="group block rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] hover:border-[var(--color-border-hover)] hover:shadow-sm transition-all duration-200 overflow-hidden"
+      aria-label={`View order ${order.orderNumber}`}
+    >
+      <div className="flex items-center gap-4 px-5 py-4">
+        {/* Restaurant icon */}
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--color-accent)] to-blue-600 text-white text-lg font-bold shadow-sm">
+          {(order.restaurantName?.[0] ?? "R").toUpperCase()}
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">
+            {order.restaurantName}
+          </p>
+          <p className="text-xs text-[var(--color-text-muted)] truncate mt-0.5">
+            {order.orderNumber} · {formatDate(order.placedAt)}
+          </p>
+          <p className="text-xs text-[var(--color-text-secondary)] truncate mt-1">
+            {preview}
+          </p>
+        </div>
+
+        {/* Right side */}
+        <div className="shrink-0 flex flex-col items-end gap-2">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold
+              ${colors.bg} ${colors.text} ${colors.border}`}
+          >
+            {active && <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${colors.dot}`} />}
+            {STATUS_LABELS[order.status]}
+          </span>
+          <span className="text-xs font-semibold text-[var(--color-text-primary)]">
+            ₹{Number(order.total).toFixed(2)}
+          </span>
+        </div>
+
+        <ChevronRight
+          className="h-4 w-4 text-[var(--color-text-muted)] group-hover:text-[var(--color-text-secondary)] shrink-0 transition-colors"
+          strokeWidth={1.75}
+        />
+      </div>
+
+      {/* Active order live banner */}
+      {active && (
+        <div className={`flex items-center gap-2 px-5 py-2 border-t border-[var(--color-border)] ${colors.bg}`}>
+          <Clock className={`h-3.5 w-3.5 shrink-0 ${colors.text}`} strokeWidth={1.75} />
+          <p className={`text-xs font-medium ${colors.text}`}>
+            Live · Tap to track your order in real time
+          </p>
+        </div>
+      )}
+    </Link>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function OrdersPage() {
-  const router = useRouter();
-  const [isAuthorized, setIsAuthorized] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+  const router       = useRouter();
+  const [authorized, setAuthorized] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    const userRole = authService.getUserRole();
-    // Restrict access for restaurant roles
-    if (userRole && ["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(userRole)) {
-      setIsAuthorized(false);
-      // Redirect to restaurant admin dashboard
+    const role = authService.getUserRole();
+    if (role && ["ORGANIZATION_OWNER", "restaurant", "restaurant-admin"].includes(role)) {
+      setAuthorized(false);
       router.push("/restaurant-admin");
     }
-    setIsLoading(false);
+    setAuthChecked(true);
   }, [router]);
 
-  if (isLoading) {
+  const { orders, loading, error, refetch } = useOrdersList(30_000);
+
+  if (!authChecked) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-sm text-[var(--color-text-secondary)]">Loading...</p>
+        <p className="text-sm text-[var(--color-text-secondary)]">Loading…</p>
       </div>
     );
   }
 
-  if (!isAuthorized) {
-    return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] py-16 text-center">
-        <PackageSearch className="mb-4 h-10 w-10 text-[var(--color-text-muted)]" strokeWidth={1.25} />
-        <p className="text-sm font-semibold text-[var(--color-text-primary)]">Access Denied</p>
-        <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-          This page is not available for restaurant staff. Please use the restaurant admin dashboard.
-        </p>
-        <Link
-          href="/restaurant-admin"
-          className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-accent-hover)] transition-smooth"
-        >
-          Go to Restaurant Admin
-        </Link>
-      </div>
-    );
-  }
-  // In production, get orderId from URL params or user session
-  const orderId = "demo-order-001";
+  if (!authorized) return null;
 
-  const { order, loading, error, refetch } = useOrderTracking({
-    orderId,
-    // wsUrl: `ws://localhost:8000/ws/orders/${orderId}/`,  // uncomment for real WS
-  });
-
-  // Demo status override for previewing all states
-  const [demoStatus, setDemoStatus] = useState<OrderStatus | null>(null);
-  const displayOrder = order && demoStatus ? { ...order, status: demoStatus } : order;
+  const activeOrders   = orders.filter((o) => isActiveOrder(o.status));
+  const pastOrders     = orders.filter((o) => !isActiveOrder(o.status));
 
   return (
     <div className="space-y-6 animate-fade-in-up">
 
-      {/* ── Page header ── */}
+      {/* ── Header ── */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link
@@ -119,81 +152,65 @@ export default function OrdersPage() {
           </Link>
           <div>
             <h1 className="text-[length:var(--text-xl)] font-semibold text-[var(--color-text-primary)]">
-              Track Order
+              My Orders
             </h1>
             <p className="text-[length:var(--text-sm)] text-[var(--color-text-secondary)]">
-              Live order status and delivery updates
+              {loading ? "Loading…" : `${orders.length} order${orders.length !== 1 ? "s" : ""} · auto-refreshes every 30s`}
             </p>
           </div>
         </div>
 
         <button
+          id="orders-refresh-btn"
           onClick={refetch}
           disabled={loading}
           className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2 text-xs font-medium text-[var(--color-text-secondary)] hover:border-[var(--color-border-hover)] transition-smooth disabled:opacity-50"
-          aria-label="Refresh order status"
+          aria-label="Refresh orders"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} strokeWidth={1.75} />
           Refresh
         </button>
       </div>
 
-      {/* ── Demo status switcher (remove in production) ── */}
-      <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-4">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
-          Preview status (demo only)
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setDemoStatus(null)}
-            className={[
-              "rounded-full border px-3 py-1 text-xs font-medium transition-smooth",
-              demoStatus === null
-                ? "border-[var(--color-blue)] bg-blue-50 text-[var(--color-blue)]"
-                : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border-hover)]",
-            ].join(" ")}
-          >
-            Live
-          </button>
-          {DEMO_STATUSES.map((s) => {
-            const c = STATUS_COLORS[s];
-            const active = demoStatus === s;
-            return (
-              <button
-                key={s}
-                onClick={() => setDemoStatus(s)}
-                className={[
-                  "rounded-full border px-3 py-1 text-xs font-medium transition-smooth",
-                  active
-                    ? `${c.bg} ${c.text} ${c.border}`
-                    : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border-hover)]",
-                ].join(" ")}
-              >
-                {STATUS_LABELS[s]}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── Error state ── */}
+      {/* ── Error ── */}
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
 
-      {/* ── Loading skeleton ── */}
-      {loading && !displayOrder && <OrderSkeleton />}
+      {/* ── Loading ── */}
+      {loading && orders.length === 0 && (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => <OrderRowSkeleton key={i} />)}
+        </div>
+      )}
 
-      {/* ── Order card ── */}
-      {displayOrder && <OrderCard order={displayOrder} />}
+      {/* ── Active orders ── */}
+      {!loading && activeOrders.length > 0 && (
+        <section className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
+            Active Orders
+          </p>
+          {activeOrders.map((o) => <OrderRow key={o.id} order={o} />)}
+        </section>
+      )}
 
-      {/* ── Empty state ── */}
-      {!loading && !error && !displayOrder && (
+      {/* ── Past orders ── */}
+      {!loading && pastOrders.length > 0 && (
+        <section className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
+            Order History
+          </p>
+          {pastOrders.map((o) => <OrderRow key={o.id} order={o} />)}
+        </section>
+      )}
+
+      {/* ── Empty ── */}
+      {!loading && !error && orders.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] py-16 text-center">
           <PackageSearch className="mb-4 h-10 w-10 text-[var(--color-text-muted)]" strokeWidth={1.25} />
-          <p className="text-sm font-semibold text-[var(--color-text-primary)]">No active orders</p>
+          <p className="text-sm font-semibold text-[var(--color-text-primary)]">No orders yet</p>
           <p className="mt-1 text-xs text-[var(--color-text-muted)]">
             Your order history will appear here once you place an order.
           </p>

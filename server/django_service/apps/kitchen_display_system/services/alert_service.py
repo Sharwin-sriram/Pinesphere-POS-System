@@ -240,7 +240,7 @@ class AlertService:
     def _send_sms_notification(alert):
         """Send alert via SMS"""
         try:
-            # Integration with SMS service (Twilio, etc.)
+            # Integration with SMS service provider
             logger.info(f"SMS notification sent for alert: {alert.id}")
             return True
         except Exception as e:

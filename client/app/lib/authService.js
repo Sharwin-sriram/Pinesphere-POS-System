@@ -126,39 +126,85 @@ function clearSession() {
 function extractApiError(error, fallbackMessage) {
   const data = error?.response?.data;
 
+  const collectMessages = (value, messages) => {
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (trimmed) messages.push(trimmed);
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach((item) => collectMessages(item, messages));
+      return;
+    }
+
+    if (value && typeof value === "object") {
+      Object.values(value).forEach((item) => collectMessages(item, messages));
+    }
+  };
+
+  const extractEnvelopeMessages = (envelope) => {
+    const details = envelope?.error?.details;
+    if (!Array.isArray(details) || details.length === 0) {
+      return "";
+    }
+
+    const messages = [];
+    details.forEach((item) => {
+      if (Array.isArray(item?.messages)) {
+        item.messages.forEach((message) => collectMessages(message, messages));
+      } else {
+        collectMessages(item, messages);
+      }
+    });
+
+    const uniqueMessages = [...new Set(messages.filter(Boolean))];
+    return uniqueMessages.join(". ");
+  };
+
+  if (typeof data === "string" && data.trim()) {
+    return data.trim();
+  }
+
   if (typeof data?.message === "string") {
     return data.message;
+  }
+
+  if (typeof data?.error === "string") {
+    return data.error;
   }
 
   if (typeof data?.detail === "string") {
     return data.detail;
   }
 
+  if (data && typeof data === "object" && data.error && typeof data.error === "object") {
+    const validationMessage = extractEnvelopeMessages(data);
+    if (validationMessage) {
+      return validationMessage;
+    }
+
+    if (typeof data.error.message === "string" && data.error.message.trim()) {
+      return data.error.message.trim();
+    }
+  }
+
   if (data && typeof data === "object") {
     const messages = [];
-
-    const collectMessages = (value) => {
-      if (typeof value === "string") {
-        messages.push(value);
-        return;
-      }
-
-      if (Array.isArray(value)) {
-        value.forEach(collectMessages);
-        return;
-      }
-
-      if (value && typeof value === "object") {
-        Object.values(value).forEach(collectMessages);
-      }
-    };
-
     Object.values(data).forEach(collectMessages);
 
     const uniqueMessages = [...new Set(messages.filter(Boolean))];
     if (uniqueMessages.length > 0) {
       return uniqueMessages.join(". ");
     }
+  }
+
+  if (typeof error?.response?.statusText === "string" && error.response.statusText.trim()) {
+    return error.response.statusText;
+  }
+
+  if (typeof error?.message === "string" && error.message.trim()) {
+    return error.message;
   }
 
   return fallbackMessage;
@@ -434,6 +480,31 @@ export const authService = {
     } finally {
       clearSession();
       window.location.href = "/login";
+    }
+  },
+
+  // Delete the authenticated account
+  deleteAccount: async () => {
+    try {
+      const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+      if (!refreshToken) {
+        return { success: false, error: "No refresh token found" };
+      }
+
+      await api.delete("/auth/me/", {
+        data: {
+          refresh_token: refreshToken,
+        },
+      });
+
+      clearSession();
+      window.location.href = "/login";
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: extractApiError(error, "Failed to delete account"),
+      };
     }
   },
 

@@ -27,6 +27,8 @@ urlpatterns = [
     path("login/mobile/", MobileLoginView.as_view()),
     path("oauth/google/start/", GoogleOAuthStartView.as_view()),
     path("oauth/google/callback/", GoogleOAuthCallbackView.as_view()),
+    path("send-otp/", OtpSendView.as_view()),
+    path("verify-otp/", OtpVerifyView.as_view()),
     path("otp/send/", OtpSendView.as_view()),
     path("otp/verify/", OtpVerifyView.as_view()),
     path("token/refresh/", TokenRefreshView.as_view()),

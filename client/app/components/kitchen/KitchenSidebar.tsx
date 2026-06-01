@@ -45,7 +45,7 @@ export default function KitchenSidebar({ isOpen, onClose }: KitchenSidebarProps)
     {/* Menu Items */}
     <nav className="flex-1 w-full flex flex-col gap-4 items-center overflow-y-auto custom-scrollbar-light">
       {menuItems.map((item) => {
-        const isActive = pathname === item.path || (pathname.startsWith('/kitchen/order/') && item.path === '/kitchen');
+        const isActive = pathname === item.path || (pathname?.startsWith('/kitchen/order/') && item.path === '/kitchen');
         
         return (
           <Link 

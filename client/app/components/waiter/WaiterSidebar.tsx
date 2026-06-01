@@ -47,7 +47,7 @@ export default function WaiterSidebar({ isOpen, onClose }: WaiterSidebarProps) {
     {/* Menu Items */}
     <nav className="flex-1 w-full flex flex-col gap-4 items-center overflow-y-auto custom-scrollbar-light">
       {menuItems.map((item) => {
-        const isActive = pathname === item.path || (pathname.startsWith('/waiter/table/') && item.path === '/waiter');
+        const isActive = pathname === item.path || (pathname?.startsWith('/waiter/table/') && item.path === '/waiter');
         
         return (
           <Link 

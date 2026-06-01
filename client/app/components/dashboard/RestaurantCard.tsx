@@ -1,7 +1,6 @@
 "use client";
 
 import { Clock, MapPin, Star } from "lucide-react";
-import Image from "next/image";
 import type { Restaurant } from "../../dashboard/services/restaurantsApi";
 
 export default function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
@@ -9,12 +8,11 @@ export default function RestaurantCard({ restaurant }: { restaurant: Restaurant 
     <article className="group overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] transition duration-150 hover:-translate-y-0.5 hover:border-[var(--color-border-hover)]">
       <div className="relative h-40 w-full bg-[var(--color-bg-tertiary)]">
         {restaurant.image_url ? (
-          <Image
+          // Use a plain <img> to avoid Next.js remote host config issues in dev.
+          <img
             src={restaurant.image_url}
             alt={`${restaurant.name} banner`}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="object-cover transition duration-250 group-hover:scale-[1.03]"
+            className="absolute inset-0 h-full w-full object-cover transition duration-250 group-hover:scale-[1.03]"
             loading="lazy"
           />
         ) : null}

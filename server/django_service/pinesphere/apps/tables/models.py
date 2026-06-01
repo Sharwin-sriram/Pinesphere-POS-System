@@ -44,7 +44,7 @@ class TableMerge(models.Model):
 class Reservation(models.Model):
     STATUS = (('BOOKED', 'Booked'), ('CANCELLED', 'Cancelled'), ('SEATED', 'Seated'))
     table = models.ForeignKey(Table, on_delete=models.CASCADE)
-    customer = models.ForeignKey('crm.Customer', null=True, blank=True, on_delete=models.SET_NULL)
+    customer = models.ForeignKey('authentication.User', null=True, blank=True, on_delete=models.SET_NULL, related_name='reservations')
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     status = models.CharField(max_length=20, choices=STATUS, default='BOOKED')

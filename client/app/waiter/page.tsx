@@ -10,7 +10,7 @@ export default function WaiterLogin() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const submit = async (e) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
